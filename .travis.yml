@@ -1,0 +1,19 @@
+os: linux
+
+language: python
+
+install: pip install tox
+
+jobs:
+  include:
+  - python: "3.6"
+    env: TOX_ENV=cov-travis
+  - python: "3.6"
+    env: TOX_ENV=static
+  - python: "3.6"
+    env: TOX_ENV=docs
+
+script: tox -e $TOX_ENV
+
+after_success:
+- test $TOX_ENV = docs && scripts/push-docs
