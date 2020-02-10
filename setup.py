@@ -37,7 +37,7 @@ setup(
         "Topic :: Software Development :: Libraries :: Python Modules",
     ],
     install_requires=get_requirements(),
-    python_requires=">=2.6",
+    python_requires=">=3",
     project_urls={
         "Documentation": "https://release-engineering.github.io/cdn-lambda",
         "Changelog": "https://github.com/release-engineering/cdn-lambda/blob/master/CHANGELOG.md",
