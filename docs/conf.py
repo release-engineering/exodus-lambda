@@ -21,7 +21,7 @@ sys.path.insert(0, os.path.abspath(".."))
 # -- Project information -----------------------------------------------------
 
 project = "cdn-lambda"
-copyright = "2019, Red Hat"
+copyright = "2020, Red Hat"
 author = "Red Hat"
 
 # The short X.Y version
