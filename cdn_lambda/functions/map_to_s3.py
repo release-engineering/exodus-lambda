@@ -49,7 +49,7 @@ def lambda_handler(event, context):
             return {
                 "status": "500",
                 "statusDescription": "Internal Server Error",
-                "body": json.dumps({"error": err_msg})
+                "body": {"error": err_msg},
             }
     else:
         LOG.info("No item for '%s'", web_uri)
