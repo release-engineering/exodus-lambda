@@ -1,7 +1,7 @@
 import json
 import logging
 import os
-from datetime import datetime
+from datetime import datetime, timezone
 
 import boto3
 
@@ -9,7 +9,7 @@ LOG = logging.getLogger("map-to-s3-lambda")
 
 
 def lambda_handler(event, context):
-    _ = context
+    # pylint: disable=unused-argument
 
     # This AWS Lambda function must be deployed with DB_TABLE_NAME and
     # DB_TABLE_REGION environment variables
@@ -23,6 +23,8 @@ def lambda_handler(event, context):
     # Query latest item with matching uri from DynamoDB table
     LOG.info("Querying '%s' table for '%s'...", table_name, web_uri)
 
+    iso_now = datetime.now(timezone.utc).isoformat(timespec="milliseconds")
+
     query_result = boto3.client("dynamodb", region_name=table_region).query(
         TableName=table_name,
         Limit=1,
@@ -30,7 +32,7 @@ def lambda_handler(event, context):
         KeyConditionExpression="web_uri = :u and from_date <= :d",
         ExpressionAttributeValues={
             ":u": {"S": web_uri},
-            ":d": {"S": str(datetime.utcnow())},
+            ":d": {"S": str(iso_now)},
         },
     )
 
