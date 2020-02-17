@@ -39,20 +39,18 @@ def lambda_handler(event, context):
     if query_result["Items"]:
         LOG.info("Item found for '%s'", web_uri)
 
-        # Update request uri to point to S3 object key
-        latest_item = query_result["Items"][0]
-
         try:
-            request["uri"] = latest_item["object_key"]["S"]
+            # Update request uri to point to S3 object key
+            request["uri"] = query_result["Items"][0]["object_key"]["S"]
+
             return request
-        except KeyError:
-            err_msg = "No 'object_key' found in %s", json.dumps(latest_item)
-            LOG.error(err_msg)
-            return {
-                "status": "500",
-                "statusDescription": "Internal Server Error",
-                "body": {"error": err_msg},
-            }
+        except Exception as err:
+            LOG.exception(
+                "Exception occurred while processing %s",
+                json.dumps(query_result["Items"][0]),
+            )
+
+            raise err
     else:
         LOG.info("No item for '%s'", web_uri)
 
