@@ -27,29 +27,7 @@ def test_map_to_s3(mocked_datetime, mocked_boto3_client):
     with mock.patch.dict(os.environ, env_vars):
         request = lambda_handler(event, context=None)
 
-    mocked_boto3_client().query.assert_called_with(
-        TableName="test_table",
-        Limit=1,
-        ScanIndexForward=False,
-        KeyConditionExpression="web_uri = :u and from_date <= :d",
-        ExpressionAttributeValues={
-            ":u": {"S": TEST_PATH},
-            ":d": {"S": MOCKED_DT},
-        },
-    )
-
     assert request == {"uri": "e4a3f2sum"}
-
-    mocked_boto3_client().query.assert_called_with(
-        TableName="test_table",
-        Limit=1,
-        ScanIndexForward=False,
-        KeyConditionExpression="web_uri = :u and from_date <= :d",
-        ExpressionAttributeValues={
-            ":u": {"S": TEST_PATH},
-            ":d": {"S": MOCKED_DT},
-        },
-    )
 
 
 @mock.patch("boto3.client")
@@ -63,17 +41,6 @@ def test_map_to_s3_no_item(mocked_datetime, mocked_boto3_client):
 
     with mock.patch.dict(os.environ, env_vars):
         request = lambda_handler(event, context=None)
-
-    mocked_boto3_client().query.assert_called_with(
-        TableName="test_table",
-        Limit=1,
-        ScanIndexForward=False,
-        KeyConditionExpression="web_uri = :u and from_date <= :d",
-        ExpressionAttributeValues={
-            ":u": {"S": TEST_PATH},
-            ":d": {"S": MOCKED_DT},
-        },
-    )
 
     assert request == {"status": "404", "statusDescription": "Not Found"}
 
@@ -96,17 +63,6 @@ def test_map_to_s3_invalid_item(mocked_datetime, mocked_boto3_client):
 
     with mock.patch.dict(os.environ, env_vars):
         request = lambda_handler(event, context=None)
-
-    mocked_boto3_client().query.assert_called_with(
-        TableName="test_table",
-        Limit=1,
-        ScanIndexForward=False,
-        KeyConditionExpression="web_uri = :u and from_date <= :d",
-        ExpressionAttributeValues={
-            ":u": {"S": TEST_PATH},
-            ":d": {"S": MOCKED_DT},
-        },
-    )
 
     err_msg = (
         "No 'object_key' found in %s",
