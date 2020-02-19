@@ -1,0 +1,175 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>map_to_s3 Schemas &#8212; cdn-lambda  documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="prev" title="Schema Reference" href="../schema-reference.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="map-to-s3-schemas">
+<h1>map_to_s3 Schemas<a class="headerlink" href="#map-to-s3-schemas" title="Permalink to this headline">¶</a></h1>
+<p>The following schemas are required of AWS S3 bucket objects and DynamoDB table
+items for use with the map_to_s3 AWS Lambda function.</p>
+<div class="section" id="s3-bucket-schema">
+<h2>S3 Bucket Schema<a class="headerlink" href="#s3-bucket-schema" title="Permalink to this headline">¶</a></h2>
+<p>Objects should be stored in the origin S3 bucket using the file’s sha256
+checksum as their key.</p>
+</div>
+<div class="section" id="dynamodb-table-schema">
+<h2>DynamoDB Table Schema<a class="headerlink" href="#dynamodb-table-schema" title="Permalink to this headline">¶</a></h2>
+<p>DynamoDB table items must possess the following keys and attributes.</p>
+<p>Additional attributes are supported by the no-SQL model and may be used as
+needed.</p>
+<div class="section" id="keys">
+<h3>Keys<a class="headerlink" href="#keys" title="Permalink to this headline">¶</a></h3>
+<ul>
+<li><dl>
+<dt>web_uri</dt><dd><p>(Primary)</p>
+<p>A logical path to the desired content, excluding the hostname,
+i.e., “/content/place/somepic.png”.</p>
+</dd>
+</dl>
+</li>
+<li><dl>
+<dt>from_date</dt><dd><p>(Sort)</p>
+<p>The datetime at which the content is made available, i.e.,
+“2020-02-17T20:48:13.037+00:00”.</p>
+<p>Only content sooner than or equal to the current date and time may be
+retrieved from the origin.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</div>
+<div class="section" id="attributes">
+<h3>Attributes<a class="headerlink" href="#attributes" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><dl class="simple">
+<dt>object_key</dt><dd><p>The key of the file object stored in the origin S3 bucket.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</div>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">cdn-lambda</a></h1>
+
+
+
+<p class="blurb">AWS Lambda functions for Red Hat's Content Delivery Network</p>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../function-reference.html">Function Reference</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../schema-reference.html">Schema Reference</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">map_to_s3 Schemas</a></li>
+</ul>
+</li>
+</ul>
+
+
+<hr />
+<ul>
+    
+    <li class="toctree-l1"><a href="https://github.com/release-engineering/cdn-lambda">Source</a></li>
+    
+    <li class="toctree-l1"><a href="https://pypi.org/project/cdn-lambda">PyPI</a></li>
+    
+    <li class="toctree-l1"><a href="genindex.html">Index</a></li>
+    
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="../schema-reference.html">Schema Reference</a><ul>
+      <li>Previous: <a href="../schema-reference.html" title="previous chapter">Schema Reference</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, Red Hat.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.4.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../_sources/schemas/map_to_s3-schema.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+    <a href="https://github.com/release-engineering/cdn-lambda" class="github">
+        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
+    </a>
+    
+
+    
+  </body>
+</html>
