@@ -1,6 +1,5 @@
 import json
 import logging
-import os
 from datetime import datetime, timezone
 
 import boto3
@@ -8,25 +7,30 @@ import boto3
 LOG = logging.getLogger("map-to-s3-lambda")
 
 
-def lambda_handler(event, context):
+def load_conf(conf_file):
+    with open(conf_file, "r") as json_file:
+        content = json.load(json_file)
+
+    return content
+
+
+def lambda_handler(event, context, conf_file=None):
     # pylint: disable=unused-argument
 
-    # This AWS Lambda function must be deployed with DB_TABLE_NAME and
-    # DB_TABLE_REGION environment variables
-    table_name = os.getenv("DB_TABLE_NAME")
-    table_region = os.getenv("DB_TABLE_REGION")
+    conf_file = conf_file or "map_to_s3.json"
+    conf = load_conf(conf_file)
 
     # Get uri from origin request event
     request = event["Records"][0]["cf"]["request"]
     web_uri = request["uri"]
 
-    # Query latest item with matching uri from DynamoDB table
-    LOG.info("Querying '%s' table for '%s'...", table_name, web_uri)
+    LOG.info("Querying '%s' table for '%s'...", conf["table"]["name"], web_uri)
 
     iso_now = datetime.now(timezone.utc).isoformat(timespec="milliseconds")
 
-    query_result = boto3.client("dynamodb", region_name=table_region).query(
-        TableName=table_name,
+    db_client = boto3.client("dynamodb", region_name=conf["table"]["region"])
+    query_result = db_client.query(
+        TableName=conf["table"]["name"],
         Limit=1,
         ScanIndexForward=False,
         KeyConditionExpression="web_uri = :u and from_date <= :d",
@@ -41,7 +45,7 @@ def lambda_handler(event, context):
 
         try:
             # Update request uri to point to S3 object key
-            request["uri"] = query_result["Items"][0]["object_key"]["S"]
+            request["uri"] = "/" + query_result["Items"][0]["object_key"]["S"]
 
             return request
         except Exception as err:
