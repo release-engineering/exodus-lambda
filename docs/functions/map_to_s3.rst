@@ -14,24 +14,22 @@ Deployment
 ----------
 
 This function may be deployed like any other AWS Lambda function using the
-following event and environment variables.
+following event and configuration file.
 
 Event
 ^^^^^
 The event for this function must be a CloudFront distribution origin-request to
 an S3 bucket.
 
-Environment Variables
-^^^^^^^^^^^^^^^^^^^^^
-- DB_TABLE_NAME
-    (Required)
+Configuration
+^^^^^^^^^^^^^
+The map_to_s3 function must be deployed with the map_to_s3.json configuration
+file.
 
-    The name of the DynamoDB table from which to derive mapping.
-- DB_TABLE_REGION
-    (Optional)
+- table
+    The DynamoDB table from which to derive path to key mapping.
 
-    The AWS region in which the table resides.
-    If omitted, the region used is that of the function.
-
-`AWS Lambda Environment Variables
-<https://docs.aws.amazon.com/lambda/latest/dg/configuration-envvars.html>`_
+    - name
+        The name of the DynamoDB table.
+    - region
+        The AWS region in which the table resides.
