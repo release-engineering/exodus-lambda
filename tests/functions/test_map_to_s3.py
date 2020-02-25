@@ -1,15 +1,15 @@
-from cdn_lambda.functions.map_to_s3 import lambda_handler
-import os
+from cdn_lambda.functions.map_to_s3.map_to_s3 import LambdaClient
 import pytest
 import mock
 import json
 
 TEST_PATH = "www.example.com/content/file.ext"
 MOCKED_DT = "2020-02-17T15:38:05.864+00:00"
+CONF_PATH = "cdn_lambda/functions/map_to_s3/map_to_s3.json"
 
 
 @mock.patch("boto3.client")
-@mock.patch("cdn_lambda.functions.map_to_s3.datetime")
+@mock.patch("cdn_lambda.functions.map_to_s3.map_to_s3.datetime")
 def test_map_to_s3(mocked_datetime, mocked_boto3_client):
     mocked_datetime.now().isoformat.return_value = MOCKED_DT
     mocked_boto3_client().query.return_value = {
@@ -22,32 +22,28 @@ def test_map_to_s3(mocked_datetime, mocked_boto3_client):
         ]
     }
 
-    env_vars = {"DB_TABLE_NAME": "test_table", "DB_TABLE_REGION": "us-east-1"}
     event = {"Records": [{"cf": {"request": {"uri": TEST_PATH}}}]}
 
-    with mock.patch.dict(os.environ, env_vars):
-        request = lambda_handler(event, context=None)
+    request = LambdaClient(conf_file=CONF_PATH).handler(event, context=None)
 
-    assert request == {"uri": "e4a3f2sum"}
+    assert request == {"uri": "/e4a3f2sum"}
 
 
 @mock.patch("boto3.client")
-@mock.patch("cdn_lambda.functions.map_to_s3.datetime")
+@mock.patch("cdn_lambda.functions.map_to_s3.map_to_s3.datetime")
 def test_map_to_s3_no_item(mocked_datetime, mocked_boto3_client):
     mocked_datetime.now().isoformat.return_value = MOCKED_DT
     mocked_boto3_client().query.return_value = {"Items": []}
 
-    env_vars = {"DB_TABLE_NAME": "test_table", "DB_TABLE_REGION": "us-east-1"}
     event = {"Records": [{"cf": {"request": {"uri": TEST_PATH}}}]}
 
-    with mock.patch.dict(os.environ, env_vars):
-        request = lambda_handler(event, context=None)
+    request = LambdaClient(conf_file=CONF_PATH).handler(event, context=None)
 
     assert request == {"status": "404", "statusDescription": "Not Found"}
 
 
 @mock.patch("boto3.client")
-@mock.patch("cdn_lambda.functions.map_to_s3.datetime")
+@mock.patch("cdn_lambda.functions.map_to_s3.map_to_s3.datetime")
 def test_map_to_s3_invalid_item(mocked_datetime, mocked_boto3_client, caplog):
     mocked_datetime.now().isoformat.return_value = MOCKED_DT
     mocked_boto3_client().query.return_value = {
@@ -59,12 +55,10 @@ def test_map_to_s3_invalid_item(mocked_datetime, mocked_boto3_client, caplog):
         ]
     }
 
-    env_vars = {"DB_TABLE_NAME": "test_table", "DB_TABLE_REGION": "us-east-1"}
     event = {"Records": [{"cf": {"request": {"uri": TEST_PATH}}}]}
 
-    with mock.patch.dict(os.environ, env_vars):
-        with pytest.raises(KeyError):
-            lambda_handler(event, context=None)
+    with pytest.raises(KeyError):
+        LambdaClient(conf_file=CONF_PATH).handler(event, context=None)
 
     assert (
         "Exception occurred while processing %s"
