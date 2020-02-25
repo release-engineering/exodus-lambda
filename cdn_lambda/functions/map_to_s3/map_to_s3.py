@@ -34,33 +34,33 @@ class LambdaClient(object):
     def handler(self, event, context):
         # pylint: disable=unused-argument
 
-        # Get uri from origin request event
         request = event["Records"][0]["cf"]["request"]
-        web_uri = request["uri"]
 
         LOG.info(
             "Querying '%s' table for '%s'...",
             self.conf["table"]["name"],
-            web_uri,
+            request["uri"],
         )
 
-        iso_now = datetime.now(timezone.utc).isoformat(timespec="milliseconds")
-
-        print(event)
         query_result = self.db_client.query(
             TableName=self.conf["table"]["name"],
             Limit=1,
             ScanIndexForward=False,
             KeyConditionExpression="web_uri = :u and from_date <= :d",
             ExpressionAttributeValues={
-                ":u": {"S": web_uri},
-                ":d": {"S": str(iso_now)},
+                ":u": {"S": request["uri"]},
+                ":d": {
+                    "S": str(
+                        datetime.now(timezone.utc).isoformat(
+                            timespec="milliseconds"
+                        )
+                    )
+                },
             },
         )
-        print(query_result)
 
         if query_result["Items"]:
-            LOG.info("Item found for '%s'", web_uri)
+            LOG.info("Item found for '%s'", request["uri"])
 
             try:
                 # Update request uri to point to S3 object key
@@ -77,7 +77,7 @@ class LambdaClient(object):
 
                 raise err
         else:
-            LOG.info("No item for '%s'", web_uri)
+            LOG.info("No item found for '%s'", request["uri"])
 
             # Report 404 to prevent attempts on S3
             return {
