@@ -43,30 +43,35 @@ DynamoDB table this function is deployed with.</p>
 <div class="section" id="deployment">
 <h2>Deployment<a class="headerlink" href="#deployment" title="Permalink to this headline">¶</a></h2>
 <p>This function may be deployed like any other AWS Lambda function using the
-following event and environment variables.</p>
+following event and configuration file.</p>
 <div class="section" id="event">
 <h3>Event<a class="headerlink" href="#event" title="Permalink to this headline">¶</a></h3>
 <p>The event for this function must be a CloudFront distribution origin-request to
 an S3 bucket.</p>
 </div>
-<div class="section" id="environment-variables">
-<h3>Environment Variables<a class="headerlink" href="#environment-variables" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="configuration">
+<h3>Configuration<a class="headerlink" href="#configuration" title="Permalink to this headline">¶</a></h3>
+<p>The map_to_s3 function must be deployed with the map_to_s3.json configuration
+file.</p>
+<ul class="simple">
+<li><dl class="simple">
+<dt>table</dt><dd><p>The DynamoDB table from which to derive path to key mapping.</p>
 <ul>
-<li><dl>
-<dt>DB_TABLE_NAME</dt><dd><p>(Required)</p>
-<p>The name of the DynamoDB table from which to derive mapping.</p>
+<li><dl class="simple">
+<dt>name</dt><dd><p>The name of the DynamoDB table.</p>
 </dd>
 </dl>
 </li>
-<li><dl>
-<dt>DB_TABLE_REGION</dt><dd><p>(Optional)</p>
-<p>The AWS region in which the table resides.
-If omitted, the region used is that of the function.</p>
+<li><dl class="simple">
+<dt>region</dt><dd><p>The AWS region in which the table resides.</p>
 </dd>
 </dl>
 </li>
 </ul>
-<p><a class="reference external" href="https://docs.aws.amazon.com/lambda/latest/dg/configuration-envvars.html">AWS Lambda Environment Variables</a></p>
+</dd>
+</dl>
+</li>
+</ul>
 </div>
 </div>
 </div>
@@ -149,7 +154,7 @@ If omitted, the region used is that of the function.</p>
       &copy;2020, Red Hat.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.4.2</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.4.3</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |
