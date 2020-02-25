@@ -1,11 +1,14 @@
 map_to_s3
 =========
 
-This function provides mapping from a web URI, delivered by an AWS CloudFront
-event, to the key of an object in an AWS S3 bucket.
+The map_to_s3 function provides mapping from a web URI, delivered by an AWS
+CloudFront event, to the key of an object in an AWS S3 bucket.
 
-The mapping between the URI and the object key is defined by the provided AWS
-DynamoDB table this function is deployed with.
+Using this function, a URI like "/path/to/s3/file" would be transformed to
+something like "/some-s3-file-object-key".
+
+The mapping between the URI and the object key is defined by the AWS DynamoDB
+table specified in the configuration file that this function is deployed with.
 
 Required schemas for the DynamoDB table and S3 bucket can be found in the
 :doc:`schema reference <../schema-reference>`.

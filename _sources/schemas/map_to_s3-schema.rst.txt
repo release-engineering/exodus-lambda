@@ -32,7 +32,7 @@ Keys
     The datetime at which the content is made available, i.e.,
     "2020-02-17T20:48:13.037+00:00".
 
-    Only content sooner than or equal to the current date and time may be
+    Only content with a from_date sooner than or equal to the current date and time may be
     retrieved from the origin.
 
 Attributes
