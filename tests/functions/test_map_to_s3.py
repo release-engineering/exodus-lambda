@@ -1,4 +1,4 @@
-from cdn_lambda.functions.map_to_s3.map_to_s3 import lambda_handler
+from cdn_lambda.functions.map_to_s3.map_to_s3 import LambdaClient
 import pytest
 import mock
 import json
@@ -24,7 +24,7 @@ def test_map_to_s3(mocked_datetime, mocked_boto3_client):
 
     event = {"Records": [{"cf": {"request": {"uri": TEST_PATH}}}]}
 
-    request = lambda_handler(event, context=None, conf_file=CONF_PATH)
+    request = LambdaClient(conf_file=CONF_PATH).handler(event, context=None)
 
     assert request == {"uri": "/e4a3f2sum"}
 
@@ -37,7 +37,7 @@ def test_map_to_s3_no_item(mocked_datetime, mocked_boto3_client):
 
     event = {"Records": [{"cf": {"request": {"uri": TEST_PATH}}}]}
 
-    request = lambda_handler(event, context=None, conf_file=CONF_PATH)
+    request = LambdaClient(conf_file=CONF_PATH).handler(event, context=None)
 
     assert request == {"status": "404", "statusDescription": "Not Found"}
 
@@ -58,7 +58,7 @@ def test_map_to_s3_invalid_item(mocked_datetime, mocked_boto3_client, caplog):
     event = {"Records": [{"cf": {"request": {"uri": TEST_PATH}}}]}
 
     with pytest.raises(KeyError):
-        lambda_handler(event, context=None, conf_file=CONF_PATH)
+        LambdaClient(conf_file=CONF_PATH).handler(event, context=None)
 
     assert (
         "Exception occurred while processing %s"

@@ -7,59 +7,84 @@ import boto3
 LOG = logging.getLogger("map-to-s3-lambda")
 
 
-def load_conf(conf_file):
-    with open(conf_file, "r") as json_file:
-        content = json.load(json_file)
+class LambdaClient(object):
+    def __init__(self, conf_file="map_to_s3.json"):
+        self._conf_file = conf_file
 
-    return content
+        self._conf = None
+        self._db_client = None
 
+    @property
+    def conf(self):
+        if not self._conf:
+            with open(self._conf_file, "r") as json_file:
+                self._conf = json.load(json_file)
 
-def lambda_handler(event, context, conf_file=None):
-    # pylint: disable=unused-argument
+        return self._conf
 
-    conf_file = conf_file or "map_to_s3.json"
-    conf = load_conf(conf_file)
-
-    # Get uri from origin request event
-    request = event["Records"][0]["cf"]["request"]
-    web_uri = request["uri"]
-
-    LOG.info("Querying '%s' table for '%s'...", conf["table"]["name"], web_uri)
-
-    iso_now = datetime.now(timezone.utc).isoformat(timespec="milliseconds")
-
-    db_client = boto3.client("dynamodb", region_name=conf["table"]["region"])
-    query_result = db_client.query(
-        TableName=conf["table"]["name"],
-        Limit=1,
-        ScanIndexForward=False,
-        KeyConditionExpression="web_uri = :u and from_date <= :d",
-        ExpressionAttributeValues={
-            ":u": {"S": web_uri},
-            ":d": {"S": str(iso_now)},
-        },
-    )
-
-    if query_result["Items"]:
-        LOG.info("Item found for '%s'", web_uri)
-
-        try:
-            # Update request uri to point to S3 object key
-            request["uri"] = "/" + query_result["Items"][0]["object_key"]["S"]
-
-            return request
-        except Exception as err:
-            LOG.exception(
-                "Exception occurred while processing %s",
-                json.dumps(query_result["Items"][0]),
+    @property
+    def db_client(self):
+        if not self._db_client:
+            self._db_client = boto3.client(
+                "dynamodb", region_name=self.conf["table"]["region"]
             )
 
-            raise err
-    else:
-        LOG.info("No item for '%s'", web_uri)
+        return self._db_client
 
-        # Report 404 to prevent attempts on S3
-        return {
-            "status": "404",
-            "statusDescription": "Not Found",
-        }
+    def handler(self, event, context):
+        # pylint: disable=unused-argument
+
+        # Get uri from origin request event
+        request = event["Records"][0]["cf"]["request"]
+        web_uri = request["uri"]
+
+        LOG.info(
+            "Querying '%s' table for '%s'...",
+            self.conf["table"]["name"],
+            web_uri,
+        )
+
+        iso_now = datetime.now(timezone.utc).isoformat(timespec="milliseconds")
+
+        print(event)
+        query_result = self.db_client.query(
+            TableName=self.conf["table"]["name"],
+            Limit=1,
+            ScanIndexForward=False,
+            KeyConditionExpression="web_uri = :u and from_date <= :d",
+            ExpressionAttributeValues={
+                ":u": {"S": web_uri},
+                ":d": {"S": str(iso_now)},
+            },
+        )
+        print(query_result)
+
+        if query_result["Items"]:
+            LOG.info("Item found for '%s'", web_uri)
+
+            try:
+                # Update request uri to point to S3 object key
+                request["uri"] = (
+                    "/" + query_result["Items"][0]["object_key"]["S"]
+                )
+
+                return request
+            except Exception as err:
+                LOG.exception(
+                    "Exception occurred while processing %s",
+                    json.dumps(query_result["Items"][0]),
+                )
+
+                raise err
+        else:
+            LOG.info("No item for '%s'", web_uri)
+
+            # Report 404 to prevent attempts on S3
+            return {
+                "status": "404",
+                "statusDescription": "Not Found",
+            }
+
+
+# Make handler available at module level
+lambda_handler = LambdaClient().handler
