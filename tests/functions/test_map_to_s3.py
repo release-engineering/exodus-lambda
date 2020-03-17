@@ -3,26 +3,58 @@ import pytest
 import mock
 import json
 
-TEST_PATH = "www.example.com/content/file.ext"
+TEST_PATH = "/origin/rpms/repo/ver/dir/filename.ext"
 MOCKED_DT = "2020-02-17T15:38:05.864+00:00"
 CONF_PATH = "cdn_lambda/functions/map_to_s3/map_to_s3.json"
 
 
+@pytest.mark.parametrize(
+    "req_uri, real_uri",
+    [
+        (
+            "/origin/rpm/repo/ver/dir/filename.ext",
+            "/origin/rpms/repo/ver/dir/filename.ext",
+        ),
+        (
+            "/content/origin/repo/ver/dir/filename.ext",
+            "/origin/repo/ver/dir/filename.ext",
+        ),
+        (
+            "/content/origin/rpm/repo/ver/dir/filename.ext",
+            "/origin/rpms/repo/ver/dir/filename.ext",
+        ),
+        (
+            "/content/origin/repo/ver/origin/rpm/filename.ext",
+            "/origin/repo/ver/origin/rpm/filename.ext",
+        ),
+        (
+            "/origin/rpms/repo/ver/dir/filename.ext",
+            "/origin/rpms/repo/ver/dir/filename.ext",
+        ),
+    ],
+    ids=[
+        "/origin/rpm/",
+        "content/origin",
+        "content/origin/rpm",
+        "multiple alias keywords",
+        "no alias keywords",
+    ],
+)
 @mock.patch("boto3.client")
 @mock.patch("cdn_lambda.functions.map_to_s3.map_to_s3.datetime")
-def test_map_to_s3(mocked_datetime, mocked_boto3_client):
+def test_map_to_s3(mocked_datetime, mocked_boto3_client, req_uri, real_uri):
     mocked_datetime.now().isoformat.return_value = MOCKED_DT
     mocked_boto3_client().query.return_value = {
         "Items": [
             {
-                "web_uri": {"S": TEST_PATH},
+                "web_uri": {"S": real_uri},
                 "from_date": {"S": "2020-02-17T00:00:00.000+00:00"},
                 "object_key": {"S": "e4a3f2sum"},
             }
         ]
     }
 
-    event = {"Records": [{"cf": {"request": {"uri": TEST_PATH}}}]}
+    event = {"Records": [{"cf": {"request": {"uri": req_uri}}}]}
 
     request = LambdaClient(conf_file=CONF_PATH).handler(event, context=None)
 

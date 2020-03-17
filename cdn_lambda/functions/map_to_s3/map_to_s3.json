@@ -2,5 +2,9 @@
   "table": {
     "name": "exodus",
     "region": "us-east-1"
-  }
+  },
+  "uri_aliases": [
+    ["/content/origin/", "/origin/"],
+    ["/origin/rpm/", "/origin/rpms/"]
+  ]
 }
