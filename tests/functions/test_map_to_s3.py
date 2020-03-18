@@ -5,7 +5,7 @@ import json
 
 TEST_PATH = "/origin/rpms/repo/ver/dir/filename.ext"
 MOCKED_DT = "2020-02-17T15:38:05.864+00:00"
-CONF_PATH = "cdn_lambda/functions/map_to_s3/map_to_s3.json"
+CONF_PATH = "cdn_lambda/functions/lambda_config.json"
 
 
 @pytest.mark.parametrize(
@@ -54,11 +54,18 @@ def test_map_to_s3(mocked_datetime, mocked_boto3_client, req_uri, real_uri):
         ]
     }
 
-    event = {"Records": [{"cf": {"request": {"uri": req_uri}}}]}
+    event = {"Records": [{"cf": {"request": {"uri": req_uri, "headers": {}}}}]}
 
     request = LambdaClient(conf_file=CONF_PATH).handler(event, context=None)
 
-    assert request == {"uri": "/e4a3f2sum"}
+    assert request == {
+        "uri": "/e4a3f2sum",
+        "headers": {
+            "exodus-original-uri": [
+                {"key": "exodus-original-uri", "value": req_uri}
+            ]
+        },
+    }
 
 
 @mock.patch("boto3.client")
