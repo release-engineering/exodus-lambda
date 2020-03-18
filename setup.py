@@ -16,7 +16,7 @@ def get_long_description():
 
 def get_requirements():
     with open("requirements.txt") as f:
-        return f.read().splitlines()
+        return [line.split()[0] for line in f.read().splitlines()]
 
 
 setup(
