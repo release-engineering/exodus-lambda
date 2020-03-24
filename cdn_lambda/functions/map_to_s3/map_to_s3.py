@@ -31,24 +31,29 @@ class LambdaClient(object):
 
         return self._db_client
 
+    def uri_alias(self, uri):
+        # NOTE: Aliases are processed in the order they are listed
+        for alias in self.conf["uri_aliases"]:
+            if uri.startswith(alias[0]):
+                uri = uri.replace(alias[0], alias[1])
+        return uri
+
     def handler(self, event, context):
         # pylint: disable=unused-argument
 
         request = event["Records"][0]["cf"]["request"]
+        uri = self.uri_alias(request["uri"])
+        table = self.conf["table"]["name"]
 
-        LOG.info(
-            "Querying '%s' table for '%s'...",
-            self.conf["table"]["name"],
-            request["uri"],
-        )
+        LOG.info("Querying '%s' table for '%s'...", table, uri)
 
         query_result = self.db_client.query(
-            TableName=self.conf["table"]["name"],
+            TableName=table,
             Limit=1,
             ScanIndexForward=False,
             KeyConditionExpression="web_uri = :u and from_date <= :d",
             ExpressionAttributeValues={
-                ":u": {"S": request["uri"]},
+                ":u": {"S": uri},
                 ":d": {
                     "S": str(
                         datetime.now(timezone.utc).isoformat(
@@ -60,7 +65,7 @@ class LambdaClient(object):
         )
 
         if query_result["Items"]:
-            LOG.info("Item found for '%s'", request["uri"])
+            LOG.info("Item found for '%s'", uri)
 
             try:
                 # Update request uri to point to S3 object key
@@ -77,7 +82,7 @@ class LambdaClient(object):
 
                 raise err
         else:
-            LOG.info("No item found for '%s'", request["uri"])
+            LOG.info("No item found for '%s'", uri)
 
             # Report 404 to prevent attempts on S3
             return {
@@ -87,4 +92,4 @@ class LambdaClient(object):
 
 
 # Make handler available at module level
-lambda_handler = LambdaClient().handler
+lambda_handler = LambdaClient().handler  # pylint: disable=invalid-name
