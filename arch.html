@@ -1,0 +1,348 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>Architecture &#8212; cdn-lambda  documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Function Reference" href="function-reference.html" />
+    <link rel="prev" title="cdn-lambda" href="index.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="architecture">
+<h1>Architecture<a class="headerlink" href="#architecture" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<p>This diagram shows the relationship between all major components used
+in the delivery of content via the CDN.</p>
+<div class="graphviz"><img src="_images/graphviz-d96de71f46c700fb9645fb841c870e586ce40b51.png" alt="digraph {
+    ranksep=&quot;1.4&quot;;
+
+    # These are arranged and labelled to communicate the
+    # sequence of events when a request is processed.
+    # Try to keep them in this order.
+    client:sw -&gt; controller [
+        xlabel=&lt; &lt;table bgcolor=&quot;white&quot; border=&quot;0&quot; cellborder=&quot;0&quot; cellpadding=&quot;0&quot; style=&quot;rounded&quot;&gt;&lt;tr&gt;&lt;td&gt;1&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt; &gt;
+    ]
+
+    controller:sw -&gt; origin_request [
+        xlabel=&lt; &lt;table bgcolor=&quot;white&quot; border=&quot;0&quot; cellborder=&quot;0&quot; cellpadding=&quot;0&quot; style=&quot;rounded&quot;&gt;&lt;tr&gt;&lt;td&gt;2&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt; &gt;
+    ]
+
+    origin_request -&gt; db [
+        xlabel=&lt; &lt;table bgcolor=&quot;white&quot; border=&quot;0&quot; cellborder=&quot;0&quot; cellpadding=&quot;0&quot; style=&quot;rounded&quot;&gt;&lt;tr&gt;&lt;td&gt;3&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt; &gt;,
+        dir=both
+    ]
+
+    origin_request -&gt; controller:s [
+        xlabel=&lt; &lt;table bgcolor=&quot;white&quot; border=&quot;0&quot; cellborder=&quot;0&quot; cellpadding=&quot;0&quot; style=&quot;rounded&quot;&gt;&lt;tr&gt;&lt;td&gt;4&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt; &gt;
+    ]
+
+    controller -&gt; S3 [
+        xlabel=&lt; &lt;table bgcolor=&quot;white&quot; border=&quot;0&quot; cellborder=&quot;0&quot; cellpadding=&quot;0&quot; style=&quot;rounded&quot;&gt;&lt;tr&gt;&lt;td&gt;5&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt; &gt;,
+        dir=both
+    ]
+
+    controller:se -&gt; origin_response [
+        xlabel=&lt; &lt;table bgcolor=&quot;white&quot; border=&quot;0&quot; cellborder=&quot;0&quot; cellpadding=&quot;0&quot; style=&quot;rounded&quot;&gt;&lt;tr&gt;&lt;td&gt;6&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt; &gt;,
+        dir=both
+    ]
+
+    controller -&gt; client:se [
+        xlabel=&lt; &lt;table bgcolor=&quot;white&quot; border=&quot;0&quot; cellborder=&quot;0&quot; cellpadding=&quot;0&quot; style=&quot;rounded&quot;&gt;&lt;tr&gt;&lt;td&gt;7&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt; &gt;
+    ]
+
+    # publishing tools are mentioned, but do not participate
+    # in the request processing.
+    # Connection order here is reversed to force the publishing tools to the bottom
+    # of the graph, which makes them stand out a bit more.
+    S3 -&gt; publish_tools [dir=&quot;back&quot;]
+    db -&gt; publish_tools [dir=&quot;back&quot;]
+
+    client [label=&quot;💻 client&quot;]
+    publish_tools [label=&quot;publishing tools&quot;, style=&quot;rounded&quot;, rank=&quot;max&quot;, shape=&quot;box&quot;]
+
+    db [
+        shape=plaintext
+        fontsize=9
+        label=&lt;
+
+            &lt;table border='1' cellborder='1' cellspacing='0'&gt;
+                &lt;tr&gt;&lt;td colspan='3'&gt;&lt;font point-size=&quot;14&quot;&gt;&lt;b&gt;☁ DynamoDB&lt;/b&gt;&lt;/font&gt;&lt;/td&gt;&lt;/tr&gt;
+                &lt;tr&gt;
+                    &lt;td&gt;&lt;b&gt;web_uri (partition key)&lt;/b&gt;&lt;/td&gt;
+                    &lt;td&gt;&lt;b&gt;from_date (sort key)&lt;/b&gt;&lt;/td&gt;
+                    &lt;td&gt;&lt;b&gt;object_key&lt;/b&gt;&lt;/td&gt;
+                &lt;/tr&gt;
+                &lt;tr&gt;
+                    &lt;td&gt;/content/dist/rhel/server/7/7Server/x86_64/os/Packages/t/tar-1.26-34.el7.x86_64.rpm&lt;/td&gt;
+                    &lt;td&gt;2020-03-26T01:07:39+00:00&lt;/td&gt;
+                    &lt;td&gt;8e7750e50734f...&lt;/td&gt;
+                &lt;/tr&gt;
+                &lt;tr&gt;
+                    &lt;td&gt;/content/dist/rhel/server/7/7Server/x86_64/os/Packages/z/zlib-1.2.7-18.el7.x86_64.rpm&lt;/td&gt;
+                    &lt;td&gt;2020-03-26T01:07:39+00:00&lt;/td&gt;
+                    &lt;td&gt;db8dd5164d117...&lt;/td&gt;
+                &lt;/tr&gt;
+                &lt;tr&gt;
+                    &lt;td&gt;/content/dist/rhel/server/7/7Server/x86_64/os/repodata/repomd.xml&lt;/td&gt;
+                    &lt;td&gt;2020-03-26T01:07:39+00:00&lt;/td&gt;
+                    &lt;td&gt;aec070645fe53...&lt;/td&gt;
+                &lt;/tr&gt;
+                &lt;tr&gt;
+                    &lt;td&gt;/content/dist/rhel/server/7/7Server/x86_64/os/repodata/repomd.xml&lt;/td&gt;
+                    &lt;td&gt;2020-01-22T02:07:20+00:00&lt;/td&gt;
+                    &lt;td&gt;5d70f436aa013...&lt;/td&gt;
+                &lt;/tr&gt;
+                &lt;tr&gt;&lt;td colspan='3'&gt;...&lt;/td&gt;&lt;/tr&gt;
+            &lt;/table&gt;
+        &gt;
+    ];
+
+    S3 [
+        shape=plaintext
+        fontsize=9
+        label=&lt;
+
+                &lt;table border='1' cellborder='1' cellspacing='0'&gt;
+                    &lt;tr&gt;&lt;td colspan='3'&gt;&lt;font point-size=&quot;14&quot;&gt;&lt;b&gt;☁ S3&lt;/b&gt;&lt;/font&gt;&lt;/td&gt;&lt;/tr&gt;
+                    &lt;tr&gt;
+                        &lt;td&gt;&lt;b&gt;key&lt;/b&gt;&lt;/td&gt;
+                        &lt;td&gt;&lt;b&gt;object&lt;/b&gt;&lt;/td&gt;
+                        &lt;td&gt;&lt;b&gt;metadata&lt;/b&gt;&lt;/td&gt;
+                    &lt;/tr&gt;
+                    &lt;tr&gt;
+                        &lt;td&gt;8e7750e50734f...&lt;/td&gt;
+                        &lt;td&gt;&lt;i&gt;[blob tar-1.26-34.el7.x86_64.rpm]&lt;/i&gt;&lt;/td&gt;
+                        &lt;td&gt;-&lt;/td&gt;
+                    &lt;/tr&gt;
+                    &lt;tr&gt;
+                        &lt;td&gt;db8dd5164d117...&lt;/td&gt;
+                        &lt;td&gt;&lt;i&gt;[blob zlib-1.2.7-18.el7.x86_64.rpm]&lt;/i&gt;&lt;/td&gt;
+                        &lt;td&gt;-&lt;/td&gt;
+                    &lt;/tr&gt;
+                    &lt;tr&gt;
+                        &lt;td&gt;aec070645fe5...&lt;/td&gt;
+                        &lt;td&gt;&lt;i&gt;[blob some repomd.xml]&lt;/i&gt;&lt;/td&gt;
+                        &lt;td&gt;{ContentType: application/xml}&lt;/td&gt;
+                    &lt;/tr&gt;
+                    &lt;tr&gt;
+                        &lt;td&gt;5d70f436aa01...&lt;/td&gt;
+                        &lt;td&gt;&lt;i&gt;[blob other repomd.xml]&lt;/i&gt;&lt;/td&gt;
+                        &lt;td&gt;{ContentType: application/xml}&lt;/td&gt;
+                    &lt;/tr&gt;
+                    &lt;tr&gt;
+                        &lt;td&gt;49ae93732fcf...&lt;/td&gt;
+                        &lt;td&gt;&lt;i&gt;[blob some primary.sqlite.bz2]&lt;/i&gt;&lt;/td&gt;
+                        &lt;td&gt;{ContentType: application/x-bzip2}&lt;/td&gt;
+                    &lt;/tr&gt;
+                    &lt;tr&gt;&lt;td colspan='3'&gt;...&lt;/td&gt;&lt;/tr&gt;
+                &lt;/table&gt;
+        &gt;
+    ];
+
+    subgraph cluster_0 {
+        label=&lt; &lt;b&gt;🖧 CloudFront CDN&lt;/b&gt; &gt;
+        style=&quot;rounded&quot;;
+        controller;
+        subgraph cluster_1 {
+            label=&lt;&lt;b&gt;cdn-lambda&lt;/b&gt;&gt;;
+            style=&quot;dashed&quot;;
+            rank=same
+            origin_request;
+            origin_response;
+        }
+    }
+}" class="graphviz" /></div>
+<ul class="simple">
+<li><p>Numbered connections represent the sequence of events when the CDN processes a request.</p></li>
+<li><p>For clarity, SHA256 checksums have been truncated (as in <code class="docutils literal notranslate"><span class="pre">8e7750e50734f...</span></code>). In reality,
+the system stores complete checksums.</p></li>
+<li><p>The CloudFront CDN shown in the above diagram may itself be hosted behind another CDN,
+so client requests may pass through additional layers not expressed here.</p></li>
+</ul>
+</div>
+<div class="section" id="components">
+<h2>Components<a class="headerlink" href="#components" title="Permalink to this headline">¶</a></h2>
+<dl>
+<dt>client</dt><dd><p>A client requesting data from the CDN.</p>
+<p>This could be <code class="docutils literal notranslate"><span class="pre">dnf</span></code>, <code class="docutils literal notranslate"><span class="pre">yum</span></code>, Satellite, <code class="docutils literal notranslate"><span class="pre">curl</span></code>, a web browser, etc.</p>
+</dd>
+<dt>CloudFront CDN</dt><dd><p>The <a class="reference external" href="https://aws.amazon.com/cloudfront/">Amazon CloudFront</a> content delivery network.</p>
+</dd>
+<dt>controller</dt><dd><p>An abstract component representing the built-in behaviors of CloudFront,
+such as:</p>
+<ul class="simple">
+<li><p>basic HTTP request handling</p></li>
+<li><p>serving responses from cache</p></li>
+<li><p>invoking Lambda functions</p></li>
+<li><p>delegating requests to S3</p></li>
+</ul>
+<p>…and so on.</p>
+</dd>
+<dt>DynamoDB</dt><dd><p><a class="reference external" href="https://aws.amazon.com/dynamodb/">Amazon DynamoDB</a> NoSQL database service.</p>
+<p>The CDN uses a single DynamoDB table which primarily contains mappings
+between URIs and S3 object keys.</p>
+<p>For more information about the data contained here, see <a class="reference internal" href="schema-reference.html#schema-ref"><span class="std std-ref">Schema Reference</span></a>.</p>
+</dd>
+<dt>S3</dt><dd><p><a class="reference external" href="https://aws.amazon.com/s3/">Amazon S3</a>, Simple Storage Service.</p>
+<p>The CDN uses S3 to store the binary objects retrievable by clients.
+A single bucket is used, configured as the origin of the CloudFront CDN.</p>
+<p>One object corresponds to one file which can be downloaded from the CDN;
+this includes files considered to be content (such as RPMs) and files considered
+to be metadata (such as yum repo metadata files).</p>
+<p>Each object’s key is its own SHA256 checksum, ensuring that content accessible
+via many paths on the CDN need only be stored once.</p>
+<p>S3 metadata is used in some cases to customize the response behavior of each object;
+for example, metadata is used to adjust <code class="docutils literal notranslate"><span class="pre">Content-Type</span></code> headers in responses.
+Publishing tools are responsible for setting this metadata accurately.</p>
+<p>For more information about the data contained here, see <a class="reference internal" href="schema-reference.html#schema-ref"><span class="std std-ref">Schema Reference</span></a>.</p>
+</dd>
+<dt>cdn-lambda</dt><dd><p>A project including Python-based implementations of <a class="reference external" href="https://aws.amazon.com/lambda/edge/">Lambda&#64;Edge</a> functions for the CDN.</p>
+<p>You are currently reading the documentation of this project.</p>
+</dd>
+<dt>origin_request</dt><dd><p>A <a class="reference external" href="https://aws.amazon.com/lambda/edge/">Lambda&#64;Edge</a> function connected to “origin request” events in CloudFront.</p>
+<p>This function is primarily responsible for translating the path given in the client’s
+request into an S3 object key via a DynamoDB query.  Assuming the client has requested
+existing content, this Lambda function will rewrite the request’s URI into a valid S3
+object key before returning the request to the controller.  The function itself does
+not request data from S3, nor generate a response directly.</p>
+<p>For more information about this function’s behavior, see <a class="reference internal" href="function-reference.html#function-ref"><span class="std std-ref">Function Reference</span></a>.</p>
+</dd>
+<dt>origin_response</dt><dd><p>A <a class="reference external" href="https://aws.amazon.com/lambda/edge/">Lambda&#64;Edge</a> function connected to “origin response” events in CloudFront.</p>
+<p>This function is primarily responsible for tweaking certain response headers
+before allowing CloudFront to serve the response to clients.  For example,
+caching behavior is influenced by setting a Cache-Control header for certain
+responses.</p>
+<p>For more information about this function’s behavior, see <a class="reference internal" href="function-reference.html#function-ref"><span class="std std-ref">Function Reference</span></a>.</p>
+</dd>
+<dt>publishing tools</dt><dd><p>Represents the tools used by Red Hat to publish content onto the CDN.</p>
+<p>These tools insert data into the CDN’s S3 and DynamoDB services in order to publish
+content.</p>
+<p>A further explanation of these tools is out of scope for this document; it suffices
+to know that the tools are designed with an awareness of the CDN architecture
+described here.</p>
+</dd>
+</dl>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">cdn-lambda</a></h1>
+
+
+
+<p class="blurb">AWS Lambda functions for Red Hat's Content Delivery Network</p>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Architecture</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#components">Components</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="function-reference.html">Function Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="schema-reference.html">Schema Reference</a></li>
+</ul>
+
+
+<hr />
+<ul>
+    
+    <li class="toctree-l1"><a href="https://github.com/release-engineering/cdn-lambda">Source</a></li>
+    
+    <li class="toctree-l1"><a href="https://pypi.org/project/cdn-lambda">PyPI</a></li>
+    
+    <li class="toctree-l1"><a href="genindex.html">Index</a></li>
+    
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="index.html" title="previous chapter">cdn-lambda</a></li>
+      <li>Next: <a href="function-reference.html" title="next chapter">Function Reference</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, Red Hat.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.4.4</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/arch.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+    <a href="https://github.com/release-engineering/cdn-lambda" class="github">
+        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
+    </a>
+    
+
+    
+  </body>
+</html>

@@ -7,5 +7,6 @@ AWS Lambda functions for Red Hat's Content Delivery Network
    :maxdepth: 2
    :caption: Contents:
 
+   arch
    function-reference
    schema-reference
