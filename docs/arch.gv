@@ -42,7 +42,7 @@ digraph {
     S3 -> publish_tools [dir="back"]
     db -> publish_tools [dir="back"]
 
-    client [label="💻 client"]
+    client [label="client"]
     publish_tools [label="publishing tools", style="rounded", rank="max", shape="box"]
 
     db [
@@ -125,7 +125,7 @@ digraph {
     ];
 
     subgraph cluster_0 {
-        label=< <b>🖧 CloudFront CDN</b> >
+        label=< <b>CloudFront CDN</b> >
         style="rounded";
         controller;
         subgraph cluster_1 {
