@@ -2,6 +2,12 @@ os: linux
 
 language: python
 
+addons:
+  apt:
+    packages:
+    # for docs
+    - graphviz
+
 install: pip install tox
 
 jobs:

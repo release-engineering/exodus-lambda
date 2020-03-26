@@ -1,3 +1,5 @@
+.. _function_ref:
+
 Function Reference
 ==================
 
