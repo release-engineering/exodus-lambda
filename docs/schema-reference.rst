@@ -1,3 +1,5 @@
+.. _schema_ref:
+
 Schema Reference
 ================
 

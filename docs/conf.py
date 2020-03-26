@@ -45,6 +45,7 @@ extensions = [
     "sphinx.ext.napoleon",
     "sphinx.ext.githubpages",
     "sphinx.ext.viewcode",
+    "sphinx.ext.graphviz",
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -133,3 +134,4 @@ autodoc_inherit_docstrings = False
 intersphinx_mapping = {
     "python": ("https://docs.python.org/3", None),
 }
+graphviz_output_format = "png"
