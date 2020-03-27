@@ -37,19 +37,20 @@ class LambdaClient(object):
                 "value"
             ]
 
-        except (KeyError):
+        except KeyError:
             LOG.debug(
-                "Could not read exodus-original-uri from response", exc_info=1
+                "Could not read exodus-original-uri from response",
+                exc_info=True,
             )
             original_uri = None
 
-        if original_uri is not None:
+        if original_uri:
             for pattern in max_age_pattern_whitelist:
                 if re.match(pattern, original_uri):
                     response["headers"]["cache-control"] = [
                         {
                             "key": "Cache-Control",
-                            "value": "max-age={}".format(max_age),
+                            "value": f"max-age={max_age}",
                         }
                     ]
                     LOG.info(
@@ -60,4 +61,4 @@ class LambdaClient(object):
 
 
 # Make handler available at module level
-lambda_handler = LambdaClient().handler
+lambda_handler = LambdaClient().handler  # pylint: disable=invalid-name
