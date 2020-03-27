@@ -1,11 +1,11 @@
-from cdn_lambda.functions.map_to_s3.map_to_s3 import LambdaClient
+from exodus_lambda.functions.map_to_s3.map_to_s3 import LambdaClient
 import pytest
 import mock
 import json
 
 TEST_PATH = "/origin/rpms/repo/ver/dir/filename.ext"
 MOCKED_DT = "2020-02-17T15:38:05.864+00:00"
-CONF_PATH = "cdn_lambda/functions/lambda_config.json"
+CONF_PATH = "exodus_lambda/functions/lambda_config.json"
 
 
 @pytest.mark.parametrize(
@@ -41,7 +41,7 @@ CONF_PATH = "cdn_lambda/functions/lambda_config.json"
     ],
 )
 @mock.patch("boto3.client")
-@mock.patch("cdn_lambda.functions.map_to_s3.map_to_s3.datetime")
+@mock.patch("exodus_lambda.functions.map_to_s3.map_to_s3.datetime")
 def test_map_to_s3(mocked_datetime, mocked_boto3_client, req_uri, real_uri):
     mocked_datetime.now().isoformat.return_value = MOCKED_DT
     mocked_boto3_client().query.return_value = {
@@ -69,7 +69,7 @@ def test_map_to_s3(mocked_datetime, mocked_boto3_client, req_uri, real_uri):
 
 
 @mock.patch("boto3.client")
-@mock.patch("cdn_lambda.functions.map_to_s3.map_to_s3.datetime")
+@mock.patch("exodus_lambda.functions.map_to_s3.map_to_s3.datetime")
 def test_map_to_s3_no_item(mocked_datetime, mocked_boto3_client):
     mocked_datetime.now().isoformat.return_value = MOCKED_DT
     mocked_boto3_client().query.return_value = {"Items": []}
@@ -82,7 +82,7 @@ def test_map_to_s3_no_item(mocked_datetime, mocked_boto3_client):
 
 
 @mock.patch("boto3.client")
-@mock.patch("cdn_lambda.functions.map_to_s3.map_to_s3.datetime")
+@mock.patch("exodus_lambda.functions.map_to_s3.map_to_s3.datetime")
 def test_map_to_s3_invalid_item(mocked_datetime, mocked_boto3_client, caplog):
     mocked_datetime.now().isoformat.return_value = MOCKED_DT
     mocked_boto3_client().query.return_value = {

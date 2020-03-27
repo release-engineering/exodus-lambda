@@ -20,7 +20,7 @@ def get_requirements():
 
 
 setup(
-    name="cdn_lambda",
+    name="exodus-lambda",
     version="0.1.0",
     packages=find_packages(exclude=["tests"]),
     package_data={},
