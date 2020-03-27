@@ -129,7 +129,7 @@ digraph {
         style="rounded";
         controller;
         subgraph cluster_1 {
-            label=<<b>cdn-lambda</b>>;
+            label=<<b>exodus-lambda</b>>;
             style="dashed";
             rank=same
             origin_request;

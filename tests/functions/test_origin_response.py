@@ -1,8 +1,10 @@
-from cdn_lambda.functions.origin_response.origin_response import LambdaClient
+from exodus_lambda.functions.origin_response.origin_response import (
+    LambdaClient,
+)
 import json
 import pytest
 
-CONF_PATH = "cdn_lambda/functions/lambda_config.json"
+CONF_PATH = "exodus_lambda/functions/lambda_config.json"
 
 # Load max_age from conf file:
 with open(CONF_PATH, "r") as json_file:

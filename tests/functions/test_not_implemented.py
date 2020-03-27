@@ -1,4 +1,4 @@
-from cdn_lambda.functions.not_implemented import lambda_handler
+from exodus_lambda.functions.not_implemented import lambda_handler
 
 
 def test_lambda_handler():
