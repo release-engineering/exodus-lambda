@@ -6,5 +6,8 @@
   "uri_aliases": [
     ["/content/origin/", "/origin/"],
     ["/origin/rpm/", "/origin/rpms/"]
-  ]
+  ],
+  "headers": {
+    "max_age": "600"
+  }
 }

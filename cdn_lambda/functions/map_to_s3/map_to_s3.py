@@ -8,7 +8,7 @@ LOG = logging.getLogger("map-to-s3-lambda")
 
 
 class LambdaClient(object):
-    def __init__(self, conf_file="map_to_s3.json"):
+    def __init__(self, conf_file="lambda_config.json"):
         self._conf_file = conf_file
 
         self._conf = None
@@ -68,6 +68,11 @@ class LambdaClient(object):
             LOG.info("Item found for '%s'", uri)
 
             try:
+                # Add custom header containing the original request uri
+                request["headers"]["exodus-original-uri"] = [
+                    {"key": "exodus-original-uri", "value": request["uri"]}
+                ]
+
                 # Update request uri to point to S3 object key
                 request["uri"] = (
                     "/" + query_result["Items"][0]["object_key"]["S"]
@@ -85,10 +90,7 @@ class LambdaClient(object):
             LOG.info("No item found for '%s'", uri)
 
             # Report 404 to prevent attempts on S3
-            return {
-                "status": "404",
-                "statusDescription": "Not Found",
-            }
+            return {"status": "404", "statusDescription": "Not Found"}
 
 
 # Make handler available at module level
