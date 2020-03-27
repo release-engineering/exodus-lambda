@@ -1,4 +1,4 @@
-from exodus_lambda.functions.map_to_s3.map_to_s3 import LambdaClient
+from exodus_lambda.functions.origin_request.origin_request import LambdaClient
 import pytest
 import mock
 import json
@@ -41,8 +41,10 @@ CONF_PATH = "exodus_lambda/functions/lambda_config.json"
     ],
 )
 @mock.patch("boto3.client")
-@mock.patch("exodus_lambda.functions.map_to_s3.map_to_s3.datetime")
-def test_map_to_s3(mocked_datetime, mocked_boto3_client, req_uri, real_uri):
+@mock.patch("exodus_lambda.functions.origin_request.origin_request.datetime")
+def test_origin_request(
+    mocked_datetime, mocked_boto3_client, req_uri, real_uri
+):
     mocked_datetime.now().isoformat.return_value = MOCKED_DT
     mocked_boto3_client().query.return_value = {
         "Items": [
@@ -69,8 +71,8 @@ def test_map_to_s3(mocked_datetime, mocked_boto3_client, req_uri, real_uri):
 
 
 @mock.patch("boto3.client")
-@mock.patch("exodus_lambda.functions.map_to_s3.map_to_s3.datetime")
-def test_map_to_s3_no_item(mocked_datetime, mocked_boto3_client):
+@mock.patch("exodus_lambda.functions.origin_request.origin_request.datetime")
+def test_origin_request_no_item(mocked_datetime, mocked_boto3_client):
     mocked_datetime.now().isoformat.return_value = MOCKED_DT
     mocked_boto3_client().query.return_value = {"Items": []}
 
@@ -82,8 +84,10 @@ def test_map_to_s3_no_item(mocked_datetime, mocked_boto3_client):
 
 
 @mock.patch("boto3.client")
-@mock.patch("exodus_lambda.functions.map_to_s3.map_to_s3.datetime")
-def test_map_to_s3_invalid_item(mocked_datetime, mocked_boto3_client, caplog):
+@mock.patch("exodus_lambda.functions.origin_request.origin_request.datetime")
+def test_origin_request_invalid_item(
+    mocked_datetime, mocked_boto3_client, caplog
+):
     mocked_datetime.now().isoformat.return_value = MOCKED_DT
     mocked_boto3_client().query.return_value = {
         "Items": [

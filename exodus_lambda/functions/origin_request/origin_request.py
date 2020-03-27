@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 
 import boto3
 
-LOG = logging.getLogger("map-to-s3-lambda")
+LOG = logging.getLogger("origin-request")
 
 
 class LambdaClient(object):

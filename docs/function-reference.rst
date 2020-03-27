@@ -7,4 +7,5 @@ Function Reference
    :maxdepth: 1
    :caption: Contents:
 
-   functions/map_to_s3
+   functions/origin_request
+   functions/origin_response
