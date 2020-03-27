@@ -1,5 +1,6 @@
 import logging
 import re
+from base64 import b64encode
 
 from .base import LambdaBase
 
@@ -12,6 +13,13 @@ class OriginResponse(LambdaBase):
 
         request = event["Records"][0]["cf"]["request"]
         response = event["Records"][0]["cf"]["response"]
+
+        if "headers" in request and "want-digest" in request["headers"]:
+            sum_hex = request["uri"].replace("/", "", 1)
+            sum_b64 = b64encode(bytes.fromhex(sum_hex)).decode()
+            response["headers"]["digest"] = [
+                {"key": "Digest", "value": f"id-sha-256={sum_b64}"}
+            ]
 
         max_age = self.conf["headers"]["max_age"]
         max_age_pattern_whitelist = [
