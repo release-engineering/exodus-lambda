@@ -1,13 +1,13 @@
-cdn-lambda
-==========
+exodus-lambda
+=============
 
 AWS Lambda functions for Red Hat's Content Delivery Network
 
-[![Build Status](https://travis-ci.org/release-engineering/cdn-lambda.svg?branch=master)](https://travis-ci.org/release-engineering/cdn-lambda)
-[![Coverage Status](https://coveralls.io/repos/github/release-engineering/cdn-lambda/badge.svg?branch=master)](https://coveralls.io/github/release-engineering/cdn-lambda?branch=master)
+[![Build Status](https://travis-ci.org/release-engineering/exodus-lambda.svg?branch=master)](https://travis-ci.org/release-engineering/exodus-lambda)
+[![Coverage Status](https://coveralls.io/repos/github/release-engineering/exodus-lambda/badge.svg?branch=master)](https://coveralls.io/github/release-engineering/exodus-lambda?branch=master)
 
-- [Source](https://github.com/release-engineering/cdn-lambda)
-- [Documentation](https://release-engineering.github.io/cdn-lambda/)
+- [Source](https://github.com/release-engineering/exodus-lambda)
+- [Documentation](https://release-engineering.github.io/exodus-lambda/)
 
 
 Installation
@@ -22,7 +22,7 @@ Development
 -----------
 
 Patches may be contributed via pull requests to
-https://github.com/release-engineering/cdn-lambda.
+https://github.com/release-engineering/exodus-lambda.
 
 All changes must pass the automated test suite, along with various static
 checks.

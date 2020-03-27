@@ -66,7 +66,7 @@ S3
 
     For more information about the data contained here, see :ref:`schema_ref`.
 
-cdn-lambda
+exodus-lambda
     A project including Python-based implementations of `Lambda@Edge`_ functions for the CDN.
 
     You are currently reading the documentation of this project.

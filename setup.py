@@ -24,7 +24,7 @@ setup(
     version="0.1.0",
     packages=find_packages(exclude=["tests"]),
     package_data={},
-    url="https://github.com/release-engineering/cdn-lambda",
+    url="https://github.com/release-engineering/exodus-lambda",
     license="GNU General Public License",
     description=get_description(),
     long_description=get_long_description(),
@@ -39,7 +39,7 @@ setup(
     install_requires=get_requirements(),
     python_requires=">=3",
     project_urls={
-        "Documentation": "https://release-engineering.github.io/cdn-lambda",
-        "Changelog": "https://github.com/release-engineering/cdn-lambda/blob/master/CHANGELOG.md",
+        "Documentation": "https://release-engineering.github.io/exodus-lambda",
+        "Changelog": "https://github.com/release-engineering/exodus-lambda/blob/master/CHANGELOG.md",
     },
 )

@@ -20,7 +20,7 @@ sys.path.insert(0, os.path.abspath(".."))
 
 # -- Project information -----------------------------------------------------
 
-project = "cdn-lambda"
+project = "exodus-lambda"
 copyright = "2020, Red Hat"
 author = "Red Hat"
 
@@ -89,13 +89,12 @@ html_theme = "alabaster"
 #
 html_theme_options = {
     "github_user": "release-engineering",
-    "github_repo": "cdn-lambda",
+    "github_repo": "exodus-lambda",
     "github_button": False,
     "github_banner": True,
     "description": "AWS Lambda functions for Red Hat's Content Delivery Network",
     "extra_nav_links": {
-        "Source": "https://github.com/release-engineering/cdn-lambda",
-        "PyPI": "https://pypi.org/project/cdn-lambda",
+        "Source": "https://github.com/release-engineering/exodus-lambda",
         "Index": "genindex.html",
     },
     # default is 940px which seems to be a little too small to display 88 chars code
