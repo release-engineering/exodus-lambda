@@ -39,7 +39,7 @@
 <h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
 <p>This diagram shows the relationship between all major components used
 in the delivery of content via the CDN.</p>
-<div class="graphviz"><img src="_images/graphviz-9a219e9c4e7bca58a6d8511a49e8d11c4c7296ba.png" alt="digraph {
+<div class="graphviz"><img src="_images/graphviz-48a33935352bdd83f63c1139a932f87754d98c37.png" alt="digraph {
     ranksep=&quot;1.4&quot;;
 
     # These are arranged and labelled to communicate the
@@ -83,7 +83,7 @@ in the delivery of content via the CDN.</p>
     S3 -&gt; publish_tools [dir=&quot;back&quot;]
     db -&gt; publish_tools [dir=&quot;back&quot;]
 
-    client [label=&quot;💻 client&quot;]
+    client [label=&quot;client&quot;]
     publish_tools [label=&quot;publishing tools&quot;, style=&quot;rounded&quot;, rank=&quot;max&quot;, shape=&quot;box&quot;]
 
     db [
@@ -166,7 +166,7 @@ in the delivery of content via the CDN.</p>
     ];
 
     subgraph cluster_0 {
-        label=&lt; &lt;b&gt;🖧 CloudFront CDN&lt;/b&gt; &gt;
+        label=&lt; &lt;b&gt;CloudFront CDN&lt;/b&gt; &gt;
         style=&quot;rounded&quot;;
         controller;
         subgraph cluster_1 {
