@@ -1,5 +1,5 @@
-cdn-lambda
-==========
+exodus-lambda
+=============
 
 AWS Lambda functions for Red Hat's Content Delivery Network
 

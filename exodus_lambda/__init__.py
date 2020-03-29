@@ -1,8 +1,8 @@
-from cdn_lambda.functions.map_to_s3.map_to_s3 import (
+from exodus_lambda.functions.map_to_s3.map_to_s3 import (
     lambda_handler as origin_request,
 )
 
-from cdn_lambda.functions.origin_response.origin_response import (
+from exodus_lambda.functions.origin_response.origin_response import (
     lambda_handler as origin_response,
 )
 
