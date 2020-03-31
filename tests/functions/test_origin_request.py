@@ -1,7 +1,9 @@
-from exodus_lambda.functions.origin_request.origin_request import LambdaClient
-import pytest
-import mock
 import json
+
+import mock
+import pytest
+
+from exodus_lambda.functions.origin_request import OriginRequest
 
 TEST_PATH = "/origin/rpms/repo/ver/dir/filename.ext"
 MOCKED_DT = "2020-02-17T15:38:05.864+00:00"
@@ -41,7 +43,7 @@ CONF_PATH = "exodus_lambda/functions/lambda_config.json"
     ],
 )
 @mock.patch("boto3.client")
-@mock.patch("exodus_lambda.functions.origin_request.origin_request.datetime")
+@mock.patch("exodus_lambda.functions.origin_request.datetime")
 def test_origin_request(
     mocked_datetime, mocked_boto3_client, req_uri, real_uri
 ):
@@ -58,7 +60,7 @@ def test_origin_request(
 
     event = {"Records": [{"cf": {"request": {"uri": req_uri, "headers": {}}}}]}
 
-    request = LambdaClient(conf_file=CONF_PATH).handler(event, context=None)
+    request = OriginRequest(conf_file=CONF_PATH).handler(event, context=None)
 
     assert request == {
         "uri": "/e4a3f2sum",
@@ -71,20 +73,20 @@ def test_origin_request(
 
 
 @mock.patch("boto3.client")
-@mock.patch("exodus_lambda.functions.origin_request.origin_request.datetime")
+@mock.patch("exodus_lambda.functions.origin_request.datetime")
 def test_origin_request_no_item(mocked_datetime, mocked_boto3_client):
     mocked_datetime.now().isoformat.return_value = MOCKED_DT
     mocked_boto3_client().query.return_value = {"Items": []}
 
     event = {"Records": [{"cf": {"request": {"uri": TEST_PATH}}}]}
 
-    request = LambdaClient(conf_file=CONF_PATH).handler(event, context=None)
+    request = OriginRequest(conf_file=CONF_PATH).handler(event, context=None)
 
     assert request == {"status": "404", "statusDescription": "Not Found"}
 
 
 @mock.patch("boto3.client")
-@mock.patch("exodus_lambda.functions.origin_request.origin_request.datetime")
+@mock.patch("exodus_lambda.functions.origin_request.datetime")
 def test_origin_request_invalid_item(
     mocked_datetime, mocked_boto3_client, caplog
 ):
@@ -101,7 +103,7 @@ def test_origin_request_invalid_item(
     event = {"Records": [{"cf": {"request": {"uri": TEST_PATH}}}]}
 
     with pytest.raises(KeyError):
-        LambdaClient(conf_file=CONF_PATH).handler(event, context=None)
+        OriginRequest(conf_file=CONF_PATH).handler(event, context=None)
 
     assert (
         "Exception occurred while processing %s"

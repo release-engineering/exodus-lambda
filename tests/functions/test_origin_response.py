@@ -1,8 +1,8 @@
-from exodus_lambda.functions.origin_response.origin_response import (
-    LambdaClient,
-)
 import json
+
 import pytest
+
+from exodus_lambda.functions.origin_response import OriginResponse
 
 CONF_PATH = "exodus_lambda/functions/lambda_config.json"
 
@@ -44,7 +44,7 @@ def test_origin_response_valid_headers(
         ]
     }
 
-    response = LambdaClient(conf_file=CONF_PATH).handler(event, context=None)
+    response = OriginResponse(conf_file=CONF_PATH).handler(event, context=None)
     assert response["headers"]["cache-control"] == expected
 
 
@@ -59,12 +59,12 @@ def test_origin_response_empty_headers(test_input, expected={}):
         ]
     }
 
-    response = LambdaClient(conf_file=CONF_PATH).handler(event, context=None)
+    response = OriginResponse(conf_file=CONF_PATH).handler(event, context=None)
     assert response["headers"] == expected
 
 
 def test_origin_response_missing_headers():
     event = {"Records": [{"cf": {"request": {}, "response": {}}}]}
 
-    response = LambdaClient(conf_file=CONF_PATH).handler(event, context=None)
+    response = OriginResponse(conf_file=CONF_PATH).handler(event, context=None)
     assert response == {}
