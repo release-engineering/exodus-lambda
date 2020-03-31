@@ -1,7 +1,7 @@
-map_to_s3
+origin_request
 =========
 
-The map_to_s3 function provides mapping from a web URI, delivered by an AWS
+The origin_request function provides mapping from a web URI, delivered by an AWS
 CloudFront event, to the key of an object in an AWS S3 bucket.
 
 Using this function, a URI like "/path/to/s3/file" would be transformed to
@@ -26,7 +26,7 @@ an S3 bucket.
 
 Configuration
 ^^^^^^^^^^^^^
-The map_to_s3 function must be deployed with the map_to_s3.json configuration
+The origin_request function must be deployed with the lambda_config.json configuration
 file.
 
 - table

@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>map_to_s3 &#8212; exodus-lambda  documentation</title>
+    <title>origin_request Schemas &#8212; exodus-lambda  documentation</title>
     <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="../_static/graphviz.css" />
@@ -15,8 +15,7 @@
     <script src="../_static/language_data.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Schema Reference" href="../schema-reference.html" />
-    <link rel="prev" title="Function Reference" href="../function-reference.html" />
+    <link rel="prev" title="Schema Reference" href="../schema-reference.html" />
    
   <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
   
@@ -33,44 +32,46 @@
 
           <div class="body" role="main">
             
-  <div class="section" id="map-to-s3">
-<h1>map_to_s3<a class="headerlink" href="#map-to-s3" title="Permalink to this headline">¶</a></h1>
-<p>The map_to_s3 function provides mapping from a web URI, delivered by an AWS
-CloudFront event, to the key of an object in an AWS S3 bucket.</p>
-<p>Using this function, a URI like “/path/to/s3/file” would be transformed to
-something like “/some-s3-file-object-key”.</p>
-<p>The mapping between the URI and the object key is defined by the AWS DynamoDB
-table specified in the configuration file that this function is deployed with.</p>
-<p>Required schemas for the DynamoDB table and S3 bucket can be found in the
-<a class="reference internal" href="../schema-reference.html"><span class="doc">schema reference</span></a>.</p>
-<div class="section" id="deployment">
-<h2>Deployment<a class="headerlink" href="#deployment" title="Permalink to this headline">¶</a></h2>
-<p>This function may be deployed like any other AWS Lambda function using the
-following event and configuration file.</p>
-<div class="section" id="event">
-<h3>Event<a class="headerlink" href="#event" title="Permalink to this headline">¶</a></h3>
-<p>The event for this function must be a CloudFront distribution origin-request to
-an S3 bucket.</p>
+  <div class="section" id="origin-request-schemas">
+<h1>origin_request Schemas<a class="headerlink" href="#origin-request-schemas" title="Permalink to this headline">¶</a></h1>
+<p>The following schemas are required of AWS S3 bucket objects and DynamoDB table
+items for use with the origin_request AWS Lambda function.</p>
+<div class="section" id="s3-bucket-schema">
+<h2>S3 Bucket Schema<a class="headerlink" href="#s3-bucket-schema" title="Permalink to this headline">¶</a></h2>
+<p>Objects should be stored in the origin S3 bucket using a sha256 checksum as
+their key.</p>
 </div>
-<div class="section" id="configuration">
-<h3>Configuration<a class="headerlink" href="#configuration" title="Permalink to this headline">¶</a></h3>
-<p>The map_to_s3 function must be deployed with the map_to_s3.json configuration
-file.</p>
-<ul class="simple">
-<li><dl class="simple">
-<dt>table</dt><dd><p>The DynamoDB table from which to derive path to key mapping.</p>
+<div class="section" id="dynamodb-table-schema">
+<h2>DynamoDB Table Schema<a class="headerlink" href="#dynamodb-table-schema" title="Permalink to this headline">¶</a></h2>
+<p>DynamoDB table items must possess the following keys and attributes.</p>
+<p>Additional attributes are supported by the no-SQL model and may be used as
+needed.</p>
+<div class="section" id="keys">
+<h3>Keys<a class="headerlink" href="#keys" title="Permalink to this headline">¶</a></h3>
 <ul>
-<li><dl class="simple">
-<dt>name</dt><dd><p>The name of the DynamoDB table.</p>
+<li><dl>
+<dt>web_uri</dt><dd><p>(Primary)</p>
+<p>A logical path to the desired content, excluding the hostname,
+i.e., “/content/place/somepic.png”.</p>
 </dd>
 </dl>
 </li>
-<li><dl class="simple">
-<dt>region</dt><dd><p>The AWS region in which the table resides.</p>
+<li><dl>
+<dt>from_date</dt><dd><p>(Sort)</p>
+<p>The datetime at which the content is made available, i.e.,
+“2020-02-17T20:48:13.037+00:00”.</p>
+<p>Only content with a from_date sooner than or equal to the current date and
+time may be retrieved from the origin.</p>
 </dd>
 </dl>
 </li>
 </ul>
+</div>
+<div class="section" id="attributes">
+<h3>Attributes<a class="headerlink" href="#attributes" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><dl class="simple">
+<dt>object_key</dt><dd><p>The key of the file object stored in the origin S3 bucket.</p>
 </dd>
 </dl>
 </li>
@@ -103,11 +104,11 @@ file.</p>
 <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../arch.html">Architecture</a></li>
-<li class="toctree-l1 current"><a class="reference internal" href="../function-reference.html">Function Reference</a><ul class="current">
-<li class="toctree-l2 current"><a class="current reference internal" href="#">map_to_s3</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../function-reference.html">Function Reference</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../schema-reference.html">Schema Reference</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">origin_request Schemas</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="../schema-reference.html">Schema Reference</a></li>
 </ul>
 
 
@@ -123,9 +124,8 @@ file.</p>
 <h3>Related Topics</h3>
 <ul>
   <li><a href="../index.html">Documentation overview</a><ul>
-  <li><a href="../function-reference.html">Function Reference</a><ul>
-      <li>Previous: <a href="../function-reference.html" title="previous chapter">Function Reference</a></li>
-      <li>Next: <a href="../schema-reference.html" title="next chapter">Schema Reference</a></li>
+  <li><a href="../schema-reference.html">Schema Reference</a><ul>
+      <li>Previous: <a href="../schema-reference.html" title="previous chapter">Schema Reference</a></li>
   </ul></li>
   </ul></li>
 </ul>
@@ -160,7 +160,7 @@ file.</p>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |
-      <a href="../_sources/functions/map_to_s3.rst.txt"
+      <a href="../_sources/schemas/origin_request-schema.rst.txt"
           rel="nofollow">Page source</a>
     </div>
 
