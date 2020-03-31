@@ -1,14 +1,14 @@
-map_to_s3 Schemas
+origin_request Schemas
 =================
 
 The following schemas are required of AWS S3 bucket objects and DynamoDB table
-items for use with the map_to_s3 AWS Lambda function.
+items for use with the origin_request AWS Lambda function.
 
 S3 Bucket Schema
 ----------------
 
-Objects should be stored in the origin S3 bucket using the file’s sha256
-checksum as their key.
+Objects should be stored in the origin S3 bucket using a sha256 checksum as
+their key.
 
 DynamoDB Table Schema
 ---------------------
@@ -32,8 +32,8 @@ Keys
     The datetime at which the content is made available, i.e.,
     "2020-02-17T20:48:13.037+00:00".
 
-    Only content with a from_date sooner than or equal to the current date and time may be
-    retrieved from the origin.
+    Only content with a from_date sooner than or equal to the current date and
+    time may be retrieved from the origin.
 
 Attributes
 ^^^^^^^^^^

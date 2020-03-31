@@ -4,23 +4,15 @@ from datetime import datetime, timezone
 
 import boto3
 
-LOG = logging.getLogger("map-to-s3-lambda")
+from .base import LambdaBase
+
+LOG = logging.getLogger("origin-request")
 
 
-class LambdaClient(object):
+class OriginRequest(LambdaBase):
     def __init__(self, conf_file="lambda_config.json"):
-        self._conf_file = conf_file
-
-        self._conf = None
+        super().__init__(conf_file)
         self._db_client = None
-
-    @property
-    def conf(self):
-        if not self._conf:
-            with open(self._conf_file, "r") as json_file:
-                self._conf = json.load(json_file)
-
-        return self._conf
 
     @property
     def db_client(self):
@@ -94,4 +86,4 @@ class LambdaClient(object):
 
 
 # Make handler available at module level
-lambda_handler = LambdaClient().handler  # pylint: disable=invalid-name
+lambda_handler = OriginRequest().handler  # pylint: disable=invalid-name
