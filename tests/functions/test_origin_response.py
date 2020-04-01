@@ -4,7 +4,7 @@ import pytest
 
 from exodus_lambda.functions.origin_response import OriginResponse
 
-CONF_PATH = "exodus_lambda/functions/lambda_config.json"
+CONF_PATH = "configuration/lambda_config.json"
 
 # Load max_age from conf file:
 with open(CONF_PATH, "r") as json_file:
