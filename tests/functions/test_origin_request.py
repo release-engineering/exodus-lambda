@@ -26,6 +26,14 @@ CONF_PATH = "configuration/lambda_config.json"
             "/origin/rpms/repo/ver/dir/filename.ext",
         ),
         (
+            "/content/dist/rhel/rhui/some/repo/somefile.ext",
+            "/content/dist/rhel/some/repo/somefile.ext",
+        ),
+        (
+            "/content/dist/rhel/rhui/some/listing",
+            "/content/dist/rhel/rhui/some/listing",
+        ),
+        (
             "/content/origin/repo/ver/origin/rpm/filename.ext",
             "/origin/repo/ver/origin/rpm/filename.ext",
         ),
@@ -38,6 +46,8 @@ CONF_PATH = "configuration/lambda_config.json"
         "/origin/rpm/",
         "content/origin",
         "content/origin/rpm",
+        "rhui",
+        "rhui listing exception",
         "multiple alias keywords",
         "no alias keywords",
     ],

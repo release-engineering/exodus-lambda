@@ -4,6 +4,8 @@ from datetime import datetime, timezone
 
 import boto3
 
+from cdn_definitions import origin_aliases, rhui_aliases
+
 from .base import LambdaBase
 
 LOG = logging.getLogger("origin-request")
@@ -23,18 +25,53 @@ class OriginRequest(LambdaBase):
 
         return self._db_client
 
-    def uri_alias(self, uri):
-        # NOTE: Aliases are processed in the order they are listed
-        for alias in self.conf["uri_aliases"]:
-            if uri.startswith(alias[0]):
-                uri = uri.replace(alias[0], alias[1])
+    def uri_alias(self, uri, aliases):
+        # Resolve every alias between paths within the uri (e.g.
+        # allow RHUI paths to be aliased to non-RHUI).
+        #
+        # Aliases are expected to come from cdn-definitions.
+
+        remaining = aliases
+
+        # We do multiple passes here to ensure that nested aliases
+        # are resolved correctly, regardless of the order in which
+        # they're provided.
+        while remaining:
+            processed = []
+
+            for alias in remaining:
+                if uri.startswith(alias.src + "/") or uri == alias.src:
+                    uri = uri.replace(alias.src, alias.dest, 1)
+                    processed.append(alias)
+
+            if not processed:
+                # We didn't resolve any alias, then we're done processing.
+                break
+
+            # We resolved at least one alias, so we need another round
+            # in case others apply now. But take out anything we've already
+            # processed, so it is not possible to recurse.
+            remaining = [r for r in remaining if r not in processed]
+
+        return uri
+
+    def resolve_aliases(self, uri):
+        # aliases relating to origin, e.g. content/origin <=> origin
+        uri = self.uri_alias(uri, origin_aliases())
+
+        # aliases relating to rhui; listing files are a special exemption
+        # because they must be allowed to differ for rhui vs non-rhui.
+        if not uri.endswith("/listing"):
+            uri = self.uri_alias(uri, rhui_aliases())
+
         return uri
 
     def handler(self, event, context):
         # pylint: disable=unused-argument
 
         request = event["Records"][0]["cf"]["request"]
-        uri = self.uri_alias(request["uri"])
+        uri = self.resolve_aliases(request["uri"])
+
         table = self.conf["table"]["name"]
 
         LOG.info("Querying '%s' table for '%s'...", table, uri)
