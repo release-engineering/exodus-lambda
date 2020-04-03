@@ -1,0 +1,91 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Description: Configuration for exodus-cdn storage resources
+
+Parameters:
+  env:
+    Type: String
+    AllowedValues:
+      - dev
+      - stage
+      - prod
+    Default: dev
+    Description: The environment for which these resources are intended
+
+Resources:
+  Table:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    Properties:
+      TableName: !Sub exodus-cdn-${env}
+      AttributeDefinitions:
+        -
+          AttributeName: web_uri
+          AttributeType: S
+        -
+          AttributeName: from_date
+          AttributeType: S
+      KeySchema:
+        -
+          AttributeName: web_uri
+          KeyType: HASH
+        -
+          AttributeName: from_date
+          KeyType: RANGE
+      BillingMode: PROVISIONED
+      ProvisionedThroughput:
+        ReadCapacityUnits: 10
+        WriteCapacityUnits: 10
+
+  Bucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
+    Properties:
+      BucketName: !Sub exodus-cdn-${env}
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      VersioningConfiguration:
+        Status: Enabled
+
+  BucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref Bucket
+      PolicyDocument:
+        Statement:
+          -
+            Action:
+              -
+                s3:GetObject
+            Effect: Allow
+            Resource:
+              !Join
+                - ""
+                -
+                  -
+                    !GetAtt Bucket.Arn
+                  - "/*"
+            Principal:
+              CanonicalUser: !GetAtt OriginAccessIdentity.S3CanonicalUserId
+
+  OriginAccessIdentity:
+    Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
+    Properties:
+      CloudFrontOriginAccessIdentityConfig:
+        Comment: !Sub exodus-cdn-${env}
+
+Outputs:
+  Table:
+    Description: Created table
+    Value: !Ref Table
+
+  Bucket:
+    Description: Created bucket
+    Value: !Ref Bucket
+
+  OriginAccessIdentity:
+    Description: Created origin access identity
+    Value: !Ref OriginAccessIdentity
