@@ -7,7 +7,7 @@ from exodus_lambda.functions.origin_request import OriginRequest
 
 TEST_PATH = "/origin/rpms/repo/ver/dir/filename.ext"
 MOCKED_DT = "2020-02-17T15:38:05.864+00:00"
-CONF_PATH = "exodus_lambda/functions/lambda_config.json"
+CONF_PATH = "configuration/lambda_config.json"
 
 
 @pytest.mark.parametrize(
