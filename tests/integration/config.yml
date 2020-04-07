@@ -1,0 +1,11 @@
+# config.yml for integration test of exodus lambda function
+
+dynamodb_table : 'dichen-table'
+
+cloudfront: 'https://d2dz0xukgxp0w5.cloudfront.net'
+
+patterns:
+  - '/PULP_MANIFEST'
+  - '/listing'
+  - '/repodata/repomd.xml'
+  - '/ostree/repo/refs/heads/'
