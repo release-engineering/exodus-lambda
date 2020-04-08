@@ -1,0 +1,148 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Transform: AWS::Serverless-2016-10-31
+
+Description: Configuration for exodus-cdn Lambda@Edge deployment
+
+Parameters:
+  env:
+    Type: String
+    AllowedValues:
+      - dev
+      - stage
+      - prod
+    Default: dev
+    Description: The environment in which to deploy functions
+  oai:
+    Type: String
+    MinLength: 10
+    Description: The origin access identity ID associated with the environment
+
+Resources:
+  Distribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Comment: !Sub exodus-cdn-${env}
+        DefaultCacheBehavior:
+          AllowedMethods:
+            - GET
+            - HEAD
+          CachedMethods:
+            - GET
+            - HEAD
+          ForwardedValues:
+            QueryString: false
+            Cookies:
+              Forward: none
+          LambdaFunctionAssociations:
+            - EventType: origin-request
+              LambdaFunctionARN: !Ref OriginRequestFunc.Version
+            - EventType: origin-response
+              LambdaFunctionARN: !Ref OriginResponseFunc.Version
+          TargetOriginId: !Sub S3-exodus-cdn-${env}
+          ViewerProtocolPolicy: redirect-to-https
+        Enabled: true
+        HttpVersion: http2
+        Origins:
+          - DomainName: !Sub "exodus-cdn-${env}.s3.amazonaws.com"
+            Id: !Sub "S3-exodus-cdn-${env}"
+            S3OriginConfig:
+              OriginAccessIdentity: !Sub "origin-access-identity/cloudfront/${oai}"
+
+  OriginRequestFunc:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub origin-request-${env}
+      CodeUri:
+      Handler: exodus_lambda.origin_request
+      Role: !GetAtt FuncRole.Arn
+      Runtime: python3.7
+      Timeout: 5
+      AutoPublishAlias: live
+
+  OriginResponseFunc:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub origin-response-${env}
+      CodeUri:
+      Handler: exodus_lambda.origin_response
+      Role: !GetAtt FuncRole.Arn
+      Runtime: python3.7
+      Timeout: 5
+      AutoPublishAlias: live
+
+  FuncRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub exodus-lambda-${env}
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action:
+              - sts:AssumeRole
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+                - edgelambda.amazonaws.com
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AWSLambdaFullAccess
+        - arn:aws:iam::aws:policy/CloudFrontFullAccess
+        - arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess
+        - arn:aws:iam::aws:policy/AWSCodePipelineFullAccess
+        - arn:aws:iam::aws:policy/AWSLambdaInvocation-DynamoDB
+      Path: /
+
+  OriginRequestAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub origin-request-alarm-${env}
+      AlarmDescription: !Sub origin-request-${env} invocation errors
+      Namespace: AWS/Lambda
+      MetricName: Errors
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref OriginRequestFunc
+      Statistic: Sum
+      Period: 180
+      EvaluationPeriods: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      Threshold: 3
+
+  OriginResponseAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub origin-response-alarm-${env}
+      AlarmDescription: !Sub origin-response-${env} invocation errors
+      Namespace: AWS/Lambda
+      MetricName: Errors
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref OriginResponseFunc
+      Statistic: Sum
+      Period: 180
+      EvaluationPeriods: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      Threshold: 3
+
+Outputs:
+  Distribution:
+    Description: distribution domain name
+    Value: !GetAtt Distribution.DomainName
+
+  OriginRequestFunc:
+    Description: origin-request function ARN with version
+    Value: !Ref OriginRequestFunc.Version
+
+  OriginResponseFunc:
+    Description: origin-response function ARN with version
+    Value: !Ref OriginResponseFunc.Version
+
+  OriginRequestAlarm:
+    Description: origin-request function alarm ARN
+    Value: !GetAtt OriginRequestAlarm.Arn
+
+  OriginResponseAlarm:
+    Description: origin-response function alarm ARN
+    Value: !GetAtt OriginResponseAlarm.Arn
