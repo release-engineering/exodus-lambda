@@ -1,0 +1,11 @@
+version: 0.2
+
+phases:
+  build:
+    commands:
+      - ./scripts/build-package
+
+artifacts:
+  files:
+    - ./package/exodus-lambda-pkg.yaml
+  discard-paths: yes
