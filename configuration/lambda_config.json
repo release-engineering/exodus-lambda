@@ -12,5 +12,27 @@
   },
   "headers": {
     "max_age": "600"
+  },
+  "logging": {
+    "version": 1,
+    "incremental": "True",
+    "disable_existing_loggers": "False",
+    "formatters": {
+      "default": {
+        "format": "%(asctime)s - %(levelname)s - %(aws_request_id)s - %(message)s\n",
+        "datefmt": "%Y-%m-%d %H:%M:%S"
+      }
+    },
+    "loggers": {
+      "origin-response": {
+        "level": "WARNING"
+      },
+      "origin-request": {
+        "level": "WARNING"
+      },
+      "default": {
+        "level": "WARNING"
+      }
+    }
   }
 }

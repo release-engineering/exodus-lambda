@@ -1,5 +1,4 @@
 import json
-import logging
 from datetime import datetime, timezone
 
 import boto3
@@ -8,12 +7,10 @@ from cdn_definitions import origin_aliases, rhui_aliases
 
 from .base import LambdaBase
 
-LOG = logging.getLogger("origin-request")
-
 
 class OriginRequest(LambdaBase):
     def __init__(self, conf_file="lambda_config.json"):
-        super().__init__(conf_file)
+        super().__init__("origin-request", conf_file)
         self._db_client = None
 
     @property
@@ -72,7 +69,7 @@ class OriginRequest(LambdaBase):
 
         table = self.conf["table"]["name"]
 
-        LOG.info("Querying '%s' table for '%s'...", table, uri)
+        self.logger.info("Querying '%s' table for '%s'...", table, uri)
 
         query_result = self.db_client.query(
             TableName=table,
@@ -92,7 +89,7 @@ class OriginRequest(LambdaBase):
         )
 
         if query_result["Items"]:
-            LOG.info("Item found for '%s'", uri)
+            self.logger.info("Item found for '%s'", uri)
 
             try:
                 # Add custom header containing the original request uri
@@ -107,14 +104,14 @@ class OriginRequest(LambdaBase):
 
                 return request
             except Exception as err:
-                LOG.exception(
+                self.logger.exception(
                     "Exception occurred while processing %s",
                     json.dumps(query_result["Items"][0]),
                 )
 
                 raise err
         else:
-            LOG.info("No item found for '%s'", uri)
+            self.logger.info("No item found for '%s'", uri)
 
             # Report 404 to prevent attempts on S3
             return {"status": "404", "statusDescription": "Not Found"}

@@ -1,15 +1,14 @@
 import json
+import logging
 
 import pytest
 
 from exodus_lambda.functions.origin_response import OriginResponse
+from test_utils.utils import generate_test_config
 
 CONF_PATH = "configuration/lambda_config.json"
-
-# Load max_age from conf file:
-with open(CONF_PATH, "r") as json_file:
-    conf = json.load(json_file)
-max_age = conf["headers"]["max_age"]
+TEST_CONF = generate_test_config(CONF_PATH)
+MAX_AGE = TEST_CONF["headers"]["max_age"]
 
 
 @pytest.mark.parametrize(
@@ -45,7 +44,7 @@ def test_origin_response_valid_headers(original_uri, want_digest):
 
     expected_headers = {
         "cache-control": [
-            {"key": "Cache-Control", "value": f"max-age={max_age}"}
+            {"key": "Cache-Control", "value": f"max-age={MAX_AGE}"}
         ]
     }
 
@@ -85,3 +84,37 @@ def test_origin_response_missing_headers():
 
     response = OriginResponse(conf_file=CONF_PATH).handler(event, context=None)
     assert response == {}
+
+
+def test_origin_response_logger(caplog):
+    event = {
+        "Records": [
+            {
+                "cf": {
+                    "request": {
+                        "uri": "/be7f3007df3e51fb48fff57da9c01c52e6b8e60eceacab"
+                        "7aaf0e05b57578493a",
+                        "headers": {
+                            "exodus-original-uri": [
+                                {
+                                    "key": "exodus-original-uri",
+                                    "value": "/some/repo/repodata/repomd.xml",
+                                }
+                            ]
+                        },
+                    },
+                    "response": {"headers": {}},
+                }
+            }
+        ]
+    }
+
+    with caplog.at_level(logging.DEBUG):
+        response = OriginResponse(conf_file=TEST_CONF).handler(
+            event, context=None
+        )
+
+    assert (
+        "Cache-Control header added for '/some/repo/repodata/repomd.xml'"
+        in caplog.text
+    )
