@@ -1,0 +1,344 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Description: Configuration for exodus-cdn CodePipeline
+
+Parameters:
+  env:
+    Type: String
+    AllowedValues:
+      - dev
+      - stage
+      - prod
+    Default: dev
+    Description: The environment in which to deploy functions
+  oai:
+    Type: String
+    Description: The origin access identity ID associated with the environment
+  githubToken:
+    Type: String
+    Default: None
+    Description: A GitHub access token token to authorize webhooks
+  region:
+    Type: String
+    Default: us-east-1
+    Description: The region in which resources are established
+  email:
+    Type: String
+    Default: project-exodus@redhat.com
+    Description: The email address to which notifications are sent
+
+Conditions:
+  IsDev:
+    !Equals [!Ref env, dev]
+  NotDev:
+    !Not [!Equals [!Ref env, dev]]
+  NotProd:
+    !Not [!Equals [!Ref env, prod]]
+
+Mappings:
+  SourceMap:
+    dev:
+      objectKey: ""
+    stage:
+      objectKey: build-dev/exodus-lambda-pkg.yaml
+    prod:
+      objectKey: build-stage/exodus-lambda-pkg.yaml
+
+Resources:
+  SNSTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: !Sub exodus-sns-${env}
+      Subscription:
+        - Endpoint: !Ref email
+          Protocol: email
+
+  CodePipelineNotification:
+    Type: AWS::CodeStarNotifications::NotificationRule
+    Properties:
+      Name: !Sub exodus-pipeline-${env}
+      DetailType: FULL
+      EventTypeIds:
+        - codepipeline-pipeline-pipeline-execution-failed
+      Resource:
+        !Sub arn:aws:codepipeline:${region}:${AWS::AccountId}:${CodePipeline}
+      Targets:
+        - TargetType: SNS
+          TargetAddress: !Sub arn:aws:sns:${region}:${AWS::AccountId}:exodus-sns-${env}
+
+  CodePipelineWebhook:
+    Type: AWS::CodePipeline::Webhook
+    Condition: IsDev
+    Properties:
+      Name: !Sub exodus-pipeline-${env}
+      AuthenticationConfiguration:
+        SecretToken: !Ref githubToken
+      Filters:
+        - JsonPath: "$.ref"
+          MatchEquals: refs/heads/deploy
+      Authentication: GITHUB_HMAC
+      TargetPipeline: !Ref CodePipeline
+      TargetAction: Source
+      TargetPipelineVersion: !GetAtt CodePipeline.Version
+      RegisterWithThirdParty: true
+
+  CodePipeline:
+    Type: AWS::CodePipeline::Pipeline
+    Properties:
+      Name: !Sub exodus-pipeline-${env}
+      ArtifactStore:
+        Type: S3
+        Location: !Ref CodePipelineBucket
+      RoleArn: !GetAtt CodePipelineRole.Arn
+      Stages:
+        - !If
+          # Create Github source for dev pipeline
+          - IsDev
+          - Name: Source
+            Actions:
+              - Name: Source
+                ActionTypeId:
+                  Category: Source
+                  Owner: ThirdParty
+                  Provider: GitHub
+                  Version: 1
+                Configuration:
+                  Owner: release-engineering
+                  Repo: exodus-lambda
+                  Branch: pipeline-template
+                  OAuthToken: !Ref githubToken
+                  PollForSourceChanges: false
+                OutputArtifacts:
+                  - Name: SourceArtifact
+          - !Ref AWS::NoValue
+        - !If
+          # Create S3 source for stage, prod pipelines
+          - NotDev
+          - Name: Source
+            Actions:
+              - Name: Source
+                ActionTypeId:
+                  Category: Source
+                  Owner: AWS
+                  Provider: S3
+                  Version: 1
+                Region: !Ref region
+                Configuration:
+                  S3Bucket: exodus-pipeline-artifacts
+                  S3ObjectKey:
+                    !FindInMap [SourceMap, !Ref env, objectKey]
+                  PollForSourceChanges: false
+                OutputArtifacts:
+                  - Name: SourceArtifact
+          - !Ref AWS::NoValue
+        # Create build stage for dev pipeline
+        - !If
+          - IsDev
+          - Name: Build
+            Actions:
+              - Name: Build
+                ActionTypeId:
+                  Category: Build
+                  Owner: AWS
+                  Provider: CodeBuild
+                  Version: 1
+                Region: !Ref region
+                Configuration:
+                  EnvironmentVariables:
+                    !Sub '[{"name": "ENV_TYPE", "value": "${env}", "type": "PLAINTEXT"},
+                    {"name": "AWS_REGION", "value": "${region}", "type": "PLAINTEXT"}]'
+                  ProjectName: exodus-codebuild
+                InputArtifacts:
+                  - Name: SourceArtifact
+                OutputArtifacts:
+                  - Name: BuildArtifact
+          - !Ref AWS::NoValue
+        - Name: Deploy
+          Actions:
+            - Name: Deploy
+              ActionTypeId:
+                Category: Deploy
+                Owner: AWS
+                Provider: CloudFormation
+                Version: 1
+              Configuration:
+                ActionMode: CREATE_UPDATE
+                Capabilities: CAPABILITY_AUTO_EXPAND,CAPABILITY_NAMED_IAM
+                ParameterOverrides:
+                  !Sub '{"env": "${env}", "oai": "${oai}"}'
+                RoleArn: !GetAtt CloudFormationRole.Arn
+                StackName: !Sub exodus-lambda-${env}
+                TemplatePath: BuildArtifact::exodus-lambda-pkg.yaml
+              InputArtifacts:
+                - Name: BuildArtifact
+        # Create promote stage for dev, stage pipelines
+        - !If
+          - NotProd
+          - Name: Promote
+            Actions:
+              - Name: Approve
+                ActionTypeId:
+                  Category: Approval
+                  Owner: AWS
+                  Provider: Manual
+                  Version: 1
+                Configuration:
+                  CustomData: "Approval required for pipeline promotion"
+                  NotificationArn: !Sub arn:aws:sns:${region}:${AWS::AccountId}:exodus-sns-${env}
+                RunOrder: 1
+              - Name: Upload
+                ActionTypeId:
+                  Category: Deploy
+                  Owner: AWS
+                  Provider: S3
+                  Version: 1
+                Region: !Ref region
+                Configuration:
+                  BucketName: exodus-pipeline-artifacts
+                  ObjectKey:
+                    !Sub build-${env}/exodus-lambda-pkg.yaml
+                  Extract: true
+                InputArtifacts:
+                  - Name: BuildArtifact
+                RunOrder: 2
+          - !Ref AWS::NoValue
+
+  CodePipelineBucket:
+    Type: AWS::S3::Bucket
+    # Create artifact bucket for dev pipeline
+    Condition: IsDev
+    Properties:
+      BucketName: exodus-pipeline-artifacts
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      VersioningConfiguration:
+        Status: Enabled
+
+  CodeBuildProject:
+    Type: AWS::CodeBuild::Project
+    # Create CodeBuild project for dev pipeline
+    Condition: IsDev
+    Properties:
+      Name: exodus-codebuild
+      ServiceRole: !GetAtt CodeBuildRole.Arn
+      Environment:
+        Type: LINUX_CONTAINER
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: aws/codebuild/amazonlinux2-x86_64-standard:2.0
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: configuration/buildspec.yaml
+      Artifacts:
+        Type: CODEPIPELINE
+      TimeoutInMinutes: 10
+
+  # Create IAM roles for resources, used for all environments
+  CodeBuildRole:
+    Type: AWS::IAM::Role
+    Condition: IsDev
+    Properties:
+      RoleName: exodus-codebuild
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action:
+              - sts:AssumeRole
+            Principal:
+              Service:
+                - codebuild.amazonaws.com
+      Policies:
+        - PolicyName: exodus-codebuild-policy
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:*
+                  - codebuild:*
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: "*"
+      Path: /
+
+  CloudFormationRole:
+    Type: AWS::IAM::Role
+    Condition: IsDev
+    Properties:
+      RoleName: exodus-cloudform
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action:
+              - sts:AssumeRole
+            Principal:
+              Service:
+                - cloudformation.amazonaws.com
+      Policies:
+        - PolicyName: exodus-cloudform-policy
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - iam:*
+                  - lambda:*
+                  - s3:*
+                  - cloudfront:*
+                  - cloudwatch:*
+                  - cloudformation:*
+                Resource:
+                  - "*"
+      Path: /
+
+  CodePipelineRole:
+    Type: AWS::IAM::Role
+    Condition: IsDev
+    Properties:
+      RoleName: !Sub exodus-codepipe
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action:
+              - sts:AssumeRole
+            Principal:
+              Service:
+                - codepipeline.amazonaws.com
+      Policies:
+        - PolicyName: exodus-codepipe-policy
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - iam:PassRole
+                  - sns:*
+                  - lambda:ListFunctions
+                  - lambda:InvokeFunction
+                  - s3:*
+                  - cloudwatch:*
+                  - cloudformation:*
+                  - codebuild:StartBuild
+                  - codebuild:BatchGetBuilds
+                Resource: "*"
+      Path: /
+
+Outputs:
+  CodePipeline:
+    Description: exodus pipeline name
+    Value: !Ref CodePipeline
+  CodePipelineBucket:
+    Description: exodus pipeline artifact bucket ARN
+    Value: !GetAtt CodePipelineBucket.Arn
+  CodeBuildProject:
+    Description: exodus CodeBuild project ARN
+    Value: !GetAtt CodeBuildProject.Arn
+  SNSTopic:
+    Description: exodus SNS topic ARN
+    Value: !Ref SNSTopic
