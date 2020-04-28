@@ -35,15 +35,6 @@ Conditions:
   NotProd:
     !Not [!Equals [!Ref env, prod]]
 
-Mappings:
-  SourceMap:
-    dev:
-      objectKey: ""
-    stage:
-      objectKey: build-dev/exodus-lambda-pkg.yaml
-    prod:
-      objectKey: build-stage/exodus-lambda-pkg.yaml
-
 Resources:
   SNSTopic:
     Type: AWS::SNS::Topic
@@ -88,8 +79,8 @@ Resources:
       Name: !Sub exodus-pipeline-${env}
       ArtifactStore:
         Type: S3
-        Location: !Ref CodePipelineBucket
-      RoleArn: !GetAtt CodePipelineRole.Arn
+        Location: exodus-pipeline-artifacts
+      RoleArn: !Sub arn:aws:iam::${AWS::AccountId}:role/exodus-codepipe
       Stages:
         - !If
           # Create Github source for dev pipeline
@@ -105,7 +96,7 @@ Resources:
                 Configuration:
                   Owner: release-engineering
                   Repo: exodus-lambda
-                  Branch: pipeline-template
+                  Branch: deploy
                   OAuthToken: !Ref githubToken
                   PollForSourceChanges: false
                 OutputArtifacts:
@@ -126,10 +117,13 @@ Resources:
                 Configuration:
                   S3Bucket: exodus-pipeline-artifacts
                   S3ObjectKey:
-                    !FindInMap [SourceMap, !Ref env, objectKey]
-                  PollForSourceChanges: false
+                    !If
+                      - NotProd
+                      - build-dev
+                      - build-stage
+                  PollForSourceChanges: true
                 OutputArtifacts:
-                  - Name: SourceArtifact
+                  - Name: BuildArtifact
           - !Ref AWS::NoValue
         # Create build stage for dev pipeline
         - !If
@@ -166,7 +160,7 @@ Resources:
                 Capabilities: CAPABILITY_AUTO_EXPAND,CAPABILITY_NAMED_IAM
                 ParameterOverrides:
                   !Sub '{"env": "${env}", "oai": "${oai}"}'
-                RoleArn: !GetAtt CloudFormationRole.Arn
+                RoleArn: !Sub arn:aws:iam::${AWS::AccountId}:role/exodus-cloudform
                 StackName: !Sub exodus-lambda-${env}
                 TemplatePath: BuildArtifact::exodus-lambda-pkg.yaml
               InputArtifacts:
@@ -196,8 +190,8 @@ Resources:
                 Configuration:
                   BucketName: exodus-pipeline-artifacts
                   ObjectKey:
-                    !Sub build-${env}/exodus-lambda-pkg.yaml
-                  Extract: true
+                    !Sub build-${env}
+                  Extract: false
                 InputArtifacts:
                   - Name: BuildArtifact
                 RunOrder: 2
@@ -335,10 +329,10 @@ Outputs:
     Value: !Ref CodePipeline
   CodePipelineBucket:
     Description: exodus pipeline artifact bucket ARN
-    Value: !GetAtt CodePipelineBucket.Arn
+    Value: arn:aws:s3:::exodus-pipeline-artifacts
   CodeBuildProject:
     Description: exodus CodeBuild project ARN
-    Value: !GetAtt CodeBuildProject.Arn
+    Value: !Sub arn:aws:codebuild:${region}:${AWS::AccountId}:project/exodus-codebuild
   SNSTopic:
     Description: exodus SNS topic ARN
     Value: !Ref SNSTopic
