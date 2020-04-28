@@ -8,5 +8,6 @@ AWS Lambda functions for Red Hat's Content Delivery Network
    :caption: Contents:
 
    arch
+   deploy
    function-reference
    schema-reference

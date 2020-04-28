@@ -15,7 +15,7 @@
     <script src="_static/language_data.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Function Reference" href="function-reference.html" />
+    <link rel="next" title="Deployment" href="deploy.html" />
     <link rel="prev" title="exodus-lambda" href="index.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
@@ -34,7 +34,7 @@
           <div class="body" role="main">
             
   <div class="section" id="architecture">
-<h1>Architecture<a class="headerlink" href="#architecture" title="Permalink to this headline">¶</a></h1>
+<span id="arch-ref"></span><h1>Architecture<a class="headerlink" href="#architecture" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="overview">
 <h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
 <p>This diagram shows the relationship between all major components used
@@ -179,11 +179,13 @@ in the delivery of content via the CDN.</p>
     }
 }" class="graphviz" /></div>
 <ul class="simple">
-<li><p>Numbered connections represent the sequence of events when the CDN processes a request.</p></li>
-<li><p>For clarity, SHA256 checksums have been truncated (as in <code class="docutils literal notranslate"><span class="pre">8e7750e50734f...</span></code>). In reality,
-the system stores complete checksums.</p></li>
-<li><p>The CloudFront CDN shown in the above diagram may itself be hosted behind another CDN,
-so client requests may pass through additional layers not expressed here.</p></li>
+<li><p>Numbered connections represent the sequence of events when the CDN processes
+a request.</p></li>
+<li><p>For clarity, SHA256 checksums have been truncated (as in
+<code class="docutils literal notranslate"><span class="pre">8e7750e50734f...</span></code>). In reality, the system stores complete checksums.</p></li>
+<li><p>The CloudFront CDN shown in the above diagram may itself be hosted behind
+another CDN, so client requests may pass through additional layers not
+expressed here.</p></li>
 </ul>
 </div>
 <div class="section" id="components">
@@ -213,39 +215,46 @@ between URIs and S3 object keys.</p>
 <p>The CDN uses S3 to store the binary objects retrievable by clients.
 A single bucket is used, configured as the origin of the CloudFront CDN.</p>
 <p>One object corresponds to one file which can be downloaded from the CDN;
-this includes files considered to be content (such as RPMs) and files considered
-to be metadata (such as yum repo metadata files).</p>
-<p>Each object’s key is its own SHA256 checksum, ensuring that content accessible
-via many paths on the CDN need only be stored once.</p>
-<p>S3 metadata is used in some cases to customize the response behavior of each object;
-for example, metadata is used to adjust <code class="docutils literal notranslate"><span class="pre">Content-Type</span></code> headers in responses.
-Publishing tools are responsible for setting this metadata accurately.</p>
+this includes files considered to be content (such as RPMs) and files
+considered to be metadata (such as yum repo metadata files).</p>
+<p>Each object’s key is its own SHA256 checksum, ensuring that content
+accessible via many paths on the CDN need only be stored once.</p>
+<p>S3 metadata is used in some cases to customize the response behavior of
+each object; for example, metadata is used to adjust <code class="docutils literal notranslate"><span class="pre">Content-Type</span></code>
+headers in responses. Publishing tools are responsible for setting this
+metadata accurately.</p>
 <p>For more information about the data contained here, see <a class="reference internal" href="schema-reference.html#schema-ref"><span class="std std-ref">Schema Reference</span></a>.</p>
 </dd>
-<dt>exodus-lambda</dt><dd><p>A project including Python-based implementations of <a class="reference external" href="https://aws.amazon.com/lambda/edge/">Lambda&#64;Edge</a> functions for the CDN.</p>
+<dt>exodus-lambda</dt><dd><p>A project including Python-based implementations of <a class="reference external" href="https://aws.amazon.com/lambda/edge/">Lambda&#64;Edge</a>
+functions for the CDN.</p>
 <p>You are currently reading the documentation of this project.</p>
 </dd>
-<dt>origin_request</dt><dd><p>A <a class="reference external" href="https://aws.amazon.com/lambda/edge/">Lambda&#64;Edge</a> function connected to “origin request” events in CloudFront.</p>
-<p>This function is primarily responsible for translating the path given in the client’s
-request into an S3 object key via a DynamoDB query.  Assuming the client has requested
-existing content, this Lambda function will rewrite the request’s URI into a valid S3
-object key before returning the request to the controller.  The function itself does
-not request data from S3, nor generate a response directly.</p>
-<p>For more information about this function’s behavior, see <a class="reference internal" href="function-reference.html#function-ref"><span class="std std-ref">Function Reference</span></a>.</p>
+<dt>origin_request</dt><dd><p>A <a class="reference external" href="https://aws.amazon.com/lambda/edge/">Lambda&#64;Edge</a> function connected to “origin request” events in
+CloudFront.</p>
+<p>This function is primarily responsible for translating the path given in
+the client’s request into an S3 object key via a DynamoDB query.  Assuming
+the client has requested existing content, this Lambda function will
+rewrite the request’s URI into a valid S3 object key before returning the
+request to the controller. The function itself does not request data from
+S3, nor generate a response directly.</p>
+<p>For more information about this function’s behavior, see
+<a class="reference internal" href="function-reference.html#function-ref"><span class="std std-ref">Function Reference</span></a>.</p>
 </dd>
-<dt>origin_response</dt><dd><p>A <a class="reference external" href="https://aws.amazon.com/lambda/edge/">Lambda&#64;Edge</a> function connected to “origin response” events in CloudFront.</p>
-<p>This function is primarily responsible for tweaking certain response headers
-before allowing CloudFront to serve the response to clients.  For example,
-caching behavior is influenced by setting a Cache-Control header for certain
-responses.</p>
-<p>For more information about this function’s behavior, see <a class="reference internal" href="function-reference.html#function-ref"><span class="std std-ref">Function Reference</span></a>.</p>
+<dt>origin_response</dt><dd><p>A <a class="reference external" href="https://aws.amazon.com/lambda/edge/">Lambda&#64;Edge</a> function connected to “origin response” events in
+CloudFront.</p>
+<p>This function is primarily responsible for tweaking certain response
+headers before allowing CloudFront to serve the response to clients. For
+example, caching behavior is influenced by setting a Cache-Control header
+for certain responses.</p>
+<p>For more information about this function’s behavior, see
+<a class="reference internal" href="function-reference.html#function-ref"><span class="std std-ref">Function Reference</span></a>.</p>
 </dd>
 <dt>publishing tools</dt><dd><p>Represents the tools used by Red Hat to publish content onto the CDN.</p>
-<p>These tools insert data into the CDN’s S3 and DynamoDB services in order to publish
-content.</p>
-<p>A further explanation of these tools is out of scope for this document; it suffices
-to know that the tools are designed with an awareness of the CDN architecture
-described here.</p>
+<p>These tools insert data into the CDN’s S3 and DynamoDB services in order to
+publish content.</p>
+<p>A further explanation of these tools is out of scope for this document; it
+suffices to know that the tools are designed with an awareness of the CDN
+architecture described here.</p>
 </dd>
 </dl>
 </div>
@@ -279,6 +288,7 @@ described here.</p>
 <li class="toctree-l2"><a class="reference internal" href="#components">Components</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="deploy.html">Deployment</a></li>
 <li class="toctree-l1"><a class="reference internal" href="function-reference.html">Function Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="schema-reference.html">Schema Reference</a></li>
 </ul>
@@ -297,7 +307,7 @@ described here.</p>
 <ul>
   <li><a href="index.html">Documentation overview</a><ul>
       <li>Previous: <a href="index.html" title="previous chapter">exodus-lambda</a></li>
-      <li>Next: <a href="function-reference.html" title="next chapter">Function Reference</a></li>
+      <li>Next: <a href="deploy.html" title="next chapter">Deployment</a></li>
   </ul></li>
 </ul>
 </div>
@@ -327,7 +337,7 @@ described here.</p>
       &copy;2020, Red Hat.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.0.2</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.0.3</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

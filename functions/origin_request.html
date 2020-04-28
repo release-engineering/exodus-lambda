@@ -35,8 +35,8 @@
             
   <div class="section" id="origin-request">
 <h1>origin_request<a class="headerlink" href="#origin-request" title="Permalink to this headline">¶</a></h1>
-<p>The origin_request function provides mapping from a web URI, delivered by an AWS
-CloudFront event, to the key of an object in an AWS S3 bucket.</p>
+<p>The origin_request function provides mapping from a web URI, delivered by an
+AWS CloudFront event, to the key of an object in an AWS S3 bucket.</p>
 <p>Using this function, a URI like “/path/to/s3/file” would be transformed to
 something like “/some-s3-file-object-key”.</p>
 <p>The mapping between the URI and the object key is defined by the AWS DynamoDB
@@ -54,8 +54,8 @@ an S3 bucket.</p>
 </div>
 <div class="section" id="configuration">
 <h3>Configuration<a class="headerlink" href="#configuration" title="Permalink to this headline">¶</a></h3>
-<p>The origin_request function must be deployed with the lambda_config.json configuration
-file.</p>
+<p>The origin_request function must be deployed with the lambda_config.json
+configuration file.</p>
 <ul class="simple">
 <li><dl class="simple">
 <dt>table</dt><dd><p>The DynamoDB table from which to derive path to key mapping.</p>
@@ -103,6 +103,7 @@ file.</p>
 <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../arch.html">Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../deploy.html">Deployment</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="../function-reference.html">Function Reference</a><ul class="current">
 <li class="toctree-l2 current"><a class="current reference internal" href="#">origin_request</a></li>
 <li class="toctree-l2"><a class="reference internal" href="origin_response.html">origin_response</a></li>
@@ -157,7 +158,7 @@ file.</p>
       &copy;2020, Red Hat.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.0.2</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.0.3</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |
