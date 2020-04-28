@@ -1,8 +1,8 @@
 origin_request
 =========
 
-The origin_request function provides mapping from a web URI, delivered by an AWS
-CloudFront event, to the key of an object in an AWS S3 bucket.
+The origin_request function provides mapping from a web URI, delivered by an
+AWS CloudFront event, to the key of an object in an AWS S3 bucket.
 
 Using this function, a URI like "/path/to/s3/file" would be transformed to
 something like "/some-s3-file-object-key".
@@ -26,8 +26,8 @@ an S3 bucket.
 
 Configuration
 ^^^^^^^^^^^^^
-The origin_request function must be deployed with the lambda_config.json configuration
-file.
+The origin_request function must be deployed with the lambda_config.json
+configuration file.
 
 - table
     The DynamoDB table from which to derive path to key mapping.
