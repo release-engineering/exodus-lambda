@@ -121,7 +121,7 @@ Resources:
                       - NotProd
                       - build-dev
                       - build-stage
-                  PollForSourceChanges: true
+                  PollForSourceChanges: false
                 OutputArtifacts:
                   - Name: BuildArtifact
           - !Ref AWS::NoValue
@@ -197,6 +197,53 @@ Resources:
                 RunOrder: 2
           - !Ref AWS::NoValue
 
+  CodePipelineEventRule:
+    Type: AWS::Events::Rule
+    # Create event rule for stage, prod pipelines
+    Condition: NotDev
+    Properties:
+      EventPattern:
+        source:
+          - aws.s3
+        detail:
+          eventSource:
+            - s3.amazonaws.com
+          eventName:
+            - CopyObject
+            - PutObject
+            - CompleteMultipartUpload
+          requestParameters:
+            bucketName:
+              - exodus-pipeline-artifacts
+            key:
+              - !If
+                - NotProd
+                - build-dev
+                - build-stage
+      Targets:
+        - Arn: !Sub arn:aws:codepipeline:${region}:${AWS::AccountId}:${CodePipeline}
+          RoleArn: !GetAtt CloudWatchEventRole.Arn
+          Id: !Ref CodePipeline
+
+  CodePipelineCloudTrail:
+    Type: AWS::CloudTrail::Trail
+    # Create trail for stage, prod pipelines
+    Condition: NotDev
+    Properties:
+      S3BucketName: exodus-pipeline-artifacts
+      EventSelectors:
+        - DataResources:
+          - Type: AWS::S3::Object
+            Values:
+              - !If
+                - NotProd
+                - arn:aws:s3:::exodus-pipeline-artifacts/build-dev
+                - arn:aws:s3:::exodus-pipeline-artifacts/build-stage
+          ReadWriteType: WriteOnly
+      IncludeGlobalServiceEvents: true
+      IsLogging: true
+      IsMultiRegionTrail: true
+
   CodePipelineBucket:
     Type: AWS::S3::Bucket
     # Create artifact bucket for dev pipeline
@@ -210,6 +257,31 @@ Resources:
         RestrictPublicBuckets: true
       VersioningConfiguration:
         Status: Enabled
+
+  CodePipelineBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    # Create artifact bucket policy for dev pipeline
+    Condition: IsDev
+    Properties:
+      Bucket: exodus-pipeline-artifacts
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - cloudtrail.amazonaws.com
+            Action: s3:GetBucketAcl
+            Resource: arn:aws:s3:::exodus-pipeline-artifacts
+          - Effect: Allow
+            Principal:
+              Service:
+                - cloudtrail.amazonaws.com
+            Action: s3:PutObject
+            Resource: !Sub arn:aws:s3:::exodus-pipeline-artifacts/AWSLogs/${AWS::AccountId}/*
+            Condition:
+              StringEquals:
+                s3:x-amz-acl: bucket-owner-full-control
 
   CodeBuildProject:
     Type: AWS::CodeBuild::Project
@@ -294,7 +366,7 @@ Resources:
     Type: AWS::IAM::Role
     Condition: IsDev
     Properties:
-      RoleName: !Sub exodus-codepipe
+      RoleName: exodus-codepipe
       AssumeRolePolicyDocument:
         Version: 2012-10-17
         Statement:
@@ -322,6 +394,29 @@ Resources:
                   - codebuild:BatchGetBuilds
                 Resource: "*"
       Path: /
+
+  CloudWatchEventRole:
+    Type: AWS::IAM::Role
+    Condition: NotDev
+    Properties:
+      RoleName: !Sub exodus-cloudwatch-${env}
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action:
+              - sts:AssumeRole
+            Principal:
+              Service:
+                - events.amazonaws.com
+      Policies:
+        - PolicyName: !Sub exodus-cloudwatch-policy-${env}
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action: codepipeline:StartPipelineExecution
+                Resource: !Sub arn:aws:codepipeline:${region}:${AWS::AccountId}:${CodePipeline}
 
 Outputs:
   CodePipeline:
