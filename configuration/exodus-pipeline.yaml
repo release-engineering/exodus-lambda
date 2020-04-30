@@ -14,6 +14,18 @@ Parameters:
   oai:
     Type: String
     Description: The origin access identity ID associated with the environment
+  repoOwner:
+    Type: String
+    Default: release-engineering
+    Description: The parent of the targeted repository
+  repoName:
+    Type: String
+    Default: exodus-lambda
+    Description: The targeted repository
+  repoBranch:
+    Type: String
+    Default: deploy
+    Description: The source branch of the targeted repository
   githubToken:
     Type: String
     Default: None
@@ -82,28 +94,29 @@ Resources:
         Location: exodus-pipeline-artifacts
       RoleArn: !Sub arn:aws:iam::${AWS::AccountId}:role/exodus-codepipe
       Stages:
+        # Create Github source for dev pipeline
         - !If
-          # Create Github source for dev pipeline
           - IsDev
           - Name: Source
             Actions:
               - Name: Source
+                Namespace: SourceVars
                 ActionTypeId:
                   Category: Source
                   Owner: ThirdParty
                   Provider: GitHub
                   Version: 1
                 Configuration:
-                  Owner: release-engineering
-                  Repo: exodus-lambda
-                  Branch: deploy
+                  Owner: !Ref repoOwner
+                  Repo: !Ref repoName
+                  Branch: !Ref repoBranch
                   OAuthToken: !Ref githubToken
                   PollForSourceChanges: false
                 OutputArtifacts:
                   - Name: SourceArtifact
           - !Ref AWS::NoValue
+        # Create S3 source for stage, prod pipelines
         - !If
-          # Create S3 source for stage, prod pipelines
           - NotDev
           - Name: Source
             Actions:
@@ -130,6 +143,25 @@ Resources:
           - IsDev
           - Name: Build
             Actions:
+              - Name: Verify
+                ActionTypeId:
+                  Category: Build
+                  Owner: AWS
+                  Provider: CodeBuild
+                  Version: 1
+                Region: !Ref region
+                Configuration:
+                  EnvironmentVariables:
+                    !Sub '[
+                      {"name": "REPO_OWNER", "value": "${repoOwner}", "type": "PLAINTEXT"},
+                      {"name": "REPO_NAME", "value": "${repoName}", "type": "PLAINTEXT"},
+                      {"name": "REPO_BRANCH", "value": "${repoBranch}", "type": "PLAINTEXT"},
+                      {"name": "COMMIT_ID", "value": "#{SourceVars.CommitId}", "type": "PLAINTEXT"}
+                    ]'
+                  ProjectName: verify-source
+                InputArtifacts:
+                  - Name: SourceArtifact
+                RunOrder: 1
               - Name: Build
                 ActionTypeId:
                   Category: Build
@@ -139,13 +171,16 @@ Resources:
                 Region: !Ref region
                 Configuration:
                   EnvironmentVariables:
-                    !Sub '[{"name": "ENV_TYPE", "value": "${env}", "type": "PLAINTEXT"},
-                    {"name": "AWS_REGION", "value": "${region}", "type": "PLAINTEXT"}]'
+                    !Sub '[
+                      {"name": "ENV_TYPE", "value": "${env}", "type": "PLAINTEXT"},
+                      {"name": "AWS_REGION", "value": "${region}", "type": "PLAINTEXT"}
+                    ]'
                   ProjectName: exodus-codebuild
                 InputArtifacts:
                   - Name: SourceArtifact
                 OutputArtifacts:
                   - Name: BuildArtifact
+                RunOrder: 2
           - !Ref AWS::NoValue
         - Name: Deploy
           Actions:
