@@ -1,7 +1,14 @@
 {
   "table": {
     "name": "exodus-cdn-$ENV_TYPE",
-    "region": "$AWS_REGION"
+    "available_regions": [
+      "us-east-1",
+      "us-west-1",
+      "ap-east-1",
+      "ap-south-1",
+      "ap-southeast-2",
+      "eu-central-1"
+    ]
   },
   "headers": {
     "max_age": "600"

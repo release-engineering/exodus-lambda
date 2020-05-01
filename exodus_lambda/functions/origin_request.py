@@ -19,9 +19,7 @@ class OriginRequest(LambdaBase):
     @property
     def db_client(self):
         if not self._db_client:
-            self._db_client = boto3.client(
-                "dynamodb", region_name=self.conf["table"]["region"]
-            )
+            self._db_client = boto3.client("dynamodb", region_name=self.region)
 
         return self._db_client
 
