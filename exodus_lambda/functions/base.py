@@ -1,18 +1,24 @@
 import json
 import os
+import logging.config
+import logging
 
 
 class LambdaBase(object):
-    def __init__(self, conf_file="lambda_config.json"):
+    def __init__(self, logger_name="default", conf_file="lambda_config.json"):
         self._conf_file = conf_file
         self._conf = None
+        self._logger_name = logger_name
+        self._logger = None
 
     @property
     def conf(self):
         if not self._conf:
-            with open(self._conf_file, "r") as json_file:
-                self._conf = json.load(json_file)
-
+            if isinstance(self._conf_file, dict):
+                self._conf = self._conf_file
+            else:
+                with open(self._conf_file, "r") as json_file:
+                    self._conf = json.load(json_file)
         return self._conf
 
     @property
@@ -23,6 +29,20 @@ class LambdaBase(object):
         if env_region in self.conf["table"]["available_regions"]:
             return env_region
         return self.conf["table"]["available_regions"][0]
+
+    @property
+    def logger(self):
+        if not self._logger:
+            log_conf = self.conf.get("logging", {})
+            logging.config.dictConfig(log_conf)
+            root_logger = logging.getLogger()
+            if log_conf and root_logger.handlers:
+                formatter_str = log_conf["formatters"]["default"]["format"]
+                formatter_date = log_conf["formatters"]["default"]["datefmt"]
+                formatter = logging.Formatter(formatter_str, formatter_date)
+                root_logger.handlers[0].setFormatter(formatter)
+            self._logger = logging.getLogger(self._logger_name)
+        return self._logger
 
     def handler(self, event, context):
         raise NotImplementedError

@@ -1,13 +1,13 @@
-import logging
 import re
 from base64 import b64encode
 
 from .base import LambdaBase
 
-LOG = logging.getLogger("origin-response")
-
 
 class OriginResponse(LambdaBase):
+    def __init__(self, conf_file="lambda_config.json"):
+        super().__init__("origin-response", conf_file)
+
     def handler(self, event, context):
         # pylint: disable=unused-argument
 
@@ -35,7 +35,7 @@ class OriginResponse(LambdaBase):
             ]
 
         except KeyError:
-            LOG.debug(
+            self.logger.debug(
                 "Could not read exodus-original-uri from response",
                 exc_info=True,
             )
@@ -45,12 +45,9 @@ class OriginResponse(LambdaBase):
             for pattern in max_age_pattern_whitelist:
                 if re.match(pattern, original_uri):
                     response["headers"]["cache-control"] = [
-                        {
-                            "key": "Cache-Control",
-                            "value": f"max-age={max_age}",
-                        }
+                        {"key": "Cache-Control", "value": f"max-age={max_age}"}
                     ]
-                    LOG.info(
+                    self.logger.info(
                         "Cache-Control header added for '%s'", original_uri
                     )
 

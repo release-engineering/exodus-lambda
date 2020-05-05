@@ -1,13 +1,16 @@
 import json
+import logging
 
 import mock
 import pytest
 
 from exodus_lambda.functions.origin_request import OriginRequest
+from test_utils.utils import generate_test_config
 
 TEST_PATH = "/origin/rpms/repo/ver/dir/filename.ext"
 MOCKED_DT = "2020-02-17T15:38:05.864+00:00"
 CONF_PATH = "configuration/lambda_config.json"
+TEST_CONF = generate_test_config(CONF_PATH)
 
 
 @pytest.mark.parametrize(
@@ -55,7 +58,7 @@ CONF_PATH = "configuration/lambda_config.json"
 @mock.patch("boto3.client")
 @mock.patch("exodus_lambda.functions.origin_request.datetime")
 def test_origin_request(
-    mocked_datetime, mocked_boto3_client, req_uri, real_uri
+    mocked_datetime, mocked_boto3_client, req_uri, real_uri, caplog
 ):
     mocked_datetime.now().isoformat.return_value = MOCKED_DT
     mocked_boto3_client().query.return_value = {
@@ -70,7 +73,12 @@ def test_origin_request(
 
     event = {"Records": [{"cf": {"request": {"uri": req_uri, "headers": {}}}}]}
 
-    request = OriginRequest(conf_file=CONF_PATH).handler(event, context=None)
+    with caplog.at_level(logging.DEBUG):
+        request = OriginRequest(conf_file=TEST_CONF).handler(
+            event, context=None
+        )
+
+    assert "Item found for '%s'" % real_uri in caplog.text
 
     assert request == {
         "uri": "/e4a3f2sum",
@@ -84,15 +92,19 @@ def test_origin_request(
 
 @mock.patch("boto3.client")
 @mock.patch("exodus_lambda.functions.origin_request.datetime")
-def test_origin_request_no_item(mocked_datetime, mocked_boto3_client):
+def test_origin_request_no_item(mocked_datetime, mocked_boto3_client, caplog):
     mocked_datetime.now().isoformat.return_value = MOCKED_DT
     mocked_boto3_client().query.return_value = {"Items": []}
 
     event = {"Records": [{"cf": {"request": {"uri": TEST_PATH}}}]}
 
-    request = OriginRequest(conf_file=CONF_PATH).handler(event, context=None)
+    with caplog.at_level(logging.DEBUG):
+        request = OriginRequest(conf_file=TEST_CONF).handler(
+            event, context=None
+        )
 
     assert request == {"status": "404", "statusDescription": "Not Found"}
+    assert "No item found for '%s'" % TEST_PATH in caplog.text
 
 
 @mock.patch("boto3.client")
@@ -113,7 +125,9 @@ def test_origin_request_invalid_item(
     event = {"Records": [{"cf": {"request": {"uri": TEST_PATH}}}]}
 
     with pytest.raises(KeyError):
-        OriginRequest(conf_file=CONF_PATH).handler(event, context=None)
+        request = OriginRequest(conf_file=TEST_CONF).handler(
+            event, context=None
+        )
 
     assert (
         "Exception occurred while processing %s"
