@@ -1,0 +1,246 @@
+#!/usr/bin/env python
+"""
+
+Prepare reference test data for Exodus-lambda integration test.
+It requires a "data.yml" file specifying the reference test data.
+
+"""
+
+import os
+import sys
+import yaml
+import boto3
+import hashlib
+import tempfile
+import requests
+import argparse
+
+from tqdm import tqdm
+from datetime import datetime
+
+
+class DBHandler:
+    def __init__(self, table, session):
+        self.dynamodb = session.client("dynamodb")
+        self.table = table
+
+        self.default_from_date = datetime.utcnow().isoformat(
+            timespec="seconds"
+        )
+
+    def put_item(self, web_uri, object_key, from_date=None, metadata={}):
+        if not from_date:
+            from_date = self.default_from_date
+        return self.dynamodb.put_item(
+            TableName=self.table,
+            Item={
+                "web_uri": {"S": web_uri},
+                "from_date": {"S": from_date},
+                "object_key": {"S": object_key},
+                "metadata": {"M": metadata},
+            },
+        )
+
+
+class S3Handler:
+    def __init__(self, bucket, session):
+        self.s3 = session.client("s3")
+        self.bucket = bucket
+
+    def upload_from_localfile(self, path, checksum, str_content_type):
+        if not str_content_type:
+            dict_content_type = {}
+        else:
+            dict_content_type = {"ContentType": str_content_type}
+
+        with open(path, "rb") as data:
+            self.s3.upload_fileobj(
+                Fileobj=data,
+                Bucket=self.bucket,
+                Key=checksum,
+                ExtraArgs=dict_content_type,
+            )
+
+
+def parse_aws_session(parser):
+    parser.add_argument(
+        "--aws-access-id",
+        default=None,
+        help="Access ID for Amazon services. If no ID is provided, attempts to"
+        " find it among environment variables and ~/.aws/config file will"
+        " be made",
+    )
+    parser.add_argument(
+        "--aws-access-key",
+        default=None,
+        help="Access key for Amazon services. If no key is provided, attempts"
+        " to find it among environment variables and ~/.aws/config file"
+        " will be made",
+    )
+    parser.add_argument(
+        "--aws-session-token",
+        default=None,
+        help="Session token for Amazon services. If no token is provided,"
+        " attempts to find it among environment variables and"
+        " ~/.aws/config file will be made",
+    )
+    parser.add_argument(
+        "--default-region",
+        default="us-east-1",
+        help="Default region for Amamzon services. If no region is provided,"
+        " it will go with us-east-1",
+    )
+
+
+def parse_cdn_certs(parser):
+    parser.add_argument(
+        "--cert",
+        default="~/certs/rcm-debug/rcm-debug.crt",
+        type=str,
+        help="Client certificate file and password",
+    )
+    parser.add_argument(
+        "--key",
+        default="~/certs/rcm-debug/rcm-debug.key",
+        type=str,
+        help="Private key file name",
+    )
+    parser.add_argument(
+        "--cacert",
+        default="/etc/rhsm/ca/redhat-uep.pem",
+        type=str,
+        help="CA certificate to verify peer against",
+    )
+
+
+def parse_args():
+    root_parser = argparse.ArgumentParser(description=__doc__)
+    subparsers = root_parser.add_subparsers(
+        dest="command", help="reference test data operations"
+    )
+    # parser for prepare operation
+    parser_prepare = subparsers.add_parser(
+        "prepare",
+        help="""
+        prepare reference test data in dynamodb and s3
+        for integration test,
+         e.g. $./reftest prepare --bucket exodus-bucket --table exodus-table
+        """,
+    )
+    parser_prepare.add_argument(
+        "--release-date",
+        default=None,
+        help="Date on which the content will be made available.",
+    )
+    parse_aws_session(parser_prepare)
+    parse_cdn_certs(parser_prepare)
+    parser_prepare.add_argument(
+        "--bucket",
+        required=True,
+        help="The AWS S3 bucket used to store test data",
+    )
+    parser_prepare.add_argument(
+        "--table",
+        required=True,
+        help="The AWS dynamoDB used to store test data",
+    )
+
+    return root_parser.parse_args()
+
+
+class RefTestConfig:
+    def __init__(self, prod_cdn_url, test_data):
+        self.prod_cdn_url = prod_cdn_url
+        self.test_data = test_data
+
+
+def load_config():
+    with open("data.yml") as f:
+        config = yaml.load(f, yaml.SafeLoader)
+    return RefTestConfig(config["prod-cdn-url"], config["test_data"],)
+
+
+# It will return a TempFileObj and a checksum for test data verification
+def download_to_local(url, key_path, cert_path, cacert_path):
+    with requests.get(
+        url,
+        cert=(cert_path, key_path),
+        verify=cacert_path,
+        stream=True,
+        timeout=(30, 30),
+    ) as r:
+        r.raise_for_status()
+        total_size = int(r.headers.get("content-length", 0))
+        t = tqdm(desc=url, total=total_size, unit="iB", unit_scale=True)
+
+        # the file is deleted as soon as it is closed.
+        temp_file = tempfile.NamedTemporaryFile(delete=True)
+
+        sha256 = hashlib.sha256()
+
+        for chunk in r.iter_content(chunk_size=8192):
+            if chunk:  # filter out keep-alive new chunks
+                t.update(len(chunk))
+                temp_file.write(chunk)
+                sha256.update(chunk)
+                temp_file.flush()
+        t.close()
+        return temp_file, sha256.hexdigest()
+
+
+def prepare(db, s3, config, opt):
+    for item in config.test_data:
+        url = config.prod_cdn_url + item["path"]
+        # download test data to local with a name "NamedTemporaryFile"
+        temp_file, cdn_data_checksum = download_to_local(
+            url, opt.key, opt.cert, opt.cacert
+        )
+
+        # checksum verify
+        if cdn_data_checksum != item["sha256"]:
+            print(
+                "{} verify checksum failed, cdn_data_checksum is {}, but test_data_checksum is {}".format(
+                    item["path"], cdn_data_checksum, item["sha256"]
+                )
+            )
+            return False
+
+        # push test data to s3 and dynamodb
+        s3.upload_from_localfile(
+            temp_file.name, item["sha256"], item["content-type"]
+        )
+        db.put_item(item["path"], item["sha256"], opt.release_date)
+
+        # delete the NamedTemporaryFile
+        temp_file.close()
+
+    return True
+
+
+def main():
+    config = load_config()
+    opt = parse_args()
+
+    session = boto3.Session(
+        aws_access_key_id=opt.aws_access_id,
+        aws_secret_access_key=opt.aws_access_key,
+        aws_session_token=opt.aws_session_token,
+        region_name=opt.default_region,
+    )
+
+    db_client = DBHandler(table=opt.table, session=session)
+    s3_client = S3Handler(bucket=opt.bucket, session=session)
+
+    res = False
+    if opt.command == "prepare":
+        res = prepare(db_client, s3_client, config, opt)
+
+    if res:
+        print("{} operation has finished successfully!".format(opt.command))
+    else:
+        print("Fatal error: {} operation is terminated".format(opt.command))
+        return 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())
