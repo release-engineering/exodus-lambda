@@ -24,7 +24,7 @@ Parameters:
     Description: The targeted repository
   repoBranch:
     Type: String
-    Default: deploy
+    Default: None
     Description: The source branch of the targeted repository
   githubToken:
     Type: String
@@ -42,10 +42,14 @@ Parameters:
 Conditions:
   IsDev:
     !Equals [!Ref env, dev]
-  NotDev:
-    !Not [!Equals [!Ref env, dev]]
+  IsStage:
+    !Equals [!Ref env, stage]
+  IsProd:
+    !Equals [!Ref env, prod]
   NotProd:
     !Not [!Equals [!Ref env, prod]]
+  NoBranch:
+    !Equals [!Ref repoBranch, None]
 
 Resources:
   SNSTopic:
@@ -71,14 +75,21 @@ Resources:
 
   CodePipelineWebhook:
     Type: AWS::CodePipeline::Webhook
-    Condition: IsDev
+    Condition: NotProd
     Properties:
       Name: !Sub exodus-pipeline-${env}
       AuthenticationConfiguration:
         SecretToken: !Ref githubToken
       Filters:
         - JsonPath: "$.ref"
-          MatchEquals: refs/heads/deploy
+          MatchEquals:
+            !If
+              - NoBranch
+              - !If
+                - IsDev
+                - refs/heads/master
+                - refs/heads/deploy
+              - !Sub refs/heads/${repoBranch}
       Authentication: GITHUB_HMAC
       TargetPipeline: !Ref CodePipeline
       TargetAction: Source
@@ -94,9 +105,9 @@ Resources:
         Location: exodus-pipeline-artifacts
       RoleArn: !Sub arn:aws:iam::${AWS::AccountId}:role/exodus-codepipe
       Stages:
-        # Create Github source for dev pipeline
+        # Create Github source for dev, stage pipelines
         - !If
-          - IsDev
+          - NotProd
           - Name: Source
             Actions:
               - Name: Source
@@ -109,15 +120,22 @@ Resources:
                 Configuration:
                   Owner: !Ref repoOwner
                   Repo: !Ref repoName
-                  Branch: !Ref repoBranch
+                  Branch:
+                    !If
+                      - NoBranch
+                      - !If
+                        - IsDev
+                        - master
+                        - deploy
+                      - !Ref repoBranch
                   OAuthToken: !Ref githubToken
                   PollForSourceChanges: false
                 OutputArtifacts:
                   - Name: SourceArtifact
           - !Ref AWS::NoValue
-        # Create S3 source for stage, prod pipelines
+        # Create S3 source for prod pipeline
         - !If
-          - NotDev
+          - IsProd
           - Name: Source
             Actions:
               - Name: Source
@@ -129,39 +147,38 @@ Resources:
                 Region: !Ref region
                 Configuration:
                   S3Bucket: exodus-pipeline-artifacts
-                  S3ObjectKey:
-                    !If
-                      - NotProd
-                      - build-dev
-                      - build-stage
+                  S3ObjectKey: build-stage
                   PollForSourceChanges: false
                 OutputArtifacts:
                   - Name: BuildArtifact
           - !Ref AWS::NoValue
-        # Create build stage for dev pipeline
+        # Create build stage for dev, stage pipelines
         - !If
-          - IsDev
+          - NotProd
           - Name: Build
             Actions:
-              - Name: Verify
-                ActionTypeId:
-                  Category: Build
-                  Owner: AWS
-                  Provider: CodeBuild
-                  Version: 1
-                Region: !Ref region
-                Configuration:
-                  EnvironmentVariables:
-                    !Sub '[
-                      {"name": "REPO_OWNER", "value": "${repoOwner}", "type": "PLAINTEXT"},
-                      {"name": "REPO_NAME", "value": "${repoName}", "type": "PLAINTEXT"},
-                      {"name": "REPO_BRANCH", "value": "${repoBranch}", "type": "PLAINTEXT"},
-                      {"name": "COMMIT_ID", "value": "#{SourceVars.CommitId}", "type": "PLAINTEXT"}
-                    ]'
-                  ProjectName: verify-source
-                InputArtifacts:
-                  - Name: SourceArtifact
-                RunOrder: 1
+              - !If
+                - IsStage
+                - Name: Verify
+                  ActionTypeId:
+                    Category: Build
+                    Owner: AWS
+                    Provider: CodeBuild
+                    Version: 1
+                  Region: !Ref region
+                  Configuration:
+                    EnvironmentVariables:
+                      !Sub '[
+                        {"name": "REPO_OWNER", "value": "${repoOwner}", "type": "PLAINTEXT"},
+                        {"name": "REPO_NAME", "value": "${repoName}", "type": "PLAINTEXT"},
+                        {"name": "REPO_BRANCH", "value": "${repoBranch}", "type": "PLAINTEXT"},
+                        {"name": "COMMIT_ID", "value": "#{SourceVars.CommitId}", "type": "PLAINTEXT"}
+                      ]'
+                    ProjectName: verify-source
+                  InputArtifacts:
+                    - Name: SourceArtifact
+                  RunOrder: 1
+                - !Ref AWS::NoValue
               - Name: Build
                 ActionTypeId:
                   Category: Build
@@ -171,10 +188,7 @@ Resources:
                 Region: !Ref region
                 Configuration:
                   EnvironmentVariables:
-                    !Sub '[
-                      {"name": "ENV_TYPE", "value": "${env}", "type": "PLAINTEXT"},
-                      {"name": "AWS_REGION", "value": "${region}", "type": "PLAINTEXT"}
-                    ]'
+                    !Sub '[{"name": "ENV_TYPE", "value": "${env}", "type": "PLAINTEXT"}]'
                   ProjectName: exodus-codebuild
                 InputArtifacts:
                   - Name: SourceArtifact
@@ -200,9 +214,9 @@ Resources:
                 TemplatePath: BuildArtifact::exodus-lambda-pkg.yaml
               InputArtifacts:
                 - Name: BuildArtifact
-        # Create promote stage for dev, stage pipelines
+        # Create promote stage for stage pipeline
         - !If
-          - NotProd
+          - IsStage
           - Name: Promote
             Actions:
               - Name: Approve
@@ -224,8 +238,7 @@ Resources:
                 Region: !Ref region
                 Configuration:
                   BucketName: exodus-pipeline-artifacts
-                  ObjectKey:
-                    !Sub build-${env}
+                  ObjectKey: !Sub build-${env}
                   Extract: false
                 InputArtifacts:
                   - Name: BuildArtifact
@@ -234,8 +247,8 @@ Resources:
 
   CodePipelineEventRule:
     Type: AWS::Events::Rule
-    # Create event rule for stage, prod pipelines
-    Condition: NotDev
+    # Create event rule for prod pipeline
+    Condition: IsProd
     Properties:
       EventPattern:
         source:
@@ -251,10 +264,7 @@ Resources:
             bucketName:
               - exodus-pipeline-artifacts
             key:
-              - !If
-                - NotProd
-                - build-dev
-                - build-stage
+              - build-stage
       Targets:
         - Arn: !Sub arn:aws:codepipeline:${region}:${AWS::AccountId}:${CodePipeline}
           RoleArn: !GetAtt CloudWatchEventRole.Arn
@@ -262,18 +272,15 @@ Resources:
 
   CodePipelineCloudTrail:
     Type: AWS::CloudTrail::Trail
-    # Create trail for stage, prod pipelines
-    Condition: NotDev
+    # Create trail for prod pipeline
+    Condition: IsProd
     Properties:
       S3BucketName: exodus-pipeline-artifacts
       EventSelectors:
         - DataResources:
           - Type: AWS::S3::Object
             Values:
-              - !If
-                - NotProd
-                - arn:aws:s3:::exodus-pipeline-artifacts/build-dev
-                - arn:aws:s3:::exodus-pipeline-artifacts/build-stage
+              - arn:aws:s3:::exodus-pipeline-artifacts/build-stage
           ReadWriteType: WriteOnly
       IncludeGlobalServiceEvents: true
       IsLogging: true
@@ -432,7 +439,7 @@ Resources:
 
   CloudWatchEventRole:
     Type: AWS::IAM::Role
-    Condition: NotDev
+    Condition: IsProd
     Properties:
       RoleName: !Sub exodus-cloudwatch-${env}
       AssumeRolePolicyDocument:
