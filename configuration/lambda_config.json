@@ -1,6 +1,6 @@
 {
   "table": {
-    "name": "exodus-cdn-$ENV_TYPE",
+    "name": "$PROJECT-cdn-$ENV_TYPE",
     "available_regions": [
       "us-east-1"
     ]

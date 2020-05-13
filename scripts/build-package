@@ -7,5 +7,5 @@ cp ./configuration/exodus-lambda-deploy.yaml ./package
 envsubst < ./configuration/lambda_config.json > ./package/lambda_config.json
 aws cloudformation package \
 	--template ./package/exodus-lambda-deploy.yaml \
-	--s3-bucket exodus-pipeline-artifacts \
+	--s3-bucket $PROJECT-pipeline-artifacts \
 	--output-template-file ./package/exodus-lambda-pkg.yaml

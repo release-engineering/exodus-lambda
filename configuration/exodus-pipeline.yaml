@@ -38,6 +38,17 @@ Parameters:
     Type: String
     Default: project-exodus@redhat.com
     Description: The email address to which notifications are sent
+  project:
+    Type: String
+    Default: exodus
+    Description: The project to which to deploy functions
+  useCloudTrail:
+    Type: String
+    AllowedValues:
+      - true
+      - false
+    Default: false
+    Description: Determines whether to create CloudTrail resources
 
 Conditions:
   IsDev:
@@ -50,12 +61,14 @@ Conditions:
     !Not [!Equals [!Ref env, prod]]
   NoBranch:
     !Equals [!Ref repoBranch, None]
+  CreateCloudTrail:
+    !And [!Condition IsProd, !Equals [!Ref useCloudTrail, true]]
 
 Resources:
   SNSTopic:
     Type: AWS::SNS::Topic
     Properties:
-      TopicName: !Sub exodus-sns-${env}
+      TopicName: !Sub ${project}-sns-${env}
       Subscription:
         - Endpoint: !Ref email
           Protocol: email
@@ -63,7 +76,7 @@ Resources:
   CodePipelineNotification:
     Type: AWS::CodeStarNotifications::NotificationRule
     Properties:
-      Name: !Sub exodus-pipeline-${env}
+      Name: !Sub ${project}-pipeline-${env}
       DetailType: FULL
       EventTypeIds:
         - codepipeline-pipeline-pipeline-execution-failed
@@ -71,13 +84,13 @@ Resources:
         !Sub arn:aws:codepipeline:${region}:${AWS::AccountId}:${CodePipeline}
       Targets:
         - TargetType: SNS
-          TargetAddress: !Sub arn:aws:sns:${region}:${AWS::AccountId}:exodus-sns-${env}
+          TargetAddress: !Sub arn:aws:sns:${region}:${AWS::AccountId}:${project}-sns-${env}
 
   CodePipelineWebhook:
     Type: AWS::CodePipeline::Webhook
     Condition: NotProd
     Properties:
-      Name: !Sub exodus-pipeline-${env}
+      Name: !Sub ${project}-pipeline-${env}
       AuthenticationConfiguration:
         SecretToken: !Ref githubToken
       Filters:
@@ -99,11 +112,11 @@ Resources:
   CodePipeline:
     Type: AWS::CodePipeline::Pipeline
     Properties:
-      Name: !Sub exodus-pipeline-${env}
+      Name: !Sub ${project}-pipeline-${env}
       ArtifactStore:
         Type: S3
-        Location: exodus-pipeline-artifacts
-      RoleArn: !Sub arn:aws:iam::${AWS::AccountId}:role/exodus-codepipe
+        Location: !Sub ${project}-pipeline-artifacts
+      RoleArn: !Sub arn:aws:iam::${AWS::AccountId}:role/${project}-codepipe
       Stages:
         # Create Github source for dev, stage pipelines
         - !If
@@ -146,7 +159,7 @@ Resources:
                   Version: 1
                 Region: !Ref region
                 Configuration:
-                  S3Bucket: exodus-pipeline-artifacts
+                  S3Bucket: !Sub ${project}-pipeline-artifacts
                   S3ObjectKey: build-stage
                   PollForSourceChanges: false
                 OutputArtifacts:
@@ -172,9 +185,10 @@ Resources:
                         {"name": "REPO_OWNER", "value": "${repoOwner}", "type": "PLAINTEXT"},
                         {"name": "REPO_NAME", "value": "${repoName}", "type": "PLAINTEXT"},
                         {"name": "REPO_BRANCH", "value": "${repoBranch}", "type": "PLAINTEXT"},
-                        {"name": "COMMIT_ID", "value": "#{SourceVars.CommitId}", "type": "PLAINTEXT"}
+                        {"name": "COMMIT_ID", "value": "#{SourceVars.CommitId}", "type": "PLAINTEXT"},
+                        {"name": "PROJECT", "value": "${project}", "type": "PLAINTEXT"}
                       ]'
-                    ProjectName: verify-source
+                    ProjectName: !Sub ${project}-verify-source
                   InputArtifacts:
                     - Name: SourceArtifact
                   RunOrder: 1
@@ -188,8 +202,9 @@ Resources:
                 Region: !Ref region
                 Configuration:
                   EnvironmentVariables:
-                    !Sub '[{"name": "ENV_TYPE", "value": "${env}", "type": "PLAINTEXT"}]'
-                  ProjectName: exodus-codebuild
+                    !Sub '[{"name": "ENV_TYPE", "value": "${env}", "type": "PLAINTEXT"},
+                    {"name": "PROJECT", "value": "${project}", "type": "PLAINTEXT"}]'
+                  ProjectName: !Sub ${project}-codebuild
                 InputArtifacts:
                   - Name: SourceArtifact
                 OutputArtifacts:
@@ -208,9 +223,9 @@ Resources:
                 ActionMode: CREATE_UPDATE
                 Capabilities: CAPABILITY_AUTO_EXPAND,CAPABILITY_NAMED_IAM
                 ParameterOverrides:
-                  !Sub '{"env": "${env}", "oai": "${oai}"}'
-                RoleArn: !Sub arn:aws:iam::${AWS::AccountId}:role/exodus-cloudform
-                StackName: !Sub exodus-lambda-${env}
+                  !Sub '{"env": "${env}", "oai": "${oai}", "project": "${project}"}'
+                RoleArn: !Sub arn:aws:iam::${AWS::AccountId}:role/${project}-cloudform
+                StackName: !Sub ${project}-lambda-${env}
                 TemplatePath: BuildArtifact::exodus-lambda-pkg.yaml
               InputArtifacts:
                 - Name: BuildArtifact
@@ -227,7 +242,7 @@ Resources:
                   Version: 1
                 Configuration:
                   CustomData: "Approval required for pipeline promotion"
-                  NotificationArn: !Sub arn:aws:sns:${region}:${AWS::AccountId}:exodus-sns-${env}
+                  NotificationArn: !Sub arn:aws:sns:${region}:${AWS::AccountId}:${project}-sns-${env}
                 RunOrder: 1
               - Name: Upload
                 ActionTypeId:
@@ -237,7 +252,7 @@ Resources:
                   Version: 1
                 Region: !Ref region
                 Configuration:
-                  BucketName: exodus-pipeline-artifacts
+                  BucketName: !Sub ${project}-pipeline-artifacts
                   ObjectKey: !Sub build-${env}
                   Extract: false
                 InputArtifacts:
@@ -262,7 +277,7 @@ Resources:
             - CompleteMultipartUpload
           requestParameters:
             bucketName:
-              - exodus-pipeline-artifacts
+              - !Sub ${project}-pipeline-artifacts
             key:
               - build-stage
       Targets:
@@ -273,25 +288,25 @@ Resources:
   CodePipelineCloudTrail:
     Type: AWS::CloudTrail::Trail
     # Create trail for prod pipeline
-    Condition: IsProd
+    Condition: CreateCloudTrail
     Properties:
-      S3BucketName: exodus-pipeline-artifacts
+      S3BucketName: !Sub ${project}-cloudtrail-logs
       EventSelectors:
         - DataResources:
           - Type: AWS::S3::Object
             Values:
-              - arn:aws:s3:::exodus-pipeline-artifacts/build-stage
+              - "arn:aws:s3:::"
           ReadWriteType: WriteOnly
-      IncludeGlobalServiceEvents: true
+          IncludeManagementEvents: false
       IsLogging: true
-      IsMultiRegionTrail: true
+    DependsOn: CloudTrailBucketPolicy
 
   CodePipelineBucket:
     Type: AWS::S3::Bucket
     # Create artifact bucket for dev pipeline
     Condition: IsDev
     Properties:
-      BucketName: exodus-pipeline-artifacts
+      BucketName: !Sub ${project}-pipeline-artifacts
       PublicAccessBlockConfiguration:
         BlockPublicAcls: true
         BlockPublicPolicy: true
@@ -305,7 +320,39 @@ Resources:
     # Create artifact bucket policy for dev pipeline
     Condition: IsDev
     Properties:
-      Bucket: exodus-pipeline-artifacts
+      Bucket: !Sub ${project}-pipeline-artifacts
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action: "s3:*"
+            Principal:
+              Service:
+                - s3.amazonaws.com
+            Resource: !Sub arn:aws:s3:::${project}-pipeline-artifacts
+
+  CloudTrailBucket:
+    Type: AWS::S3::Bucket
+    # Create bucket for cloudtrail logs
+    Condition: CreateCloudTrail
+    Properties:
+      BucketName: !Sub ${project}-cloudtrail-logs
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      LifecycleConfiguration:
+        Rules:
+          - Status: "Enabled"
+            ExpirationInDays: 1
+
+  CloudTrailBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    #Create bucket policy for cloudtrail logs
+    Condition: CreateCloudTrail
+    Properties:
+      Bucket: !Sub ${project}-cloudtrail-logs
       PolicyDocument:
         Version: 2012-10-17
         Statement:
@@ -314,13 +361,13 @@ Resources:
               Service:
                 - cloudtrail.amazonaws.com
             Action: s3:GetBucketAcl
-            Resource: arn:aws:s3:::exodus-pipeline-artifacts
+            Resource: !Sub arn:aws:s3:::${project}-cloudtrail-logs
           - Effect: Allow
             Principal:
               Service:
                 - cloudtrail.amazonaws.com
             Action: s3:PutObject
-            Resource: !Sub arn:aws:s3:::exodus-pipeline-artifacts/AWSLogs/${AWS::AccountId}/*
+            Resource: !Sub arn:aws:s3:::${project}-cloudtrail-logs/AWSLogs/${AWS::AccountId}/*
             Condition:
               StringEquals:
                 s3:x-amz-acl: bucket-owner-full-control
@@ -330,8 +377,8 @@ Resources:
     # Create verify source project for stage pipeline
     Condition: IsStage
     Properties:
-      Name: verify-source
-      ServiceRole: !Sub arn:aws:iam::${AWS::AccountId}:role/exodus-codebuild
+      Name: !Sub ${project}-verify-source
+      ServiceRole: !Sub arn:aws:iam::${AWS::AccountId}:role/${project}-codebuild
       Environment:
         Type: LINUX_CONTAINER
         ComputeType: BUILD_GENERAL1_SMALL
@@ -343,12 +390,12 @@ Resources:
           phases:
             build:
               commands:
-                - aws s3 cp s3://exodus-pipeline-artifacts/.whitelist.gpg .whitelist.gpg
+                - aws s3 cp s3://$PROJECT-pipeline-artifacts/.whitelist.gpg .whitelist.gpg
                 - gpg --import .whitelist.gpg
                 - git clone https://github.com/$REPO_OWNER/$REPO_NAME.git -b $REPO_BRANCH
                 - cd ./$REPO_NAME
                 - git verify-tag $(git describe --exact-match $COMMIT_ID)
-                - aws s3 cp .whitelist.gpg s3://exodus-pipeline-artifacts/.whitelist.gpg
+                - aws s3 cp .whitelist.gpg s3://$PROJECT-pipeline-artifacts/.whitelist.gpg
       Artifacts:
         Type: NO_ARTIFACTS
       TimeoutInMinutes: 10
@@ -358,8 +405,8 @@ Resources:
     # Create CodeBuild project for dev pipeline
     Condition: IsDev
     Properties:
-      Name: exodus-codebuild
-      ServiceRole: !Sub arn:aws:iam::${AWS::AccountId}:role/exodus-codebuild
+      Name: !Sub ${project}-codebuild
+      ServiceRole: !Sub arn:aws:iam::${AWS::AccountId}:role/${project}-codebuild
       Environment:
         Type: LINUX_CONTAINER
         ComputeType: BUILD_GENERAL1_SMALL
@@ -385,7 +432,7 @@ Resources:
     Type: AWS::IAM::Role
     Condition: IsDev
     Properties:
-      RoleName: exodus-codebuild
+      RoleName: !Sub ${project}-codebuild
       AssumeRolePolicyDocument:
         Version: 2012-10-17
         Statement:
@@ -396,7 +443,7 @@ Resources:
               Service:
                 - codebuild.amazonaws.com
       Policies:
-        - PolicyName: exodus-codebuild-policy
+        - PolicyName: !Sub ${project}-codebuild-policy
           PolicyDocument:
             Version: 2012-10-17
             Statement:
@@ -414,7 +461,7 @@ Resources:
     Type: AWS::IAM::Role
     Condition: IsDev
     Properties:
-      RoleName: exodus-cloudform
+      RoleName: !Sub ${project}-cloudform
       AssumeRolePolicyDocument:
         Version: 2012-10-17
         Statement:
@@ -425,7 +472,7 @@ Resources:
               Service:
                 - cloudformation.amazonaws.com
       Policies:
-        - PolicyName: exodus-cloudform-policy
+        - PolicyName: !Sub ${project}-cloudform-policy
           PolicyDocument:
             Version: 2012-10-17
             Statement:
@@ -445,7 +492,7 @@ Resources:
     Type: AWS::IAM::Role
     Condition: IsDev
     Properties:
-      RoleName: exodus-codepipe
+      RoleName: !Sub ${project}-codepipe
       AssumeRolePolicyDocument:
         Version: 2012-10-17
         Statement:
@@ -456,7 +503,7 @@ Resources:
               Service:
                 - codepipeline.amazonaws.com
       Policies:
-        - PolicyName: exodus-codepipe-policy
+        - PolicyName: !Sub ${project}-codepipe-policy
           PolicyDocument:
             Version: 2012-10-17
             Statement:
@@ -478,7 +525,7 @@ Resources:
     Type: AWS::IAM::Role
     Condition: IsProd
     Properties:
-      RoleName: !Sub exodus-cloudwatch-${env}
+      RoleName: !Sub ${project}-cloudwatch-${env}
       AssumeRolePolicyDocument:
         Version: 2012-10-17
         Statement:
@@ -489,7 +536,7 @@ Resources:
               Service:
                 - events.amazonaws.com
       Policies:
-        - PolicyName: !Sub exodus-cloudwatch-policy-${env}
+        - PolicyName: !Sub ${project}-cloudwatch-policy-${env}
           PolicyDocument:
             Version: 2012-10-17
             Statement:
@@ -503,10 +550,10 @@ Outputs:
     Value: !Ref CodePipeline
   CodePipelineBucket:
     Description: exodus pipeline artifact bucket ARN
-    Value: arn:aws:s3:::exodus-pipeline-artifacts
+    Value: !Sub arn:aws:s3:::${project}-pipeline-artifacts
   CodeBuildProject:
     Description: exodus CodeBuild project ARN
-    Value: !Sub arn:aws:codebuild:${region}:${AWS::AccountId}:project/exodus-codebuild
+    Value: !Sub arn:aws:codebuild:${region}:${AWS::AccountId}:project/${project}-codebuild
   SNSTopic:
     Description: exodus SNS topic ARN
     Value: !Ref SNSTopic

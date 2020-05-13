@@ -11,13 +11,17 @@ Parameters:
       - prod
     Default: dev
     Description: The environment for which these resources are intended
+  project:
+    Type: String
+    Default: exodus
+    Description: The project for which these resources are intended
 
 Resources:
   Table:
     Type: AWS::DynamoDB::Table
     DeletionPolicy: Retain
     Properties:
-      TableName: !Sub exodus-cdn-${env}
+      TableName: !Sub ${project}-cdn-${env}
       AttributeDefinitions:
         - AttributeName: web_uri
           AttributeType: S
@@ -37,7 +41,7 @@ Resources:
     Type: AWS::S3::Bucket
     DeletionPolicy: Retain
     Properties:
-      BucketName: !Sub exodus-cdn-${env}
+      BucketName: !Sub ${project}-cdn-${env}
       PublicAccessBlockConfiguration:
         BlockPublicAcls: true
         BlockPublicPolicy: true
@@ -68,7 +72,7 @@ Resources:
     Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
     Properties:
       CloudFrontOriginAccessIdentityConfig:
-        Comment: !Sub exodus-cdn-${env}
+        Comment: !Sub ${project}-cdn-${env}
 
 Outputs:
   Table:
