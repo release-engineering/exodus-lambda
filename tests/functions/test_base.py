@@ -25,7 +25,7 @@ def test_base_handler():
 )
 def test_base_region(env_var, exp_var, monkeypatch):
     """Ensure correct regions are selected for various inputs"""
-    base = LambdaBase(conf_file=CONF_PATH)
+    base = LambdaBase(conf_file=TEST_CONF)
 
     # Environment variable is set
     monkeypatch.setenv("AWS_REGION", env_var)
