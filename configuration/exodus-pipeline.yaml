@@ -325,20 +325,57 @@ Resources:
               StringEquals:
                 s3:x-amz-acl: bucket-owner-full-control
 
+  VerifySourceProject:
+    Type: AWS::CodeBuild::Project
+    # Create verify source project for stage pipeline
+    Condition: IsStage
+    Properties:
+      Name: verify-source
+      ServiceRole: !Sub arn:aws:iam::${AWS::AccountId}:role/exodus-codebuild
+      Environment:
+        Type: LINUX_CONTAINER
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: aws/codebuild/amazonlinux2-x86_64-standard:2.0
+      Source:
+        Type: NO_SOURCE
+        BuildSpec: |
+          version: 0.2
+          phases:
+            build:
+              commands:
+                - aws s3 cp s3://exodus-pipeline-artifacts/.whitelist.gpg .whitelist.gpg
+                - gpg --import .whitelist.gpg
+                - git clone https://github.com/$REPO_OWNER/$REPO_NAME.git -b $REPO_BRANCH
+                - cd ./$REPO_NAME
+                - git verify-tag $(git describe --exact-match $COMMIT_ID)
+                - aws s3 cp .whitelist.gpg s3://exodus-pipeline-artifacts/.whitelist.gpg
+      Artifacts:
+        Type: NO_ARTIFACTS
+      TimeoutInMinutes: 10
+
   CodeBuildProject:
     Type: AWS::CodeBuild::Project
     # Create CodeBuild project for dev pipeline
     Condition: IsDev
     Properties:
       Name: exodus-codebuild
-      ServiceRole: !GetAtt CodeBuildRole.Arn
+      ServiceRole: !Sub arn:aws:iam::${AWS::AccountId}:role/exodus-codebuild
       Environment:
         Type: LINUX_CONTAINER
         ComputeType: BUILD_GENERAL1_SMALL
         Image: aws/codebuild/amazonlinux2-x86_64-standard:2.0
       Source:
         Type: CODEPIPELINE
-        BuildSpec: configuration/buildspec.yaml
+        BuildSpec: |
+          version: 0.2
+          phases:
+            build:
+              commands:
+                - ./scripts/build-package
+          artifacts:
+            files:
+              - ./package/exodus-lambda-pkg.yaml
+            discard-paths: yes
       Artifacts:
         Type: CODEPIPELINE
       TimeoutInMinutes: 10
