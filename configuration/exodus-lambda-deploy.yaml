@@ -17,13 +17,17 @@ Parameters:
     Type: String
     MinLength: 10
     Description: The origin access identity ID associated with the environment
+  project:
+    Type: String
+    Default: exodus
+    Description: The project associated with the pipeline
 
 Resources:
   Distribution:
     Type: AWS::CloudFront::Distribution
     Properties:
       DistributionConfig:
-        Comment: !Sub exodus-cdn-${env}
+        Comment: !Sub ${project}-cdn-${env}
         DefaultCacheBehavior:
           AllowedMethods:
             - GET
@@ -40,20 +44,20 @@ Resources:
               LambdaFunctionARN: !Ref OriginRequestFunc.Version
             - EventType: origin-response
               LambdaFunctionARN: !Ref OriginResponseFunc.Version
-          TargetOriginId: !Sub S3-exodus-cdn-${env}
+          TargetOriginId: !Sub S3-${project}-cdn-${env}
           ViewerProtocolPolicy: redirect-to-https
         Enabled: true
         HttpVersion: http2
         Origins:
-          - DomainName: !Sub "exodus-cdn-${env}.s3.amazonaws.com"
-            Id: !Sub "S3-exodus-cdn-${env}"
+          - DomainName: !Sub "${project}-cdn-${env}.s3.amazonaws.com"
+            Id: !Sub "S3-${project}-cdn-${env}"
             S3OriginConfig:
               OriginAccessIdentity: !Sub "origin-access-identity/cloudfront/${oai}"
 
   OriginRequestFunc:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: !Sub origin-request-${env}
+      FunctionName: !Sub ${project}-origin-request-${env}
       CodeUri:
       Handler: exodus_lambda.origin_request
       Role: !GetAtt FuncRole.Arn
@@ -64,7 +68,7 @@ Resources:
   OriginResponseFunc:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: !Sub origin-response-${env}
+      FunctionName: !Sub ${project}-origin-response-${env}
       CodeUri:
       Handler: exodus_lambda.origin_response
       Role: !GetAtt FuncRole.Arn
@@ -75,7 +79,7 @@ Resources:
   FuncRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: !Sub exodus-lambda-${env}
+      RoleName: !Sub ${project}-lambda-${env}
       AssumeRolePolicyDocument:
         Version: 2012-10-17
         Statement:
@@ -97,8 +101,8 @@ Resources:
   OriginRequestAlarm:
     Type: AWS::CloudWatch::Alarm
     Properties:
-      AlarmName: !Sub origin-request-alarm-${env}
-      AlarmDescription: !Sub origin-request-${env} invocation errors
+      AlarmName: !Sub ${project}-origin-request-alarm-${env}
+      AlarmDescription: !Sub ${project}-origin-request-${env} invocation errors
       Namespace: AWS/Lambda
       MetricName: Errors
       Dimensions:
@@ -113,8 +117,8 @@ Resources:
   OriginResponseAlarm:
     Type: AWS::CloudWatch::Alarm
     Properties:
-      AlarmName: !Sub origin-response-alarm-${env}
-      AlarmDescription: !Sub origin-response-${env} invocation errors
+      AlarmName: !Sub ${project}-origin-response-alarm-${env}
+      AlarmDescription: !Sub ${project}-origin-response-${env} invocation errors
       Namespace: AWS/Lambda
       MetricName: Errors
       Dimensions:
