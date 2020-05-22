@@ -106,3 +106,6 @@ venv.bak/
 # deployment package
 package.zip
 package/
+
+# local configuration
+deploy-aws-pipes.conf
