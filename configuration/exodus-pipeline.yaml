@@ -261,7 +261,7 @@ Resources:
                   - Name: BuildArtifact
                 RunOrder: 2
           - !Ref AWS::NoValue
-     DependsOn:
+    DependsOn:
       - CodePipelineRole
       - CloudFormationRole
 
