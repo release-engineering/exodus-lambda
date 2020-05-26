@@ -85,6 +85,7 @@ Resources:
       Targets:
         - TargetType: SNS
           TargetAddress: !Sub arn:aws:sns:${region}:${AWS::AccountId}:${project}-sns-${env}
+    DependsOn: CodePipeline
 
   CodePipelineWebhook:
     Type: AWS::CodePipeline::Webhook
@@ -108,6 +109,7 @@ Resources:
       TargetAction: Source
       TargetPipelineVersion: !GetAtt CodePipeline.Version
       RegisterWithThirdParty: true
+    DependsOn: CodePipeline
 
   CodePipeline:
     Type: AWS::CodePipeline::Pipeline
@@ -116,7 +118,7 @@ Resources:
       ArtifactStore:
         Type: S3
         Location: !Sub ${project}-pipeline-artifacts
-      RoleArn: !Sub arn:aws:iam::${AWS::AccountId}:role/${project}-codepipe
+      RoleArn: !Sub arn:aws:iam::${AWS::AccountId}:role/${project}-codepipe-${env}
       Stages:
         # Create Github source for dev, stage pipelines
         - !If
@@ -224,7 +226,7 @@ Resources:
                 Capabilities: CAPABILITY_AUTO_EXPAND,CAPABILITY_NAMED_IAM
                 ParameterOverrides:
                   !Sub '{"env": "${env}", "oai": "${oai}", "project": "${project}"}'
-                RoleArn: !Sub arn:aws:iam::${AWS::AccountId}:role/${project}-cloudform
+                RoleArn: !Sub arn:aws:iam::${AWS::AccountId}:role/${project}-cloudform-${env}
                 StackName: !Sub ${project}-lambda-${env}
                 TemplatePath: BuildArtifact::exodus-lambda-pkg.yaml
               InputArtifacts:
@@ -259,6 +261,9 @@ Resources:
                   - Name: BuildArtifact
                 RunOrder: 2
           - !Ref AWS::NoValue
+     DependsOn:
+      - CodePipelineRole
+      - CloudFormationRole
 
   CodePipelineEventRule:
     Type: AWS::Events::Rule
@@ -284,6 +289,7 @@ Resources:
         - Arn: !Sub arn:aws:codepipeline:${region}:${AWS::AccountId}:${CodePipeline}
           RoleArn: !GetAtt CloudWatchEventRole.Arn
           Id: !Ref CodePipeline
+    DependsOn: CloudWatchEventRole
 
   CodePipelineCloudTrail:
     Type: AWS::CloudTrail::Trail
@@ -330,6 +336,8 @@ Resources:
               Service:
                 - s3.amazonaws.com
             Resource: !Sub arn:aws:s3:::${project}-pipeline-artifacts
+    DependsOn: CodePipelineBucket
+
 
   CloudTrailBucket:
     Type: AWS::S3::Bucket
@@ -371,6 +379,7 @@ Resources:
             Condition:
               StringEquals:
                 s3:x-amz-acl: bucket-owner-full-control
+    DependsOn: CloudTrailBucket
 
   VerifySourceProject:
     Type: AWS::CodeBuild::Project
@@ -378,7 +387,7 @@ Resources:
     Condition: IsStage
     Properties:
       Name: !Sub ${project}-verify-source
-      ServiceRole: !Sub arn:aws:iam::${AWS::AccountId}:role/${project}-codebuild
+      ServiceRole: !Sub arn:aws:iam::${AWS::AccountId}:role/${project}-codebuild-${env}
       Environment:
         Type: LINUX_CONTAINER
         ComputeType: BUILD_GENERAL1_SMALL
@@ -399,6 +408,7 @@ Resources:
       Artifacts:
         Type: NO_ARTIFACTS
       TimeoutInMinutes: 10
+    DependsOn: CodeBuildRole
 
   CodeBuildProject:
     Type: AWS::CodeBuild::Project
@@ -406,7 +416,7 @@ Resources:
     Condition: IsDev
     Properties:
       Name: !Sub ${project}-codebuild
-      ServiceRole: !Sub arn:aws:iam::${AWS::AccountId}:role/${project}-codebuild
+      ServiceRole: !Sub arn:aws:iam::${AWS::AccountId}:role/${project}-codebuild-${env}
       Environment:
         Type: LINUX_CONTAINER
         ComputeType: BUILD_GENERAL1_SMALL
@@ -426,13 +436,14 @@ Resources:
       Artifacts:
         Type: CODEPIPELINE
       TimeoutInMinutes: 10
+    DependsOn: CodeBuildRole
 
   # Create IAM roles for resources, used for all environments
   CodeBuildRole:
     Type: AWS::IAM::Role
-    Condition: IsDev
+    Condition: NotProd
     Properties:
-      RoleName: !Sub ${project}-codebuild
+      RoleName: !Sub ${project}-codebuild-${env}
       AssumeRolePolicyDocument:
         Version: 2012-10-17
         Statement:
@@ -443,7 +454,7 @@ Resources:
               Service:
                 - codebuild.amazonaws.com
       Policies:
-        - PolicyName: !Sub ${project}-codebuild-policy
+        - PolicyName: !Sub ${project}-codebuild-policy-${env}
           PolicyDocument:
             Version: 2012-10-17
             Statement:
@@ -459,9 +470,8 @@ Resources:
 
   CloudFormationRole:
     Type: AWS::IAM::Role
-    Condition: IsDev
     Properties:
-      RoleName: !Sub ${project}-cloudform
+      RoleName: !Sub ${project}-cloudform-${env}
       AssumeRolePolicyDocument:
         Version: 2012-10-17
         Statement:
@@ -472,7 +482,7 @@ Resources:
               Service:
                 - cloudformation.amazonaws.com
       Policies:
-        - PolicyName: !Sub ${project}-cloudform-policy
+        - PolicyName: !Sub ${project}-cloudform-policy-${env}
           PolicyDocument:
             Version: 2012-10-17
             Statement:
@@ -490,9 +500,8 @@ Resources:
 
   CodePipelineRole:
     Type: AWS::IAM::Role
-    Condition: IsDev
     Properties:
-      RoleName: !Sub ${project}-codepipe
+      RoleName: !Sub ${project}-codepipe-${env}
       AssumeRolePolicyDocument:
         Version: 2012-10-17
         Statement:
@@ -503,7 +512,7 @@ Resources:
               Service:
                 - codepipeline.amazonaws.com
       Policies:
-        - PolicyName: !Sub ${project}-codepipe-policy
+        - PolicyName: !Sub ${project}-codepipe-policy-${env}
           PolicyDocument:
             Version: 2012-10-17
             Statement:
@@ -543,6 +552,7 @@ Resources:
               - Effect: Allow
                 Action: codepipeline:StartPipelineExecution
                 Resource: !Sub arn:aws:codepipeline:${region}:${AWS::AccountId}:${CodePipeline}
+    DependsOn: CodePipeline
 
 Outputs:
   CodePipeline:
@@ -553,7 +563,7 @@ Outputs:
     Value: !Sub arn:aws:s3:::${project}-pipeline-artifacts
   CodeBuildProject:
     Description: exodus CodeBuild project ARN
-    Value: !Sub arn:aws:codebuild:${region}:${AWS::AccountId}:project/${project}-codebuild
+    Value: !Sub arn:aws:codebuild:${region}:${AWS::AccountId}:project/${project}-codebuild-${env}
   SNSTopic:
     Description: exodus SNS topic ARN
     Value: !Ref SNSTopic
