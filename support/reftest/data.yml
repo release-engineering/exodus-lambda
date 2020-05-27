@@ -1,0 +1,25 @@
+prod-cdn-url:
+  https://cdn.redhat.com
+
+test_data:
+- path: /content/dist/rhel/server/7/7.4/x86_64/os/repodata/fd23895d43f54a50bbd0509809dd5f45298bfd6b-other.sqlite.bz2
+  sha256: 647b38c2222caecd0859f97a0ef0ef78f249b8d96af437552d6b2950056f261e
+  content-type: application/x-bzip
+- path: /content/dist/rhel/server/7/7.4/x86_64/os/repodata/cb753af26534673064bd593500d747d7288d75b2-filelists.xml.gz
+  sha256: 49159602b5bb8d9d34af384a62bd411d12449338501a4d08ef90c369b7facb98
+  content-type: application/x-gzip
+# rpm
+- path: /content/aus/rhel/server/6/6.5/x86_64/os/Packages/c/cpio-2.10-12.el6_5.x86_64.rpm
+  sha256: 06316538b90d3aab20f4787132307f6d330da9a48bab11a13e0a616fcf622ce5
+  content-type: audio/x-pn-realaudio-plugin
+# listing
+- path: /content/dist/rhel/server/5/5.7/listing
+  sha256: b51f4ddc06fddec9e73892671f1f25300ccd4235fa798afd01caf96446dc2bf1
+  content-type: text/plain
+- path: /content/dist/rhel/server/5/5.6/listing
+  sha256: b51f4ddc06fddec9e73892671f1f25300ccd4235fa798afd01caf96446dc2bf1
+  content-type: text/plain
+- path: /content/dist/rhel/server/5/listing
+  sha256: 6e0230c69d88400d6064a4fce264aebb6918da0f12c86790c2bfc6edd3851907
+  content-type: text/plain
+
