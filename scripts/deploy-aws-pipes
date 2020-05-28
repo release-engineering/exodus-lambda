@@ -1,0 +1,107 @@
+#!/bin/bash
+
+# Deploy lambda deployment pipelines
+
+set -e
+
+# default variables, overridden by configuration file
+CONF=deploy-aws-pipes.conf
+PROJECT=exodus
+ENABLE_TRAIL=false
+REPO_OWNER=release-engineering
+REPO_NAME=exodus-lambda
+REPO_BRANCH=None
+REGION=us-east-1
+EMAIL=project-exodus@redhat.com
+DRY_RUN=false
+
+# parse options
+while [ -n "$1" ]; do
+    case "$1" in
+    -c)
+      CONF="$2"
+      shift
+      shift
+      ;;
+    -p)
+      PROJECT="$2"
+      shift
+      shift
+      ;;
+    -t)
+      ENABLE_TRAIL=true
+      shift
+      ;;
+    -d)
+      DRY_RUN=true
+      shift
+      ;;
+    -h)
+      echo "Usage:"
+      echo "  -c      Configuration file path for this script"
+      echo "              Default: deploy-aws-pipes.conf"
+      echo "              Must contain key-value pairs for;"
+      echo "                  GIT_TOKEN,"
+      echo "                  OAI_DEV,"
+      echo "                  OAI_STAGE,"
+      echo "                  OAI_PROD"
+      echo "  -p      Project name"
+      echo "              Default: exodus"
+      echo "  -t      Enable CloudTrail trail creation"
+      echo "              Default: false"
+      echo "  -d      Only display the commands to run"
+      echo "              Default: false"
+      echo "  -h      Display this help mesage"
+      exit 0
+      ;;
+    *)
+      echo "Option $1 not recognized"
+      exit 1
+      ;;
+    esac
+done
+
+# import configuration
+if [ -f "$CONF" ]; then
+  . "$CONF"
+else
+  echo "No configuration file found at $CONF."
+  exit 1
+fi
+
+# create pipelines
+for env in "dev" "stage" "prod"; do
+    if [ $env == "dev" ]; then
+        oai=$OAI_DEV
+    elif [ $env == "stage" ]; then
+        oai=$OAI_STAGE
+    else
+        oai=$OAI_PROD
+    fi
+
+    cmd="
+    aws cloudformation deploy \
+    --template-file configuration/exodus-pipeline.yaml \
+    --stack-name $PROJECT-pipeline-$env \
+    --capabilities CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND \
+    --parameter-overrides \
+    env=$env \
+    oai=$oai \
+    repoOwner=$REPO_OWNER \
+    repoName=$REPO_NAME \
+    repoBranch=$REPO_BRANCH \
+    githubToken=$GIT_TOKEN \
+    region=$REGION \
+    email=$EMAIL \
+    project=$PROJECT \
+    useCloudTrail=$ENABLE_TRAIL
+    "
+
+    if [ $DRY_RUN == true ]; then
+      echo "$env:"
+      echo $cmd
+      echo ""
+    else
+      $cmd
+    fi
+done
