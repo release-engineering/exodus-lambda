@@ -186,7 +186,7 @@ Resources:
                       !Sub '[
                         {"name": "REPO_OWNER", "value": "${repoOwner}", "type": "PLAINTEXT"},
                         {"name": "REPO_NAME", "value": "${repoName}", "type": "PLAINTEXT"},
-                        {"name": "REPO_BRANCH", "value": "${repoBranch}", "type": "PLAINTEXT"},
+                        {"name": "REPO_BRANCH", "value": "#{SourceVars.BranchName}", "type": "PLAINTEXT"},
                         {"name": "COMMIT_ID", "value": "#{SourceVars.CommitId}", "type": "PLAINTEXT"},
                         {"name": "PROJECT", "value": "${project}", "type": "PLAINTEXT"}
                       ]'
