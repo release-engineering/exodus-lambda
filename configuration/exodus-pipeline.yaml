@@ -10,7 +10,7 @@ Parameters:
       - stage
       - prod
     Default: dev
-    Description: The environment in which to deploy functions
+    Description: The environment for which resources are intended
   oai:
     Type: String
     Description: The origin access identity ID associated with the environment
@@ -28,7 +28,6 @@ Parameters:
     Description: The source branch of the targeted repository
   githubToken:
     Type: String
-    Default: None
     Description: A GitHub access token token to authorize webhooks
   region:
     Type: String
@@ -41,7 +40,7 @@ Parameters:
   project:
     Type: String
     Default: exodus
-    Description: The project to which to deploy functions
+    Description: The project name under which resources are created
   useCloudTrail:
     Type: String
     AllowedValues:

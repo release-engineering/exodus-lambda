@@ -10,11 +10,11 @@ Parameters:
       - stage
       - prod
     Default: dev
-    Description: The environment for which these resources are intended
+    Description: The environment for which resources are intended
   project:
     Type: String
     Default: exodus
-    Description: The project for which these resources are intended
+    Description: The project name under which resources are created
 
 Resources:
   Table:

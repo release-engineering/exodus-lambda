@@ -12,15 +12,14 @@ Parameters:
       - stage
       - prod
     Default: dev
-    Description: The environment in which to deploy functions
+    Description: The environment for which resources are intended
   oai:
     Type: String
-    MinLength: 10
     Description: The origin access identity ID associated with the environment
   project:
     Type: String
     Default: exodus
-    Description: The project associated with the pipeline
+    Description: The project name under which resources are created
 
 Resources:
   Distribution:
