@@ -38,6 +38,8 @@ Resources:
             QueryString: false
             Cookies:
               Forward: none
+            Headers:
+              - Want-Digest
           LambdaFunctionAssociations:
             - EventType: origin-request
               LambdaFunctionARN: !Ref OriginRequestFunc.Version
