@@ -49,7 +49,7 @@ def test_header_want_digest_GET(cdn_test_url):
     assert r.status_code == 200
     assert (
         r.headers["digest"]
-        == "id-sha-256=b51f4ddc06fddec9e73892671f1f25300ccd4235fa798afd01caf96446dc2bf1"
+        == "id-sha-256=tR9N3Ab93snnOJJnHx8lMAzNQjX6eYr9Acr5ZEbcK/E="
     )
 
 
@@ -60,7 +60,7 @@ def test_header_want_digest_HEAD(cdn_test_url):
     assert r.status_code == 200
     assert (
         r.headers["digest"]
-        == "id-sha-256=b51f4ddc06fddec9e73892671f1f25300ccd4235fa798afd01caf96446dc2bf1"
+        == "id-sha-256=tR9N3Ab93snnOJJnHx8lMAzNQjX6eYr9Acr5ZEbcK/E="
     )
 
 
