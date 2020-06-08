@@ -72,6 +72,20 @@ Resources:
         - Endpoint: !Ref email
           Protocol: email
 
+  SNSTopicPolicy:
+    Type: AWS::SNS::TopicPolicy
+    Properties:
+      PolicyDocument:
+        Id: !Sub ${project}-sns-${env}-topic-policy
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action: sns:Publish
+            Resource: "*"
+            Principal: "*"
+      Topics:
+        - !Ref SNSTopic
+
   CodePipelineNotification:
     Type: AWS::CodeStarNotifications::NotificationRule
     Properties:
