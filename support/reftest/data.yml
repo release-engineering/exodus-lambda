@@ -18,6 +18,10 @@ test_data:
 - path: /content/aus/rhel/server/6/6.5/x86_64/os/Packages/c/cpio-2.10-12.el6_5.x86_64.rpm
   sha256: 06316538b90d3aab20f4787132307f6d330da9a48bab11a13e0a616fcf622ce5
   content-type: audio/x-pn-realaudio-plugin
+# rpm for orgin path alias test
+- path: /origin/rpms/bash/4.4.19/8.el8_0/fd431d51/bash-4.4.19-8.el8_0.x86_64.rpm
+  sha256: 4164ff2c0116d666578ba5e456ab03b88788dfb42fb93fc91b2c1da709d86686
+  content-type: audio/x-pn-realaudio-plugin
 # listing
 - path: /content/dist/rhel/server/5/listing
   sha256: 6e0230c69d88400d6064a4fce264aebb6918da0f12c86790c2bfc6edd3851907

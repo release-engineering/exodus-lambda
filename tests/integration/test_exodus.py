@@ -98,3 +98,24 @@ def test_content_type_header_HEAD(cdn_test_url, testdata_path):
     r = requests.head(url)
     assert r.status_code == 200
     assert_content_type(url, r.headers["content-type"])
+
+
+testdata_origin_alias_path = [
+    "/origin/rpms/bash/4.4.19/8.el8_0/fd431d51/bash-4.4.19-8.el8_0.x86_64.rpm",
+    "/origin/rpm/bash/4.4.19/8.el8_0/fd431d51/bash-4.4.19-8.el8_0.x86_64.rpm",
+    "/content/origin/rpms/bash/4.4.19/8.el8_0/fd431d51/bash-4.4.19-8.el8_0.x86_64.rpm",
+    "/content/origin/rpm/bash/4.4.19/8.el8_0/fd431d51/bash-4.4.19-8.el8_0.x86_64.rpm",
+]
+
+
+# use Want-Digest/Digest to check if alias take effect
+@pytest.mark.parametrize("testdata_path", testdata_origin_alias_path)
+def test_origin_path_alias(cdn_test_url, testdata_path):
+    headers = {"want-digest": "id-sha-256"}
+    url = cdn_test_url + testdata_path
+    r = requests.head(url, headers=headers)
+    assert r.status_code == 200
+    assert (
+        r.headers["digest"]
+        == "id-sha-256=QWT/LAEW1mZXi6XkVqsDuIeI37QvuT/JGywdpwnYZoY="
+    )
