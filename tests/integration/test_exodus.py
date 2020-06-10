@@ -119,3 +119,39 @@ def test_origin_path_alias(cdn_test_url, testdata_path):
         r.headers["digest"]
         == "id-sha-256=QWT/LAEW1mZXi6XkVqsDuIeI37QvuT/JGywdpwnYZoY="
     )
+
+
+testdata_rhui_alias_path_aus = [
+    "/content/aus/rhel/server/6/6.5/x86_64/os/Packages/c/cpio-2.10-12.el6_5.x86_64.rpm",
+    "/content/aus/rhel/rhui/server/6/6.5/x86_64/os/Packages/c/cpio-2.10-12.el6_5.x86_64.rpm",
+]
+
+
+@pytest.mark.parametrize("testdata_path", testdata_rhui_alias_path_aus)
+def test_rhui_path_alias_aus(cdn_test_url, testdata_path):
+    headers = {"want-digest": "id-sha-256"}
+    url = cdn_test_url + testdata_path
+    r = requests.head(url, headers=headers)
+    assert r.status_code == 200
+    assert (
+        r.headers["digest"]
+        == "id-sha-256=BjFlOLkNOqsg9HhxMjB/bTMNqaSLqxGhPgphb89iLOU="
+    )
+
+
+testdata_rhui_alias_path_rhel8 = [
+    "/content/dist/rhel8/8.1/x86_64/baseos/os/Packages/i/iptables-1.8.2-16.el8.x86_64.rpm",
+    "/content/dist/rhel8/rhui/8.1/x86_64/baseos/os/Packages/i/iptables-1.8.2-16.el8.x86_64.rpm",
+]
+
+
+@pytest.mark.parametrize("testdata_path", testdata_rhui_alias_path_rhel8)
+def test_rhui_path_alias_rhel8(cdn_test_url, testdata_path):
+    headers = {"want-digest": "id-sha-256"}
+    url = cdn_test_url + testdata_path
+    r = requests.head(url, headers=headers)
+    assert r.status_code == 200
+    assert (
+        r.headers["digest"]
+        == "id-sha-256=WA2MMEwPzpikfPAoOEnl6ffo9ce9p2aSEkl2UEaUfkA="
+    )
