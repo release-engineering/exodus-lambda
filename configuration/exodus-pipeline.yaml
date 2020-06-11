@@ -2,6 +2,7 @@ AWSTemplateFormatVersion: 2010-09-09
 
 Description: Configuration for exodus-cdn CodePipeline
 
+
 Parameters:
   env:
     Type: String
