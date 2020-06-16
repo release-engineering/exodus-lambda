@@ -18,6 +18,14 @@ Parameters:
       - false
     Default: false
     Description: Determines whether to create CloudTrail resources
+  whitelistUrl:
+    Type: String
+    Default: None
+    Description: The URL to a GPG whitelist for initializing source verification
+  lambdafunctionrole:
+    Type: String
+    Default: None
+    Description: The IAM Role ARN for Lambda Function resource
   codebuildrole:
     Type: String
     Default: None
@@ -26,6 +34,8 @@ Parameters:
 Conditions:
   CreateCloudTrail:
     !Equals [!Ref useCloudTrail, true]
+  UploadWhitelist:
+    !And [!Not [!Equals [!Ref lambdafunctionrole, None], !Not [!Equals [!Ref whitelistUrl, None]]]
 
 Resources:
   CodePipelineCloudTrail:
@@ -219,3 +229,44 @@ Resources:
       Artifacts:
         Type: NO_ARTIFACTS
       TimeoutInMinutes: 10
+
+  WhitelistUploadResource:
+    Type: Custom::WhitelistUploadFunction
+    Condition: UploadWhitelist
+    Properties:
+      ServiceToken: !GetAtt WhitelistUploadFunction.Arn
+      DestBucketName: !Sub ${project}-pipeline-artifacts
+      DestBucketRegion: !Ref region
+      WhitelistUrl: !Ref whitelistUrl
+    DependsOn:
+      - WhitelistUploadFunction
+
+  WhitelistUploadFunction:
+    Type: AWS::Lambda::Function
+    Condition: UploadWhitelist
+    Properties:
+      Handler: index.handler
+      Role: !Ref lambdafunctionrole
+      FunctionName: !Sub ${project}-whitelist-upload
+      Code:
+        ZipFile: |
+          import urllib.request
+          import cfnresponse
+          import boto3
+
+
+          def handler(event, context):
+              bucket = event["ResourceProperties"]["DestBucketName"]
+              region = event["ResourceProperties"]["DestBucketRegion"]
+              whitelist_url = event["ResourceProperties"]["WhitelistUrl"]
+
+              # Upload whitelist only when this resource is created
+              if event["RequestType"] == "Create":          
+                  s3client = boto3.client("s3", region_name=region)
+
+                  whitelist = urllib.request.urlopen(whitelist_url).read()
+                  s3client.put_object(Body=whitelist, Bucket=bucket, Key=".whitelist.gpg")
+
+              cfnresponse.send(event, context, cfnresponse.SUCCESS, {"Data": "COMPLETE"})
+      Runtime: python3.7
+    DependsOn: CodePipelineBucket
