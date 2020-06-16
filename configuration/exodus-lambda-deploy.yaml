@@ -20,6 +20,10 @@ Parameters:
     Type: String
     Default: exodus
     Description: The project name under which resources are created
+  lambdafunctionrole:
+    Type: String
+    Default: None
+    Description: The IAM Role ARN for Lambda Function resource
 
 Resources:
   Distribution:
@@ -61,7 +65,7 @@ Resources:
       FunctionName: !Sub ${project}-origin-request-${env}
       CodeUri:
       Handler: exodus_lambda.origin_request
-      Role: !GetAtt FuncRole.Arn
+      Role: !Sub ${lambdafunctionrole}
       Runtime: python3.7
       Timeout: 5
       AutoPublishAlias: live
@@ -72,32 +76,10 @@ Resources:
       FunctionName: !Sub ${project}-origin-response-${env}
       CodeUri:
       Handler: exodus_lambda.origin_response
-      Role: !GetAtt FuncRole.Arn
+      Role: !Sub ${lambdafunctionrole}
       Runtime: python3.7
       Timeout: 5
       AutoPublishAlias: live
-
-  FuncRole:
-    Type: AWS::IAM::Role
-    Properties:
-      RoleName: !Sub ${project}-lambda-${env}
-      AssumeRolePolicyDocument:
-        Version: 2012-10-17
-        Statement:
-          - Effect: Allow
-            Action:
-              - sts:AssumeRole
-            Principal:
-              Service:
-                - lambda.amazonaws.com
-                - edgelambda.amazonaws.com
-      ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/AWSLambdaFullAccess
-        - arn:aws:iam::aws:policy/CloudFrontFullAccess
-        - arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess
-        - arn:aws:iam::aws:policy/AWSCodePipelineFullAccess
-        - arn:aws:iam::aws:policy/AWSLambdaInvocation-DynamoDB
-      Path: /
 
   OriginRequestAlarm:
     Type: AWS::CloudWatch::Alarm
