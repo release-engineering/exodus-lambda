@@ -215,7 +215,7 @@ Resources:
               commands:
                 - aws s3 cp s3://$PROJECT-pipeline-artifacts/build-$ENV_TYPE .
                 - unzip build-$ENV_TYPE
-                - aws cloudformation deploy --template-file exodus-lambda-pkg.yaml --capabilities CAPABILITY_NAMED_IAM --stack-name $PROJECT-lambda-$ENV_TYPE --parameter-overrides env=$ENV_TYPE project=$PROJECT oai=$OAI
+                - aws cloudformation deploy --template-file exodus-lambda-pkg.yaml --capabilities CAPABILITY_NAMED_IAM --stack-name $PROJECT-lambda-$ENV_TYPE --parameter-overrides env=$ENV_TYPE project=$PROJECT oai=$OAI lambdafunctionrole=$LAMBDA_IAM_ROLE
       Artifacts:
         Type: NO_ARTIFACTS
       TimeoutInMinutes: 10

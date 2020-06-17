@@ -344,7 +344,8 @@ Resources:
           Input: !Sub '{"environmentVariablesOverride": [
             {"name": "PROJECT", "value": "${project}", "type": "PLAINTEXT"},
             {"name": "OAI", "value": "${oai}", "type": "PLAINTEXT"},
-            {"name": "ENV_TYPE", "value": "${env}", "type": "PLAINTEXT"}]}'
+            {"name": "ENV_TYPE", "value": "${env}", "type": "PLAINTEXT"},
+            {"name": "LAMBDA_IAM_ROLE", "value": "${lambdafunctionrole}", "type": "PLAINTEXT"}]}'
         - Arn: !Sub arn:aws:sns:${region}:${AWS::AccountId}:${project}-sns-${env}
           Id: !Sub ${project}-notify-rollback-${env}
 
