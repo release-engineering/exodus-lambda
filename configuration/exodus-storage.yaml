@@ -15,6 +15,9 @@ Parameters:
     Type: String
     Default: exodus
     Description: The project name under which resources are created
+  oai:
+    Type: String
+    Description: The origin access identity ID associated with the environment
 
 Resources:
   Table:
@@ -66,13 +69,7 @@ Resources:
                   - !GetAtt Bucket.Arn
                   - "/*"
             Principal:
-              CanonicalUser: !GetAtt OriginAccessIdentity.S3CanonicalUserId
-
-  OriginAccessIdentity:
-    Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
-    Properties:
-      CloudFrontOriginAccessIdentityConfig:
-        Comment: !Sub ${project}-cdn-${env}
+              AWS: !Sub "arn:aws:iam::cloudfront:user/CloudFront Origin Access Identity ${oai}"
 
 Outputs:
   Table:
