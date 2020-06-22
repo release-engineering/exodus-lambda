@@ -137,7 +137,6 @@ Resources:
                 - git clone https://github.com/$REPO_OWNER/$REPO_NAME.git -b $REPO_BRANCH
                 - cd ./$REPO_NAME
                 - git verify-tag $(git describe --exact-match $COMMIT_ID)
-                - aws s3 cp .whitelist.gpg s3://$PROJECT-pipeline-artifacts/.whitelist.gpg
       Artifacts:
         Type: NO_ARTIFACTS
       TimeoutInMinutes: 10
