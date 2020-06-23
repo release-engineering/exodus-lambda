@@ -28,11 +28,14 @@ Additionally, an `Origin Access Identity`_ is created for use with
 local configuration or environment variables. See: `AWS Config`_.
 
 | **Example**:
-| $ aws cloudformation deploy ``\``
-|   --template-file configuration/exodus-storage.yaml ``\``
-|   --stack-name ... ``\``
-|   --capabilities ... ``\``
-|   --parameter-overrides env=... project=...
+
+.. code-block:: console
+
+ $ aws cloudformation deploy \
+        --template-file configuration/exodus-storage.yaml \
+        --stack-name ... \
+        --capabilities ... \
+        --parameter-overrides env=... project=...
 
 Lambda Deployment Pipelines
 ---------------------------
@@ -82,14 +85,17 @@ exodus-pipeline.yaml, run by the `AWS CLI`_ command
         Default: false
 
 | **Example**:
-| $ aws cloudformation deploy ``\``
-|   --template-file configuration/exodus-pipeline.yaml ``\``
-|   --stack-name ... ``\``
-|   --capabilities ... ``\``
-|   --parameter-overrides env=... oai=... ``\``
-|       repoOwner=... repoName=... repoBranch=... ``\``
-|       githubToken=... region=... email=... ``\``
-|       project=... useCloudTrail=... ``\``
+
+.. code-block:: console
+
+ $ aws cloudformation deploy \
+        --template-file configuration/exodus-pipeline.yaml \
+        --stack-name ... \
+        --capabilities ... \
+        --parameter-overrides env=... oai=... \
+            repoOwner=... repoName=... repoBranch=... \
+            githubToken=... region=... email=... \
+            project=... useCloudTrail=... \
 
 Lambda Functions
 ----------------
@@ -113,14 +119,17 @@ deployment, exodus-lambda-deploy.yaml, can be run by the `AWS CLI`_ command
         Default: exodus
 
 | **Example**:
-| $ export $PROJECT=...
-| $ export $ENV_TYPE=...
-| $ ./scripts/build-package
-| $ aws cloudformation deploy ``\``
-|   --template-file configuration/exodus-lambda-pkg.yaml ``\``
-|   --stack-name ... ``\``
-|   --capabilities ... ``\``
-|   --parameter-overrides env=$ENV_TYPE oai=... project=$PROJECT
+
+.. code-block:: console
+
+ $ export $PROJECT=...
+ $ export $ENV_TYPE=...
+ $ ./scripts/build-package
+ $ aws cloudformation deploy \
+        --template-file configuration/exodus-lambda-pkg.yaml \
+        --stack-name ... \
+        --capabilities ... \
+        --parameter-overrides env=$ENV_TYPE oai=... project=$PROJECT
 
 .. _Amazon S3: https://aws.amazon.com/s3/
 
