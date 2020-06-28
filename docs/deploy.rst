@@ -13,16 +13,15 @@ pairs, exodus-storage.yaml, run by the `AWS CLI`_ command
 ``aws cloudformation deploy``.
 
 - Parameters
-    - env
+    - env:
         The environment in which to deploy functions.
         Available values: dev, stage, prod
         Default: dev
-    - project
+    - project:
         The project name under which the resources are created.
         Default: exodus
-
-Additionally, an `Origin Access Identity`_ is created for use with
-`Amazon CloudFront`_ distributions.
+    - oai:
+        The origin access identity ID associated with the environment.
 
 **Note**: The AWS region in which these resources are created is defined by
 local configuration or environment variables. See: `AWS Config`_.
@@ -35,7 +34,7 @@ local configuration or environment variables. See: `AWS Config`_.
         --template-file configuration/exodus-storage.yaml \
         --stack-name ... \
         --capabilities ... \
-        --parameter-overrides env=... project=...
+        --parameter-overrides env=... project=... oai=...
 
 Lambda Deployment Pipelines
 ---------------------------
@@ -51,11 +50,11 @@ exodus-pipeline.yaml, run by the `AWS CLI`_ command
 ``aws cloudformation deploy``.
 
 - Parameters
-    - env
+    - env:
         The project name under which resources are created.
         Available values: dev, stage, prod
         Default: dev
-    - oai
+    - oai:
         The origin access identity ID associated with the environment,
         created alongside the environment's bucket-table pair.
     - repoOwner:
@@ -67,13 +66,13 @@ exodus-pipeline.yaml, run by the `AWS CLI`_ command
     - repoBranch:
         The source branch of the targeted repository.
         Default: master (if env=dev), deploy (if env=stage)
-    - githubToken
+    - githubToken:
         A GitHub access token for repository authentication.
-    - region
+    - region:
         The region in which resources are established.
         Should align with the environment's bucket-table pair.
         Default: us-east-1
-    - email
+    - email:
         The email address to which notifications are sent.
         Default: project-exodus@redhat.com
     - project:
@@ -83,19 +82,34 @@ exodus-pipeline.yaml, run by the `AWS CLI`_ command
         Determines whether to create CloudTrail resources.
         Available values: true, false
         Default: false
+    - cloudformationrole:
+        The IAM Role ARN for CloudFormation resource.
+    - codepipelinerole:
+        The IAM Role ARN for CodePipeline resource.
+    - cloudwatcheventrole:
+        The IAM Role ARN for CloudWatch resource.
+    - lambdafunctionrole:
+        The IAM Role ARN for Lambda Function resource.
 
 | **Example**:
 
 .. code-block:: console
 
  $ aws cloudformation deploy \
+        --template-file configuration/exodus-pipeline-resources.yaml \
+        --stack-name ... --capabilities ... \
+        --parameter-overrides project=... region=... useCloudTrail=... codebuildrole=...
+
+ $ aws cloudformation deploy \
         --template-file configuration/exodus-pipeline.yaml \
         --stack-name ... \
         --capabilities ... \
-        --parameter-overrides env=... oai=... \
+        --parameter-overrides env=...  project=... \
             repoOwner=... repoName=... repoBranch=... \
-            githubToken=... region=... email=... \
-            project=... useCloudTrail=... \
+            githubToken=... region=... email=... oai=...\
+            cloudformationrole=... codepipelinerole=... \
+            cloudwatcheventrole=... lambdafunctionrole=...
+
 
 Lambda Functions
 ----------------
@@ -117,6 +131,8 @@ deployment, exodus-lambda-deploy.yaml, can be run by the `AWS CLI`_ command
     - project:
         The project name under which resources are created.
         Default: exodus
+    - lambdafunctionrole:
+        The IAM Role ARN for Lambda Function resource.
 
 | **Example**:
 
@@ -129,7 +145,8 @@ deployment, exodus-lambda-deploy.yaml, can be run by the `AWS CLI`_ command
         --template-file configuration/exodus-lambda-pkg.yaml \
         --stack-name ... \
         --capabilities ... \
-        --parameter-overrides env=$ENV_TYPE oai=... project=$PROJECT
+        --parameter-overrides env=$ENV_TYPE project=$PROJECT \
+            oai=... lambdafunctionrole=...
 
 .. _Amazon S3: https://aws.amazon.com/s3/
 
@@ -138,10 +155,6 @@ deployment, exodus-lambda-deploy.yaml, can be run by the `AWS CLI`_ command
 .. _AWS CloudFormation: https://aws.amazon.com/cloudformation/
 
 .. _AWS CLI: https://aws.amazon.com/cli/
-
-.. _Origin Access Identity: https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/private-content-restricting-access-to-s3.html
-
-.. _Amazon CloudFront: https://aws.amazon.com/cloudfront/
 
 .. _AWS Config: https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-configure.html
 
