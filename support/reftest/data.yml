@@ -41,5 +41,5 @@ test_data:
   content-type: text/plain
 # */ostree/repo/refs/heads/*/*
 - path: /content/dist/rhel/atomic/7/7Server/x86_64/ostree/repo/refs/heads/rhel-atomic-host/7/x86_64/standard
-  sha256: a7bd277f10209d6ddc6a6c086014c69f5a52d0fa6ab57cc817651de2b3f83e29
+  sha256: f0299a2f60df6d60fbad8de6dfef4946c9302aae844fbc17051e9131a60acb14
   content-type: text/plain
