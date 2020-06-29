@@ -79,7 +79,3 @@ Outputs:
   Bucket:
     Description: Created bucket
     Value: !Ref Bucket
-
-  OriginAccessIdentity:
-    Description: Created origin access identity
-    Value: !Ref OriginAccessIdentity
