@@ -39,7 +39,6 @@ test_data:
 - path: /content/dist/rhel8/8.2/x86_64/baseos/iso/PULP_MANIFEST
   sha256: 2fb7a09fd67432ad7b7c95d24fe332827e24920347319c24bfef236cb0b72f19
   content-type: text/plain
-# */ostree/repo/refs/heads/*/*
+# */ostree/repo/refs/heads/*/* unstable content skip checksum-verify
 - path: /content/dist/rhel/atomic/7/7Server/x86_64/ostree/repo/refs/heads/rhel-atomic-host/7/x86_64/standard
-  sha256: a7bd277f10209d6ddc6a6c086014c69f5a52d0fa6ab57cc817651de2b3f83e29
   content-type: text/plain
