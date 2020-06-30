@@ -39,11 +39,18 @@ digraph {
     # in the request processing.
     # Connection order here is reversed to force the publishing tools to the bottom
     # of the graph, which makes them stand out a bit more.
-    S3 -> publish_tools [dir="back"]
-    db -> publish_tools [dir="back"]
+    S3:s -> exodus_gw:ne [dir="back"]
+    db:s -> exodus_gw:nw [dir="back"]
+
+    exodus_gw -> exodus_rsync:n [dir="back"];
+    exodus_gw -> native_tools:n [dir="back"];
+    exodus_rsync -> legacy_tools:n [dir="back"];
 
     client [label="client"]
-    publish_tools [label="publishing tools", style="rounded", rank="max", shape="box"]
+    exodus_gw [label="exodus-gw"];
+    exodus_rsync [label="exodus-rsync"];
+    legacy_tools [label="publishing tools (rsync)", style="dashed"];
+    native_tools [label="publishing tools (exodus)", style="dashed"];
 
     db [
         shape=plaintext
@@ -134,6 +141,20 @@ digraph {
             rank=same
             origin_request;
             origin_response;
+        }
+    }
+
+    subgraph cluster_10 {
+        label=< <b>publishing tools</b> >
+        style="dashed,rounded";
+        exodus_gw;
+        exodus_rsync;
+        subgraph cluster_11 {
+            label="";
+            style="invis";
+            rank=same;
+            legacy_tools;
+            native_tools;
         }
     }
 }
