@@ -4,6 +4,7 @@
 <html>
   <head>
     <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Architecture &#8212; exodus-lambda  documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -39,7 +40,7 @@
 <h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
 <p>This diagram shows the relationship between all major components used
 in the delivery of content via the CDN.</p>
-<div class="graphviz"><img src="_images/graphviz-48a33935352bdd83f63c1139a932f87754d98c37.png" alt="digraph {
+<div class="graphviz"><img src="_images/graphviz-ea426f000222dd0417976c00150b473f02b6331e.png" alt="digraph {
     ranksep=&quot;1.4&quot;;
 
     # These are arranged and labelled to communicate the
@@ -80,11 +81,18 @@ in the delivery of content via the CDN.</p>
     # in the request processing.
     # Connection order here is reversed to force the publishing tools to the bottom
     # of the graph, which makes them stand out a bit more.
-    S3 -&gt; publish_tools [dir=&quot;back&quot;]
-    db -&gt; publish_tools [dir=&quot;back&quot;]
+    S3:s -&gt; exodus_gw:ne [dir=&quot;back&quot;]
+    db:s -&gt; exodus_gw:nw [dir=&quot;back&quot;]
+
+    exodus_gw -&gt; exodus_rsync:n [dir=&quot;back&quot;];
+    exodus_gw -&gt; native_tools:n [dir=&quot;back&quot;];
+    exodus_rsync -&gt; legacy_tools:n [dir=&quot;back&quot;];
 
     client [label=&quot;client&quot;]
-    publish_tools [label=&quot;publishing tools&quot;, style=&quot;rounded&quot;, rank=&quot;max&quot;, shape=&quot;box&quot;]
+    exodus_gw [label=&quot;exodus-gw&quot;];
+    exodus_rsync [label=&quot;exodus-rsync&quot;];
+    legacy_tools [label=&quot;publishing tools (rsync)&quot;, style=&quot;dashed&quot;];
+    native_tools [label=&quot;publishing tools (exodus)&quot;, style=&quot;dashed&quot;];
 
     db [
         shape=plaintext
@@ -177,6 +185,20 @@ in the delivery of content via the CDN.</p>
             origin_response;
         }
     }
+
+    subgraph cluster_10 {
+        label=&lt; &lt;b&gt;publishing tools&lt;/b&gt; &gt;
+        style=&quot;dashed,rounded&quot;;
+        exodus_gw;
+        exodus_rsync;
+        subgraph cluster_11 {
+            label=&quot;&quot;;
+            style=&quot;invis&quot;;
+            rank=same;
+            legacy_tools;
+            native_tools;
+        }
+    }
 }" class="graphviz" /></div>
 <ul class="simple">
 <li><p>Numbered connections represent the sequence of events when the CDN processes
@@ -249,12 +271,30 @@ for certain responses.</p>
 <p>For more information about this function’s behavior, see
 <a class="reference internal" href="function-reference.html#function-ref"><span class="std std-ref">Function Reference</span></a>.</p>
 </dd>
-<dt>publishing tools</dt><dd><p>Represents the tools used by Red Hat to publish content onto the CDN.</p>
-<p>These tools insert data into the CDN’s S3 and DynamoDB services in order to
-publish content.</p>
-<p>A further explanation of these tools is out of scope for this document; it
-suffices to know that the tools are designed with an awareness of the CDN
-architecture described here.</p>
+<dt>exodus-gw</dt><dd><p>A microservice dedicated to writing data onto the CDN, this component
+exposes an HTTP API for use by publishing tools, and enforces certain
+policies on published content.</p>
+<p>It is the only component permitted to perform writes on DynamoDB and S3
+(hence, the “exodus gateway”).</p>
+</dd>
+<dt>exodus-rsync</dt><dd><p>A drop-in replacement for the <code class="docutils literal notranslate"><span class="pre">rsync</span></code> command. This command has
+an interface which is partially compatible with <code class="docutils literal notranslate"><span class="pre">rsync</span></code>, but it
+performs publishes via API calls to <code class="docutils literal notranslate"><span class="pre">exodus-gw</span></code> rather than using
+the rsync protocol.</p>
+<p>exodus-rsync is not fully rsync-compatible; it is engineered to support
+specific known publishing tools designed for rsync.</p>
+</dd>
+<dt>publishing tools (rsync)</dt><dd><p>Represents tools used by Red Hat to publish content onto the CDN which
+are designed to use rsync and are mostly unaware of the Exodus CDN
+architecture. These tools are made to publish to Exodus CDN by replacing
+the <code class="docutils literal notranslate"><span class="pre">rsync</span></code> command with <code class="docutils literal notranslate"><span class="pre">exodus-rsync</span></code>.</p>
+<p>RHSM Pulp is an example of a publishing tool using rsync.</p>
+</dd>
+<dt>publishing tools (exodus)</dt><dd><p>Represents tools used by Red Hat to publish content onto the CDN which
+are explicitly designed for Exodus CDN.</p>
+<p>These tools don’t need to use the <code class="docutils literal notranslate"><span class="pre">exodus-rsync</span></code> compatibility layer,
+and so may have improved performance or an extended feature set when
+compared with tools using rsync.</p>
 </dd>
 </dl>
 </div>
@@ -337,7 +377,7 @@ architecture described here.</p>
       &copy;2020, Red Hat.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.0.3</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.1.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

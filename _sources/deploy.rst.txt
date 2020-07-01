@@ -15,7 +15,11 @@ pairs, exodus-storage.yaml, run by the `AWS CLI`_ command
 - Parameters
     - env
         The environment in which to deploy functions.
-        Available values: dev (default), stage, prod
+        Available values: dev, stage, prod
+        Default: dev
+    - project
+        The project name under which the resources are created.
+        Default: exodus
 
 Additionally, an `Origin Access Identity`_ is created for use with
 `Amazon CloudFront`_ distributions.
@@ -24,12 +28,14 @@ Additionally, an `Origin Access Identity`_ is created for use with
 local configuration or environment variables. See: `AWS Config`_.
 
 | **Example**:
-| $ export AWS_DEFAULT_REGION=us-east-1
-| $ aws cloudformation deploy ``\``
-|   --template-file configuration/exodus-storage.yaml ``\``
-|   --stack-name ... ``\``
-|   --capabilities ... ``\``
-|   --parameter-overrides env=...
+
+.. code-block:: console
+
+ $ aws cloudformation deploy \
+        --template-file configuration/exodus-storage.yaml \
+        --stack-name ... \
+        --capabilities ... \
+        --parameter-overrides env=... project=...
 
 Lambda Deployment Pipelines
 ---------------------------
@@ -46,27 +52,50 @@ exodus-pipeline.yaml, run by the `AWS CLI`_ command
 
 - Parameters
     - env
-        The environment in which to deploy functions.
-        Available values: dev (default), stage, prod
+        The project name under which resources are created.
+        Available values: dev, stage, prod
+        Default: dev
     - oai
         The origin access identity ID associated with the environment,
         created alongside the environment's bucket-table pair.
+    - repoOwner:
+        The parent of the targeted repository.
+        Default: release-engineering
+    - repoName:
+        The targeted repository.
+        Default: exodus-lambda
+    - repoBranch:
+        The source branch of the targeted repository.
+        Default: master (if env=dev), deploy (if env=stage)
     - githubToken
-        A GitHub access token for repository authentication
+        A GitHub access token for repository authentication.
     - region
         The region in which resources are established.
         Should align with the environment's bucket-table pair.
+        Default: us-east-1
     - email
         The email address to which notifications are sent.
+        Default: project-exodus@redhat.com
+    - project:
+        The project name under which resources are created.
+        Default: exodus
+    - useCloudTrail:
+        Determines whether to create CloudTrail resources.
+        Available values: true, false
+        Default: false
 
 | **Example**:
-| $ export AWS_DEFAULT_REGION=us-east-1
-| $ aws cloudformation deploy ``\``
-|   --template-file configuration/exodus-pipeline.yaml ``\``
-|   --stack-name ... ``\``
-|   --capabilities ... ``\``
-|   --parameter-overrides ``\``
-|       env=... oai=... githubToken=... region=... email=...
+
+.. code-block:: console
+
+ $ aws cloudformation deploy \
+        --template-file configuration/exodus-pipeline.yaml \
+        --stack-name ... \
+        --capabilities ... \
+        --parameter-overrides env=... oai=... \
+            repoOwner=... repoName=... repoBranch=... \
+            githubToken=... region=... email=... \
+            project=... useCloudTrail=... \
 
 Lambda Functions
 ----------------
@@ -79,20 +108,28 @@ deployment, exodus-lambda-deploy.yaml, can be run by the `AWS CLI`_ command
 
 - Parameters
     - env
-        The environment in which to deploy functions.
-        Available values: dev (default), stage, prod
+        The project name under which resources are created.
+        Available values: dev, stage, prod
+        Default: dev
     - oai
         The origin access identity ID associated with the environment,
         created alongside the environment's bucket-table pair.
+    - project:
+        The project name under which resources are created.
+        Default: exodus
 
 | **Example**:
-| $ export AWS_DEFAULT_REGION=us-east-1
-| $ ./scripts/build-package
-| $ aws cloudformation deploy ``\``
-|   --template-file configuration/exodus-lambda-pkg.yaml ``\``
-|   --stack-name ... ``\``
-|   --capabilities ... ``\``
-|   --parameter-overrides env=... oai=...
+
+.. code-block:: console
+
+ $ export $PROJECT=...
+ $ export $ENV_TYPE=...
+ $ ./scripts/build-package
+ $ aws cloudformation deploy \
+        --template-file configuration/exodus-lambda-pkg.yaml \
+        --stack-name ... \
+        --capabilities ... \
+        --parameter-overrides env=$ENV_TYPE oai=... project=$PROJECT
 
 .. _Amazon S3: https://aws.amazon.com/s3/
 

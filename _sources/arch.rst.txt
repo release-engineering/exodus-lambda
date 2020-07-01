@@ -103,15 +103,38 @@ origin_response
     For more information about this function's behavior, see
     :ref:`function_ref`.
 
-publishing tools
-    Represents the tools used by Red Hat to publish content onto the CDN.
+exodus-gw
+    A microservice dedicated to writing data onto the CDN, this component
+    exposes an HTTP API for use by publishing tools, and enforces certain
+    policies on published content.
 
-    These tools insert data into the CDN's S3 and DynamoDB services in order to
-    publish content.
+    It is the only component permitted to perform writes on DynamoDB and S3
+    (hence, the "exodus gateway").
 
-    A further explanation of these tools is out of scope for this document; it
-    suffices to know that the tools are designed with an awareness of the CDN
-    architecture described here.
+exodus-rsync
+    A drop-in replacement for the ``rsync`` command. This command has
+    an interface which is partially compatible with ``rsync``, but it
+    performs publishes via API calls to ``exodus-gw`` rather than using
+    the rsync protocol.
+
+    exodus-rsync is not fully rsync-compatible; it is engineered to support
+    specific known publishing tools designed for rsync.
+
+publishing tools (rsync)
+    Represents tools used by Red Hat to publish content onto the CDN which
+    are designed to use rsync and are mostly unaware of the Exodus CDN
+    architecture. These tools are made to publish to Exodus CDN by replacing
+    the ``rsync`` command with ``exodus-rsync``.
+
+    RHSM Pulp is an example of a publishing tool using rsync.
+
+publishing tools (exodus)
+    Represents tools used by Red Hat to publish content onto the CDN which
+    are explicitly designed for Exodus CDN.
+
+    These tools don't need to use the ``exodus-rsync`` compatibility layer,
+    and so may have improved performance or an extended feature set when
+    compared with tools using rsync.
 
 .. _Amazon CloudFront: https://aws.amazon.com/cloudfront/
 

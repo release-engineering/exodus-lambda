@@ -4,6 +4,7 @@
 <html>
   <head>
     <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Deployment &#8212; exodus-lambda  documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -47,7 +48,14 @@ pairs, exodus-storage.yaml, run by the <a class="reference external" href="https
 <dt>Parameters</dt><dd><ul>
 <li><dl class="simple">
 <dt>env</dt><dd><p>The environment in which to deploy functions.
-Available values: dev (default), stage, prod</p>
+Available values: dev, stage, prod
+Default: dev</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>project</dt><dd><p>The project name under which the resources are created.
+Default: exodus</p>
 </dd>
 </dl>
 </li>
@@ -62,14 +70,13 @@ Available values: dev (default), stage, prod</p>
 local configuration or environment variables. See: <a class="reference external" href="https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-configure.html">AWS Config</a>.</p>
 <div class="line-block">
 <div class="line"><strong>Example</strong>:</div>
-<div class="line">$ export AWS_DEFAULT_REGION=us-east-1</div>
-<div class="line">$ aws cloudformation deploy <code class="docutils literal notranslate"><span class="pre">\</span></code></div>
-<div class="line-block">
-<div class="line">–template-file configuration/exodus-storage.yaml <code class="docutils literal notranslate"><span class="pre">\</span></code></div>
-<div class="line">–stack-name … <code class="docutils literal notranslate"><span class="pre">\</span></code></div>
-<div class="line">–capabilities … <code class="docutils literal notranslate"><span class="pre">\</span></code></div>
-<div class="line">–parameter-overrides env=…</div>
 </div>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> aws cloudformation deploy <span class="se">\</span>
+       --template-file configuration/exodus-storage.yaml <span class="se">\</span>
+       --stack-name ... <span class="se">\</span>
+       --capabilities ... <span class="se">\</span>
+       --parameter-overrides <span class="nv">env</span><span class="o">=</span>... <span class="nv">project</span><span class="o">=</span>...
+</pre></div>
 </div>
 </div>
 <div class="section" id="lambda-deployment-pipelines">
@@ -86,8 +93,9 @@ exodus-pipeline.yaml, run by the <a class="reference external" href="https://aws
 <li><dl class="simple">
 <dt>Parameters</dt><dd><ul>
 <li><dl class="simple">
-<dt>env</dt><dd><p>The environment in which to deploy functions.
-Available values: dev (default), stage, prod</p>
+<dt>env</dt><dd><p>The project name under which resources are created.
+Available values: dev, stage, prod
+Default: dev</p>
 </dd>
 </dl>
 </li>
@@ -98,18 +106,51 @@ created alongside the environment’s bucket-table pair.</p>
 </dl>
 </li>
 <li><dl class="simple">
-<dt>githubToken</dt><dd><p>A GitHub access token for repository authentication</p>
+<dt>repoOwner:</dt><dd><p>The parent of the targeted repository.
+Default: release-engineering</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>repoName:</dt><dd><p>The targeted repository.
+Default: exodus-lambda</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>repoBranch:</dt><dd><p>The source branch of the targeted repository.
+Default: master (if env=dev), deploy (if env=stage)</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>githubToken</dt><dd><p>A GitHub access token for repository authentication.</p>
 </dd>
 </dl>
 </li>
 <li><dl class="simple">
 <dt>region</dt><dd><p>The region in which resources are established.
-Should align with the environment’s bucket-table pair.</p>
+Should align with the environment’s bucket-table pair.
+Default: us-east-1</p>
 </dd>
 </dl>
 </li>
 <li><dl class="simple">
-<dt>email</dt><dd><p>The email address to which notifications are sent.</p>
+<dt>email</dt><dd><p>The email address to which notifications are sent.
+Default: <a class="reference external" href="mailto:project-exodus&#37;&#52;&#48;redhat&#46;com">project-exodus<span>&#64;</span>redhat<span>&#46;</span>com</a></p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>project:</dt><dd><p>The project name under which resources are created.
+Default: exodus</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>useCloudTrail:</dt><dd><p>Determines whether to create CloudTrail resources.
+Available values: true, false
+Default: false</p>
 </dd>
 </dl>
 </li>
@@ -120,17 +161,16 @@ Should align with the environment’s bucket-table pair.</p>
 </ul>
 <div class="line-block">
 <div class="line"><strong>Example</strong>:</div>
-<div class="line">$ export AWS_DEFAULT_REGION=us-east-1</div>
-<div class="line">$ aws cloudformation deploy <code class="docutils literal notranslate"><span class="pre">\</span></code></div>
-<div class="line-block">
-<div class="line">–template-file configuration/exodus-pipeline.yaml <code class="docutils literal notranslate"><span class="pre">\</span></code></div>
-<div class="line">–stack-name … <code class="docutils literal notranslate"><span class="pre">\</span></code></div>
-<div class="line">–capabilities … <code class="docutils literal notranslate"><span class="pre">\</span></code></div>
-<div class="line">–parameter-overrides <code class="docutils literal notranslate"><span class="pre">\</span></code></div>
-<div class="line-block">
-<div class="line">env=… oai=… githubToken=… region=… email=…</div>
 </div>
-</div>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> aws cloudformation deploy <span class="se">\</span>
+       --template-file configuration/exodus-pipeline.yaml <span class="se">\</span>
+       --stack-name ... <span class="se">\</span>
+       --capabilities ... <span class="se">\</span>
+       --parameter-overrides <span class="nv">env</span><span class="o">=</span>... <span class="nv">oai</span><span class="o">=</span>... <span class="se">\</span>
+           <span class="nv">repoOwner</span><span class="o">=</span>... <span class="nv">repoName</span><span class="o">=</span>... <span class="nv">repoBranch</span><span class="o">=</span>... <span class="se">\</span>
+           <span class="nv">githubToken</span><span class="o">=</span>... <span class="nv">region</span><span class="o">=</span>... <span class="nv">email</span><span class="o">=</span>... <span class="se">\</span>
+           <span class="nv">project</span><span class="o">=</span>... <span class="nv">useCloudTrail</span><span class="o">=</span>... <span class="se">\</span>
+</pre></div>
 </div>
 </div>
 <div class="section" id="lambda-functions">
@@ -144,14 +184,21 @@ deployment, exodus-lambda-deploy.yaml, can be run by the <a class="reference ext
 <li><dl class="simple">
 <dt>Parameters</dt><dd><ul>
 <li><dl class="simple">
-<dt>env</dt><dd><p>The environment in which to deploy functions.
-Available values: dev (default), stage, prod</p>
+<dt>env</dt><dd><p>The project name under which resources are created.
+Available values: dev, stage, prod
+Default: dev</p>
 </dd>
 </dl>
 </li>
 <li><dl class="simple">
 <dt>oai</dt><dd><p>The origin access identity ID associated with the environment,
 created alongside the environment’s bucket-table pair.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>project:</dt><dd><p>The project name under which resources are created.
+Default: exodus</p>
 </dd>
 </dl>
 </li>
@@ -162,15 +209,16 @@ created alongside the environment’s bucket-table pair.</p>
 </ul>
 <div class="line-block">
 <div class="line"><strong>Example</strong>:</div>
-<div class="line">$ export AWS_DEFAULT_REGION=us-east-1</div>
-<div class="line">$ ./scripts/build-package</div>
-<div class="line">$ aws cloudformation deploy <code class="docutils literal notranslate"><span class="pre">\</span></code></div>
-<div class="line-block">
-<div class="line">–template-file configuration/exodus-lambda-pkg.yaml <code class="docutils literal notranslate"><span class="pre">\</span></code></div>
-<div class="line">–stack-name … <code class="docutils literal notranslate"><span class="pre">\</span></code></div>
-<div class="line">–capabilities … <code class="docutils literal notranslate"><span class="pre">\</span></code></div>
-<div class="line">–parameter-overrides env=… oai=…</div>
 </div>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> <span class="nb">export</span> <span class="nv">$PROJECT</span><span class="o">=</span>...
+<span class="gp">$</span> <span class="nb">export</span> <span class="nv">$ENV_TYPE</span><span class="o">=</span>...
+<span class="gp">$</span> ./scripts/build-package
+<span class="gp">$</span> aws cloudformation deploy <span class="se">\</span>
+       --template-file configuration/exodus-lambda-pkg.yaml <span class="se">\</span>
+       --stack-name ... <span class="se">\</span>
+       --capabilities ... <span class="se">\</span>
+       --parameter-overrides <span class="nv">env</span><span class="o">=</span><span class="nv">$ENV_TYPE</span> <span class="nv">oai</span><span class="o">=</span>... <span class="nv">project</span><span class="o">=</span><span class="nv">$PROJECT</span>
+</pre></div>
 </div>
 </div>
 </div>
@@ -253,7 +301,7 @@ created alongside the environment’s bucket-table pair.</p>
       &copy;2020, Red Hat.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.0.3</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.1.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |
