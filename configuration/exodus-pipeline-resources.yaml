@@ -30,7 +30,6 @@ Conditions:
 Resources:
   CodePipelineCloudTrail:
     Type: AWS::CloudTrail::Trail
-    # Create trail for prod pipeline
     Condition: CreateCloudTrail
     Properties:
       S3BucketName: !Sub ${project}-cloudtrail-logs
@@ -46,7 +45,6 @@ Resources:
 
   CodePipelineBucket:
     Type: AWS::S3::Bucket
-    # Create artifact bucket for dev pipeline
     Properties:
       BucketName: !Sub ${project}-pipeline-artifacts
       PublicAccessBlockConfiguration:
@@ -60,7 +58,6 @@ Resources:
 
   CodePipelineBucketPolicy:
     Type: AWS::S3::BucketPolicy
-    # Create artifact bucket policy for dev pipeline
     Properties:
       Bucket: !Sub ${project}-pipeline-artifacts
       PolicyDocument:
@@ -76,7 +73,6 @@ Resources:
 
   CloudTrailBucket:
     Type: AWS::S3::Bucket
-    # Create bucket for cloudtrail logs
     Condition: CreateCloudTrail
     Properties:
       BucketName: !Sub ${project}-cloudtrail-logs
@@ -92,7 +88,6 @@ Resources:
 
   CloudTrailBucketPolicy:
     Type: AWS::S3::BucketPolicy
-    #Create bucket policy for cloudtrail logs
     Condition: CreateCloudTrail
     Properties:
       Bucket: !Sub ${project}-cloudtrail-logs
@@ -116,8 +111,8 @@ Resources:
                 s3:x-amz-acl: bucket-owner-full-control
 
   VerifySourceProject:
+    # CodeBuild project for verifying deployment authorization
     Type: AWS::CodeBuild::Project
-    # Create verify source project for stage pipeline
     Properties:
       Name: !Sub ${project}-verify-source
       ServiceRole: !Sub ${codebuildrole}
@@ -142,8 +137,8 @@ Resources:
       TimeoutInMinutes: 10
 
   LambdaBuildProject:
+    # CodeBuild project for packaging the Lambda@Edge functions for deployment
     Type: AWS::CodeBuild::Project
-    # Create CodeBuild project for dev pipeline
     Properties:
       Name: !Sub ${project}-lambda-build
       ServiceRole: !Sub ${codebuildrole}
@@ -168,8 +163,8 @@ Resources:
       TimeoutInMinutes: 10
 
   IntegrationTestsProject:
+    # CodeBuild project for testing the deployed Lambda@Edge functions
     Type: AWS::CodeBuild::Project
-    # Create CodeBuild project for running integration tests against the pipeline
     Properties:
       Name: !Sub ${project}-integration-tests
       ServiceRole: !Sub ${codebuildrole}
@@ -196,8 +191,8 @@ Resources:
       TimeoutInMinutes: 15
 
   RollbackProject:
+    # CodeBuild project for re-deploying the last successful lambda stack
     Type: AWS::CodeBuild::Project
-    # Create CodeBuild project for re-deploying the last successful lambda stack
     Properties:
       Name: !Sub ${project}-rollback
       ServiceRole: !Sub ${codebuildrole}
