@@ -1,0 +1,203 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tests &#8212; exodus-lambda  documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="origin_request Schemas" href="schemas/origin_request-schema.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="tests">
+<h1>Tests<a class="headerlink" href="#tests" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="integration-test">
+<h2>Integration Test<a class="headerlink" href="#integration-test" title="Permalink to this headline">¶</a></h2>
+<p>The integration test is already integrated to <a class="reference external" href="https://aws.amazon.com/codepipeline/">AWS CodePipeline</a> pipelines.</p>
+<div class="section" id="test-data-prepare">
+<h3>Test data prepare<a class="headerlink" href="#test-data-prepare" title="Permalink to this headline">¶</a></h3>
+<p>In order to support automated validation/integration tests against the exodus CDN, we need to create a set of reference testdata which can be deployed and used in each environment.</p>
+<p>The test data prepare script located in the <code class="docutils literal notranslate"><span class="pre">support/reftest/</span></code> directory.
+The <code class="docutils literal notranslate"><span class="pre">support/reftest/reftest</span></code> is used to prepare the test data, and the <code class="docutils literal notranslate"><span class="pre">support/reftest/data.yml</span></code> is used to specify the data which will be used.</p>
+<p>The integration test use real testdata (real RHEL RPMs) but don’t check them into the <code class="docutils literal notranslate"><span class="pre">exodus-lambda</span></code> repo. Instead, the script <code class="docutils literal notranslate"><span class="pre">support/reftest/reftest</span></code> support fetching the RPMs from production CDN for test data. Then, create DB items in <a class="reference external" href="https://aws.amazon.com/dynamodb/">Amazon DynamoDB</a> and push the fetched data to <a class="reference external" href="https://aws.amazon.com/s3/">Amazon S3</a>.</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ ./reftest prepare --table ... --bucket ... --cert ... --key ... --cacert ...
+</pre></div>
+</div>
+<ul class="simple">
+<li><dl class="simple">
+<dt>Parameters</dt><dd><ul>
+<li><dl class="simple">
+<dt>table:</dt><dd><p>The AWS DynamoDB table name.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>bucket:</dt><dd><p>The AWS S3 bucket name.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>cert:</dt><dd><p>The client certificate file and password.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>key:</dt><dd><p>The private key file name.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>cacert:</dt><dd><p>The CA certificate to verify peer against.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If there are testdata paths which have unstable content and no stable alternatives, then the checksum field is not needed in <code class="docutils literal notranslate"><span class="pre">data.yml</span></code> and the checksum-verify step will be skipped.</p>
+</div>
+</div>
+<div class="section" id="running-the-test-locally">
+<h3>Running the test locally<a class="headerlink" href="#running-the-test-locally" title="Permalink to this headline">¶</a></h3>
+<p>The test code is located in the <code class="docutils literal notranslate"><span class="pre">tests/integration/</span></code> directory.
+The test <code class="docutils literal notranslate"><span class="pre">tests/integration/test_exodus.py</span></code> covers all major implemented behaviors from exodus CDN.</p>
+<ul class="simple">
+<li><p>origin path alias</p></li>
+<li><p>rhui path alias</p></li>
+<li><p>Digest/Want-Digest</p></li>
+<li><p>Cache-Control</p></li>
+<li><p>Content-Type</p></li>
+</ul>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span># specify the CloudFormation stack for lambdafunction creation
+$ export STACK_NAME=...
+$ tox -e integration-tests
+
+# or you can directly use pytest and specify the CDN url
+$ pytest tests/integration/ --cdn-test-url ...
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">exodus-lambda</a></h1>
+
+
+
+<p class="blurb">AWS Lambda functions for Red Hat's Content Delivery Network</p>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="arch.html">Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="deploy.html">Deployment</a></li>
+<li class="toctree-l1"><a class="reference internal" href="function-reference.html">Function Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="schema-reference.html">Schema Reference</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Tests</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#integration-test">Integration Test</a></li>
+</ul>
+</li>
+</ul>
+
+
+<hr />
+<ul>
+    
+    <li class="toctree-l1"><a href="https://github.com/release-engineering/exodus-lambda">Source</a></li>
+    
+    <li class="toctree-l1"><a href="genindex.html">Index</a></li>
+    
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="schemas/origin_request-schema.html" title="previous chapter">origin_request Schemas</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, Red Hat.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.1.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/test.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+    <a href="https://github.com/release-engineering/exodus-lambda" class="github">
+        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
+    </a>
+    
+
+    
+  </body>
+</html>
