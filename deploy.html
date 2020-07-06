@@ -47,25 +47,28 @@ pairs, exodus-storage.yaml, run by the <a class="reference external" href="https
 <li><dl class="simple">
 <dt>Parameters</dt><dd><ul>
 <li><dl class="simple">
-<dt>env</dt><dd><p>The environment in which to deploy functions.
+<dt>env:</dt><dd><p>The environment in which to deploy functions.
 Available values: dev, stage, prod
 Default: dev</p>
 </dd>
 </dl>
 </li>
 <li><dl class="simple">
-<dt>project</dt><dd><p>The project name under which the resources are created.
+<dt>project:</dt><dd><p>The project name under which the resources are created.
 Default: exodus</p>
 </dd>
 </dl>
 </li>
+<li><dl class="simple">
+<dt>oai:</dt><dd><p>The origin access identity ID associated with the environment.</p>
+</dd>
+</dl>
+</li>
 </ul>
 </dd>
 </dl>
 </li>
 </ul>
-<p>Additionally, an <a class="reference external" href="https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/private-content-restricting-access-to-s3.html">Origin Access Identity</a> is created for use with
-<a class="reference external" href="https://aws.amazon.com/cloudfront/">Amazon CloudFront</a> distributions.</p>
 <p><strong>Note</strong>: The AWS region in which these resources are created is defined by
 local configuration or environment variables. See: <a class="reference external" href="https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-configure.html">AWS Config</a>.</p>
 <div class="line-block">
@@ -75,7 +78,7 @@ local configuration or environment variables. See: <a class="reference external"
        --template-file configuration/exodus-storage.yaml <span class="se">\</span>
        --stack-name ... <span class="se">\</span>
        --capabilities ... <span class="se">\</span>
-       --parameter-overrides <span class="nv">env</span><span class="o">=</span>... <span class="nv">project</span><span class="o">=</span>...
+       --parameter-overrides <span class="nv">env</span><span class="o">=</span>... <span class="nv">project</span><span class="o">=</span>... <span class="nv">oai</span><span class="o">=</span>...
 </pre></div>
 </div>
 </div>
@@ -93,14 +96,14 @@ exodus-pipeline.yaml, run by the <a class="reference external" href="https://aws
 <li><dl class="simple">
 <dt>Parameters</dt><dd><ul>
 <li><dl class="simple">
-<dt>env</dt><dd><p>The project name under which resources are created.
+<dt>env:</dt><dd><p>The project name under which resources are created.
 Available values: dev, stage, prod
 Default: dev</p>
 </dd>
 </dl>
 </li>
 <li><dl class="simple">
-<dt>oai</dt><dd><p>The origin access identity ID associated with the environment,
+<dt>oai:</dt><dd><p>The origin access identity ID associated with the environment,
 created alongside the environment’s bucket-table pair.</p>
 </dd>
 </dl>
@@ -124,19 +127,19 @@ Default: master (if env=dev), deploy (if env=stage)</p>
 </dl>
 </li>
 <li><dl class="simple">
-<dt>githubToken</dt><dd><p>A GitHub access token for repository authentication.</p>
+<dt>githubToken:</dt><dd><p>A GitHub access token for repository authentication.</p>
 </dd>
 </dl>
 </li>
 <li><dl class="simple">
-<dt>region</dt><dd><p>The region in which resources are established.
+<dt>region:</dt><dd><p>The region in which resources are established.
 Should align with the environment’s bucket-table pair.
 Default: us-east-1</p>
 </dd>
 </dl>
 </li>
 <li><dl class="simple">
-<dt>email</dt><dd><p>The email address to which notifications are sent.
+<dt>email:</dt><dd><p>The email address to which notifications are sent.
 Default: <a class="reference external" href="mailto:project-exodus&#37;&#52;&#48;redhat&#46;com">project-exodus<span>&#64;</span>redhat<span>&#46;</span>com</a></p>
 </dd>
 </dl>
@@ -154,6 +157,26 @@ Default: false</p>
 </dd>
 </dl>
 </li>
+<li><dl class="simple">
+<dt>cloudformationrole:</dt><dd><p>The IAM Role ARN for CloudFormation resource.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>codepipelinerole:</dt><dd><p>The IAM Role ARN for CodePipeline resource.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>cloudwatcheventrole:</dt><dd><p>The IAM Role ARN for CloudWatch resource.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>lambdafunctionrole:</dt><dd><p>The IAM Role ARN for Lambda Function resource.</p>
+</dd>
+</dl>
+</li>
 </ul>
 </dd>
 </dl>
@@ -163,13 +186,19 @@ Default: false</p>
 <div class="line"><strong>Example</strong>:</div>
 </div>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> aws cloudformation deploy <span class="se">\</span>
+       --template-file configuration/exodus-pipeline-resources.yaml <span class="se">\</span>
+       --stack-name ... --capabilities ... <span class="se">\</span>
+       --parameter-overrides <span class="nv">project</span><span class="o">=</span>... <span class="nv">region</span><span class="o">=</span>... <span class="nv">useCloudTrail</span><span class="o">=</span>... <span class="nv">codebuildrole</span><span class="o">=</span>...
+
+<span class="gp">$</span> aws cloudformation deploy <span class="se">\</span>
        --template-file configuration/exodus-pipeline.yaml <span class="se">\</span>
        --stack-name ... <span class="se">\</span>
        --capabilities ... <span class="se">\</span>
-       --parameter-overrides <span class="nv">env</span><span class="o">=</span>... <span class="nv">oai</span><span class="o">=</span>... <span class="se">\</span>
+       --parameter-overrides <span class="nv">env</span><span class="o">=</span>...  <span class="nv">project</span><span class="o">=</span>... <span class="se">\</span>
            <span class="nv">repoOwner</span><span class="o">=</span>... <span class="nv">repoName</span><span class="o">=</span>... <span class="nv">repoBranch</span><span class="o">=</span>... <span class="se">\</span>
-           <span class="nv">githubToken</span><span class="o">=</span>... <span class="nv">region</span><span class="o">=</span>... <span class="nv">email</span><span class="o">=</span>... <span class="se">\</span>
-           <span class="nv">project</span><span class="o">=</span>... <span class="nv">useCloudTrail</span><span class="o">=</span>... <span class="se">\</span>
+           <span class="nv">githubToken</span><span class="o">=</span>... <span class="nv">region</span><span class="o">=</span>... <span class="nv">email</span><span class="o">=</span>... <span class="nv">oai</span><span class="o">=</span>...<span class="se">\</span>
+           <span class="nv">cloudformationrole</span><span class="o">=</span>... <span class="nv">codepipelinerole</span><span class="o">=</span>... <span class="se">\</span>
+           <span class="nv">cloudwatcheventrole</span><span class="o">=</span>... <span class="nv">lambdafunctionrole</span><span class="o">=</span>...
 </pre></div>
 </div>
 </div>
@@ -202,6 +231,11 @@ Default: exodus</p>
 </dd>
 </dl>
 </li>
+<li><dl class="simple">
+<dt>lambdafunctionrole:</dt><dd><p>The IAM Role ARN for Lambda Function resource.</p>
+</dd>
+</dl>
+</li>
 </ul>
 </dd>
 </dl>
@@ -217,7 +251,8 @@ Default: exodus</p>
        --template-file configuration/exodus-lambda-pkg.yaml <span class="se">\</span>
        --stack-name ... <span class="se">\</span>
        --capabilities ... <span class="se">\</span>
-       --parameter-overrides <span class="nv">env</span><span class="o">=</span><span class="nv">$ENV_TYPE</span> <span class="nv">oai</span><span class="o">=</span>... <span class="nv">project</span><span class="o">=</span><span class="nv">$PROJECT</span>
+       --parameter-overrides <span class="nv">env</span><span class="o">=</span><span class="nv">$ENV_TYPE</span> <span class="nv">project</span><span class="o">=</span><span class="nv">$PROJECT</span> <span class="se">\</span>
+           <span class="nv">oai</span><span class="o">=</span>... <span class="nv">lambdafunctionrole</span><span class="o">=</span>...
 </pre></div>
 </div>
 </div>
@@ -302,7 +337,7 @@ Default: exodus</p>
       &copy;2020, Red Hat.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.1.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.1.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |
