@@ -2,24 +2,43 @@ prod-cdn-url:
   https://cdn.redhat.com
 
 test_data:
+# repodata/*.bz2
 - path: /content/dist/rhel/server/7/7.4/x86_64/os/repodata/fd23895d43f54a50bbd0509809dd5f45298bfd6b-other.sqlite.bz2
   sha256: 647b38c2222caecd0859f97a0ef0ef78f249b8d96af437552d6b2950056f261e
   content-type: application/x-bzip
+# repodata/*.gz
 - path: /content/dist/rhel/server/7/7.4/x86_64/os/repodata/cb753af26534673064bd593500d747d7288d75b2-filelists.xml.gz
   sha256: 49159602b5bb8d9d34af384a62bd411d12449338501a4d08ef90c369b7facb98
   content-type: application/x-gzip
+# repodata/repomd.xml
+- path: /content/dist/rhel/server/7/7.2/x86_64/rhev-mgmt-agent/3/os/repodata/repomd.xml
+  sha256: 85819a9ed7e32630e5e0ee477ac8cfa70b481b6579bd622e20e7ee922f538439
+  content-type: application/xml
 # rpm
 - path: /content/aus/rhel/server/6/6.5/x86_64/os/Packages/c/cpio-2.10-12.el6_5.x86_64.rpm
   sha256: 06316538b90d3aab20f4787132307f6d330da9a48bab11a13e0a616fcf622ce5
   content-type: audio/x-pn-realaudio-plugin
+- path: /content/dist/rhel8/8.1/x86_64/baseos/os/Packages/i/iptables-1.8.2-16.el8.x86_64.rpm
+  sha256: 580d8c304c0fce98a47cf0283849e5e9f7e8f5c7bda766921249765046947e40
+  content-type: audio/x-pn-realaudio-plugin
+# rpm for orgin path alias test
+- path: /origin/rpms/bash/4.4.19/8.el8_0/fd431d51/bash-4.4.19-8.el8_0.x86_64.rpm
+  sha256: 4164ff2c0116d666578ba5e456ab03b88788dfb42fb93fc91b2c1da709d86686
+  content-type: audio/x-pn-realaudio-plugin
 # listing
-- path: /content/dist/rhel/server/5/5.7/listing
-  sha256: b51f4ddc06fddec9e73892671f1f25300ccd4235fa798afd01caf96446dc2bf1
+- path: /content/dist/rhel/server/5/listing
+  sha256: 6e0230c69d88400d6064a4fce264aebb6918da0f12c86790c2bfc6edd3851907
   content-type: text/plain
 - path: /content/dist/rhel/server/5/5.6/listing
   sha256: b51f4ddc06fddec9e73892671f1f25300ccd4235fa798afd01caf96446dc2bf1
   content-type: text/plain
-- path: /content/dist/rhel/server/5/listing
-  sha256: 6e0230c69d88400d6064a4fce264aebb6918da0f12c86790c2bfc6edd3851907
+- path: /content/dist/rhel/server/5/5.7/listing
+  sha256: b51f4ddc06fddec9e73892671f1f25300ccd4235fa798afd01caf96446dc2bf1
   content-type: text/plain
-
+# PULP_MANIFEST
+- path: /content/dist/rhel8/8.2/x86_64/baseos/iso/PULP_MANIFEST
+  sha256: 2fb7a09fd67432ad7b7c95d24fe332827e24920347319c24bfef236cb0b72f19
+  content-type: text/plain
+# */ostree/repo/refs/heads/*/* unstable content skip checksum-verify
+- path: /content/dist/rhel/atomic/7/7Server/x86_64/ostree/repo/refs/heads/rhel-atomic-host/7/x86_64/standard
+  content-type: text/plain

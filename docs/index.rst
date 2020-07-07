@@ -11,3 +11,4 @@ AWS Lambda functions for Red Hat's Content Delivery Network
    deploy
    function-reference
    schema-reference
+   test

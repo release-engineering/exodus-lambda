@@ -1,0 +1,215 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Description: Configuration for exodus-cdn CodePipeline
+
+Parameters:
+  region:
+    Type: String
+    Default: us-east-1
+    Description: The region in which resources are established
+  project:
+    Type: String
+    Default: exodus
+    Description: The project name under which resources are created
+  useCloudTrail:
+    Type: String
+    AllowedValues:
+      - true
+      - false
+    Default: false
+    Description: Determines whether to create CloudTrail resources
+  codebuildrole:
+    Type: String
+    Default: None
+    Description: The IAM Role ARN for CodeBuild resource
+
+Conditions:
+  CreateCloudTrail:
+    !Equals [!Ref useCloudTrail, true]
+
+Resources:
+  CodePipelineCloudTrail:
+    Type: AWS::CloudTrail::Trail
+    Condition: CreateCloudTrail
+    Properties:
+      S3BucketName: !Sub ${project}-cloudtrail-logs
+      EventSelectors:
+        - DataResources:
+          - Type: AWS::S3::Object
+            Values:
+              - "arn:aws:s3:::"
+          ReadWriteType: WriteOnly
+          IncludeManagementEvents: false
+      IsLogging: true
+    DependsOn: CloudTrailBucketPolicy
+
+  CodePipelineBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub ${project}-pipeline-artifacts
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      VersioningConfiguration:
+        Status: Enabled
+    DeletionPolicy: Retain
+
+  CodePipelineBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Sub ${project}-pipeline-artifacts
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action: "s3:*"
+            Principal:
+              Service:
+                - s3.amazonaws.com
+            Resource: !Sub arn:aws:s3:::${project}-pipeline-artifacts
+    DependsOn: CodePipelineBucket
+
+  CloudTrailBucket:
+    Type: AWS::S3::Bucket
+    Condition: CreateCloudTrail
+    Properties:
+      BucketName: !Sub ${project}-cloudtrail-logs
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      LifecycleConfiguration:
+        Rules:
+          - Status: "Enabled"
+            ExpirationInDays: 1
+
+  CloudTrailBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Condition: CreateCloudTrail
+    Properties:
+      Bucket: !Sub ${project}-cloudtrail-logs
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - cloudtrail.amazonaws.com
+            Action: s3:GetBucketAcl
+            Resource: !Sub arn:aws:s3:::${project}-cloudtrail-logs
+          - Effect: Allow
+            Principal:
+              Service:
+                - cloudtrail.amazonaws.com
+            Action: s3:PutObject
+            Resource: !Sub arn:aws:s3:::${project}-cloudtrail-logs/AWSLogs/${AWS::AccountId}/*
+            Condition:
+              StringEquals:
+                s3:x-amz-acl: bucket-owner-full-control
+
+  VerifySourceProject:
+    # CodeBuild project for verifying deployment authorization
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: !Sub ${project}-verify-source
+      ServiceRole: !Sub ${codebuildrole}
+      Environment:
+        Type: LINUX_CONTAINER
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: aws/codebuild/amazonlinux2-x86_64-standard:2.0
+      Source:
+        Type: NO_SOURCE
+        BuildSpec: |
+          version: 0.2
+          phases:
+            build:
+              commands:
+                - aws s3 cp s3://$PROJECT-pipeline-artifacts/.whitelist.gpg .whitelist.gpg
+                - gpg --import .whitelist.gpg
+                - git clone https://github.com/$REPO_OWNER/$REPO_NAME.git -b $REPO_BRANCH
+                - cd ./$REPO_NAME
+                - git verify-tag $(git describe --exact-match $COMMIT_ID)
+      Artifacts:
+        Type: NO_ARTIFACTS
+      TimeoutInMinutes: 10
+
+  LambdaBuildProject:
+    # CodeBuild project for packaging the Lambda@Edge functions for deployment
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: !Sub ${project}-lambda-build
+      ServiceRole: !Sub ${codebuildrole}
+      Environment:
+        Type: LINUX_CONTAINER
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: aws/codebuild/amazonlinux2-x86_64-standard:2.0
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: |
+          version: 0.2
+          phases:
+            build:
+              commands:
+                - ./scripts/build-package
+          artifacts:
+            files:
+              - ./package/exodus-lambda-pkg.yaml
+            discard-paths: yes
+      Artifacts:
+        Type: CODEPIPELINE
+      TimeoutInMinutes: 10
+
+  IntegrationTestsProject:
+    # CodeBuild project for testing the deployed Lambda@Edge functions
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: !Sub ${project}-integration-tests
+      ServiceRole: !Sub ${codebuildrole}
+      Environment:
+        Type: LINUX_CONTAINER
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: aws/codebuild/amazonlinux2-x86_64-standard:3.0
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: |
+          version: 0.2
+          phases:
+            install:
+              runtime-versions:
+                python: 3.7
+              commands:
+                - pip install --upgrade pip
+                - pip install tox
+            build:
+              commands:
+                - tox -e integration-tests
+      Artifacts:
+        Type: CODEPIPELINE
+      TimeoutInMinutes: 15
+
+  RollbackProject:
+    # CodeBuild project for re-deploying the last successful lambda stack
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: !Sub ${project}-rollback
+      ServiceRole: !Sub ${codebuildrole}
+      Environment:
+        Type: LINUX_CONTAINER
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: aws/codebuild/amazonlinux2-x86_64-standard:2.0
+      Source:
+        Type: NO_SOURCE
+        BuildSpec: |
+          version: 0.2
+          phases:
+            build:
+              commands:
+                - aws s3 cp s3://$PROJECT-pipeline-artifacts/build-$ENV_TYPE .
+                - unzip build-$ENV_TYPE
+                - aws cloudformation deploy --template-file exodus-lambda-pkg.yaml --capabilities CAPABILITY_NAMED_IAM --stack-name $PROJECT-lambda-$ENV_TYPE --parameter-overrides env=$ENV_TYPE project=$PROJECT oai=$OAI lambdafunctionrole=$LAMBDA_IAM_ROLE
+      Artifacts:
+        Type: NO_ARTIFACTS
+      TimeoutInMinutes: 10

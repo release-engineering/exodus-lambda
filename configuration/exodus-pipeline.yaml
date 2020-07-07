@@ -11,7 +11,7 @@ Parameters:
       - stage
       - prod
     Default: dev
-    Description: The environment in which to deploy functions
+    Description: The environment for which resources are intended
   oai:
     Type: String
     Description: The origin access identity ID associated with the environment
@@ -29,7 +29,6 @@ Parameters:
     Description: The source branch of the targeted repository
   githubToken:
     Type: String
-    Default: None
     Description: A GitHub access token token to authorize webhooks
   region:
     Type: String
@@ -42,14 +41,23 @@ Parameters:
   project:
     Type: String
     Default: exodus
-    Description: The project to which to deploy functions
-  useCloudTrail:
+    Description: The project name under which resources are created
+  cloudformationrole:
     Type: String
-    AllowedValues:
-      - true
-      - false
-    Default: false
-    Description: Determines whether to create CloudTrail resources
+    Default: None
+    Description: The IAM Role ARN for CloudFormation resource
+  codepipelinerole:
+    Type: String
+    Default: None
+    Description: The IAM Role ARN for CodePipeline resource
+  cloudwatcheventrole:
+    Type: String
+    Default: None
+    Description: The IAM Role ARN for CloudWatch resource
+  lambdafunctionrole:
+    Type: String
+    Default: None
+    Description: The IAM Role ARN for Lambda Function resource
 
 Conditions:
   IsDev:
@@ -62,8 +70,6 @@ Conditions:
     !Not [!Equals [!Ref env, prod]]
   NoBranch:
     !Equals [!Ref repoBranch, None]
-  CreateCloudTrail:
-    !And [!Condition IsProd, !Equals [!Ref useCloudTrail, true]]
 
 Resources:
   SNSTopic:
@@ -73,6 +79,20 @@ Resources:
       Subscription:
         - Endpoint: !Ref email
           Protocol: email
+
+  SNSTopicPolicy:
+    Type: AWS::SNS::TopicPolicy
+    Properties:
+      PolicyDocument:
+        Id: !Sub ${project}-sns-${env}-topic-policy
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action: sns:Publish
+            Resource: "*"
+            Principal: "*"
+      Topics:
+        - !Ref SNSTopic
 
   CodePipelineNotification:
     Type: AWS::CodeStarNotifications::NotificationRule
@@ -119,42 +139,38 @@ Resources:
       ArtifactStore:
         Type: S3
         Location: !Sub ${project}-pipeline-artifacts
-      RoleArn: !Sub arn:aws:iam::${AWS::AccountId}:role/${project}-codepipe-${env}
+      RoleArn: !Sub ${codepipelinerole}
       Stages:
         # Create Github source for dev, stage pipelines
-        - !If
-          - NotProd
-          - Name: Source
-            Actions:
-              - Name: Source
-                Namespace: SourceVars
-                ActionTypeId:
-                  Category: Source
-                  Owner: ThirdParty
-                  Provider: GitHub
-                  Version: 1
-                Configuration:
-                  Owner: !Ref repoOwner
-                  Repo: !Ref repoName
-                  Branch:
-                    !If
-                      - NoBranch
-                      - !If
-                        - IsDev
-                        - master
-                        - deploy
-                      - !Ref repoBranch
-                  OAuthToken: !Ref githubToken
-                  PollForSourceChanges: false
-                OutputArtifacts:
-                  - Name: SourceArtifact
-          - !Ref AWS::NoValue
-        # Create S3 source for prod pipeline
-        - !If
-          - IsProd
-          - Name: Source
-            Actions:
-              - Name: Source
+        - Name: Source
+          Actions:
+            - Name: Source
+              Namespace: SourceVars
+              ActionTypeId:
+                Category: Source
+                Owner: ThirdParty
+                Provider: GitHub
+                Version: 1
+              Configuration:
+                Owner: !Ref repoOwner
+                Repo: !Ref repoName
+                Branch:
+                  !If
+                    - NoBranch
+                    - !If
+                      - IsDev
+                      - master
+                      - deploy
+                    - !Ref repoBranch
+                OAuthToken: !Ref githubToken
+                PollForSourceChanges: false
+              OutputArtifacts:
+                - Name: SourceArtifact
+              RunOrder: 1
+            # Create additional S3 source for prod pipeline
+            - !If
+              - IsProd
+              - Name: S3Source
                 ActionTypeId:
                   Category: Source
                   Owner: AWS
@@ -167,7 +183,8 @@ Resources:
                   PollForSourceChanges: false
                 OutputArtifacts:
                   - Name: BuildArtifact
-          - !Ref AWS::NoValue
+                RunOrder: 2
+              - !Ref AWS::NoValue
         # Create build stage for dev, stage pipelines
         - !If
           - NotProd
@@ -187,7 +204,7 @@ Resources:
                       !Sub '[
                         {"name": "REPO_OWNER", "value": "${repoOwner}", "type": "PLAINTEXT"},
                         {"name": "REPO_NAME", "value": "${repoName}", "type": "PLAINTEXT"},
-                        {"name": "REPO_BRANCH", "value": "${repoBranch}", "type": "PLAINTEXT"},
+                        {"name": "REPO_BRANCH", "value": "#{SourceVars.BranchName}", "type": "PLAINTEXT"},
                         {"name": "COMMIT_ID", "value": "#{SourceVars.CommitId}", "type": "PLAINTEXT"},
                         {"name": "PROJECT", "value": "${project}", "type": "PLAINTEXT"}
                       ]'
@@ -207,7 +224,7 @@ Resources:
                   EnvironmentVariables:
                     !Sub '[{"name": "ENV_TYPE", "value": "${env}", "type": "PLAINTEXT"},
                     {"name": "PROJECT", "value": "${project}", "type": "PLAINTEXT"}]'
-                  ProjectName: !Sub ${project}-codebuild
+                  ProjectName: !Sub ${project}-lambda-build
                 InputArtifacts:
                   - Name: SourceArtifact
                 OutputArtifacts:
@@ -226,12 +243,27 @@ Resources:
                 ActionMode: CREATE_UPDATE
                 Capabilities: CAPABILITY_AUTO_EXPAND,CAPABILITY_NAMED_IAM
                 ParameterOverrides:
-                  !Sub '{"env": "${env}", "oai": "${oai}", "project": "${project}"}'
-                RoleArn: !Sub arn:aws:iam::${AWS::AccountId}:role/${project}-cloudform-${env}
+                  !Sub '{"env": "${env}", "oai": "${oai}", "project": "${project}", "lambdafunctionrole":"${lambdafunctionrole}"}'
+                RoleArn: !Sub ${cloudformationrole}
                 StackName: !Sub ${project}-lambda-${env}
                 TemplatePath: BuildArtifact::exodus-lambda-pkg.yaml
               InputArtifacts:
                 - Name: BuildArtifact
+        - Name: Test
+          Actions:
+            - Name: IntegrationTests
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: 1
+              Region: !Ref region
+              Configuration:
+                EnvironmentVariables:
+                  !Sub '[{"name": "STACK_NAME", "value": "${project}-lambda-${env}", "type": "PLAINTEXT"}]'
+                ProjectName: !Sub ${project}-integration-tests
+              InputArtifacts:
+                - Name: SourceArtifact
         # Create promote stage for stage pipeline
         - !If
           - IsStage
@@ -246,25 +278,22 @@ Resources:
                 Configuration:
                   CustomData: "Approval required for pipeline promotion"
                   NotificationArn: !Sub arn:aws:sns:${region}:${AWS::AccountId}:${project}-sns-${env}
-                RunOrder: 1
-              - Name: Upload
-                ActionTypeId:
-                  Category: Deploy
-                  Owner: AWS
-                  Provider: S3
-                  Version: 1
-                Region: !Ref region
-                Configuration:
-                  BucketName: !Sub ${project}-pipeline-artifacts
-                  ObjectKey: !Sub build-${env}
-                  Extract: false
-                InputArtifacts:
-                  - Name: BuildArtifact
-                RunOrder: 2
           - !Ref AWS::NoValue
-    DependsOn:
-      - CodePipelineRole
-      - CloudFormationRole
+        - Name: Upload
+          Actions:
+            - Name: Upload
+              ActionTypeId:
+                Category: Deploy
+                Owner: AWS
+                Provider: S3
+                Version: 1
+              Region: !Ref region
+              Configuration:
+                BucketName: !Sub ${project}-pipeline-artifacts
+                ObjectKey: !Sub build-${env}
+                Extract: false
+              InputArtifacts:
+                - Name: BuildArtifact
 
   CodePipelineEventRule:
     Type: AWS::Events::Rule
@@ -287,284 +316,45 @@ Resources:
             key:
               - build-stage
       Targets:
-        - Arn: !Sub arn:aws:codepipeline:${region}:${AWS::AccountId}:${CodePipeline}
-          RoleArn: !GetAtt CloudWatchEventRole.Arn
+        - Arn: !Sub arn:aws:codepipeline:${region}:${AWS::AccountId}:${project}-pipeline-prod
+          RoleArn: !Sub ${cloudwatcheventrole}
           Id: !Ref CodePipeline
-    DependsOn: CloudWatchEventRole
 
-  CodePipelineCloudTrail:
-    Type: AWS::CloudTrail::Trail
-    # Create trail for prod pipeline
-    Condition: CreateCloudTrail
+  RollbackEventRule:
+    Type: AWS::Events::Rule
+    # Create event rule for rollback
     Properties:
-      S3BucketName: !Sub ${project}-cloudtrail-logs
-      EventSelectors:
-        - DataResources:
-          - Type: AWS::S3::Object
-            Values:
-              - "arn:aws:s3:::"
-          ReadWriteType: WriteOnly
-          IncludeManagementEvents: false
-      IsLogging: true
-    DependsOn: CloudTrailBucketPolicy
+      EventPattern:
+        resources:
+          - !Sub arn:aws:codepipeline:${region}:${AWS::AccountId}:${project}-pipeline-${env}
+        source:
+          - aws.codepipeline
+        detail-type:
+          - CodePipeline Action Execution State Change
+        detail:
+          state:
+            - FAILED
+          stage:
+            - Test
+          action:
+            - IntegrationTests
+      Targets:
+        - Arn: !Sub arn:aws:codebuild:${region}:${AWS::AccountId}:project/${project}-rollback
+          RoleArn: !Sub ${cloudwatcheventrole}
+          Id: !Sub ${project}-rollback
+          Input: !Sub '{"environmentVariablesOverride": [
+            {"name": "PROJECT", "value": "${project}", "type": "PLAINTEXT"},
+            {"name": "OAI", "value": "${oai}", "type": "PLAINTEXT"},
+            {"name": "ENV_TYPE", "value": "${env}", "type": "PLAINTEXT"},
+            {"name": "LAMBDA_IAM_ROLE", "value": "${lambdafunctionrole}", "type": "PLAINTEXT"}]}'
+        - Arn: !Sub arn:aws:sns:${region}:${AWS::AccountId}:${project}-sns-${env}
+          Id: !Sub ${project}-notify-rollback-${env}
 
-  CodePipelineBucket:
-    Type: AWS::S3::Bucket
-    # Create artifact bucket for dev pipeline
-    Condition: IsDev
-    Properties:
-      BucketName: !Sub ${project}-pipeline-artifacts
-      PublicAccessBlockConfiguration:
-        BlockPublicAcls: true
-        BlockPublicPolicy: true
-        IgnorePublicAcls: true
-        RestrictPublicBuckets: true
-      VersioningConfiguration:
-        Status: Enabled
-
-  CodePipelineBucketPolicy:
-    Type: AWS::S3::BucketPolicy
-    # Create artifact bucket policy for dev pipeline
-    Condition: IsDev
-    Properties:
-      Bucket: !Sub ${project}-pipeline-artifacts
-      PolicyDocument:
-        Version: 2012-10-17
-        Statement:
-          - Effect: Allow
-            Action: "s3:*"
-            Principal:
-              Service:
-                - s3.amazonaws.com
-            Resource: !Sub arn:aws:s3:::${project}-pipeline-artifacts
-    DependsOn: CodePipelineBucket
-
-
-  CloudTrailBucket:
-    Type: AWS::S3::Bucket
-    # Create bucket for cloudtrail logs
-    Condition: CreateCloudTrail
-    Properties:
-      BucketName: !Sub ${project}-cloudtrail-logs
-      PublicAccessBlockConfiguration:
-        BlockPublicAcls: true
-        BlockPublicPolicy: true
-        IgnorePublicAcls: true
-        RestrictPublicBuckets: true
-      LifecycleConfiguration:
-        Rules:
-          - Status: "Enabled"
-            ExpirationInDays: 1
-
-  CloudTrailBucketPolicy:
-    Type: AWS::S3::BucketPolicy
-    #Create bucket policy for cloudtrail logs
-    Condition: CreateCloudTrail
-    Properties:
-      Bucket: !Sub ${project}-cloudtrail-logs
-      PolicyDocument:
-        Version: 2012-10-17
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service:
-                - cloudtrail.amazonaws.com
-            Action: s3:GetBucketAcl
-            Resource: !Sub arn:aws:s3:::${project}-cloudtrail-logs
-          - Effect: Allow
-            Principal:
-              Service:
-                - cloudtrail.amazonaws.com
-            Action: s3:PutObject
-            Resource: !Sub arn:aws:s3:::${project}-cloudtrail-logs/AWSLogs/${AWS::AccountId}/*
-            Condition:
-              StringEquals:
-                s3:x-amz-acl: bucket-owner-full-control
-    DependsOn: CloudTrailBucket
-
-  VerifySourceProject:
-    Type: AWS::CodeBuild::Project
-    # Create verify source project for stage pipeline
-    Condition: IsStage
-    Properties:
-      Name: !Sub ${project}-verify-source
-      ServiceRole: !Sub arn:aws:iam::${AWS::AccountId}:role/${project}-codebuild-${env}
-      Environment:
-        Type: LINUX_CONTAINER
-        ComputeType: BUILD_GENERAL1_SMALL
-        Image: aws/codebuild/amazonlinux2-x86_64-standard:2.0
-      Source:
-        Type: NO_SOURCE
-        BuildSpec: |
-          version: 0.2
-          phases:
-            build:
-              commands:
-                - aws s3 cp s3://$PROJECT-pipeline-artifacts/.whitelist.gpg .whitelist.gpg
-                - gpg --import .whitelist.gpg
-                - git clone https://github.com/$REPO_OWNER/$REPO_NAME.git -b $REPO_BRANCH
-                - cd ./$REPO_NAME
-                - git verify-tag $(git describe --exact-match $COMMIT_ID)
-                - aws s3 cp .whitelist.gpg s3://$PROJECT-pipeline-artifacts/.whitelist.gpg
-      Artifacts:
-        Type: NO_ARTIFACTS
-      TimeoutInMinutes: 10
-    DependsOn: CodeBuildRole
-
-  CodeBuildProject:
-    Type: AWS::CodeBuild::Project
-    # Create CodeBuild project for dev pipeline
-    Condition: IsDev
-    Properties:
-      Name: !Sub ${project}-codebuild
-      ServiceRole: !Sub arn:aws:iam::${AWS::AccountId}:role/${project}-codebuild-${env}
-      Environment:
-        Type: LINUX_CONTAINER
-        ComputeType: BUILD_GENERAL1_SMALL
-        Image: aws/codebuild/amazonlinux2-x86_64-standard:2.0
-      Source:
-        Type: CODEPIPELINE
-        BuildSpec: |
-          version: 0.2
-          phases:
-            build:
-              commands:
-                - ./scripts/build-package
-          artifacts:
-            files:
-              - ./package/exodus-lambda-pkg.yaml
-            discard-paths: yes
-      Artifacts:
-        Type: CODEPIPELINE
-      TimeoutInMinutes: 10
-    DependsOn: CodeBuildRole
-
-  # Create IAM roles for resources, used for all environments
-  CodeBuildRole:
-    Type: AWS::IAM::Role
-    Condition: NotProd
-    Properties:
-      RoleName: !Sub ${project}-codebuild-${env}
-      AssumeRolePolicyDocument:
-        Version: 2012-10-17
-        Statement:
-          - Effect: Allow
-            Action:
-              - sts:AssumeRole
-            Principal:
-              Service:
-                - codebuild.amazonaws.com
-      Policies:
-        - PolicyName: !Sub ${project}-codebuild-policy-${env}
-          PolicyDocument:
-            Version: 2012-10-17
-            Statement:
-              - Effect: Allow
-                Action:
-                  - s3:*
-                  - codebuild:*
-                  - logs:CreateLogGroup
-                  - logs:CreateLogStream
-                  - logs:PutLogEvents
-                Resource: "*"
-      Path: /
-
-  CloudFormationRole:
-    Type: AWS::IAM::Role
-    Properties:
-      RoleName: !Sub ${project}-cloudform-${env}
-      AssumeRolePolicyDocument:
-        Version: 2012-10-17
-        Statement:
-          - Effect: Allow
-            Action:
-              - sts:AssumeRole
-            Principal:
-              Service:
-                - cloudformation.amazonaws.com
-      Policies:
-        - PolicyName: !Sub ${project}-cloudform-policy-${env}
-          PolicyDocument:
-            Version: 2012-10-17
-            Statement:
-              - Effect: Allow
-                Action:
-                  - iam:*
-                  - lambda:*
-                  - s3:*
-                  - cloudfront:*
-                  - cloudwatch:*
-                  - cloudformation:*
-                Resource:
-                  - "*"
-      Path: /
-
-  CodePipelineRole:
-    Type: AWS::IAM::Role
-    Properties:
-      RoleName: !Sub ${project}-codepipe-${env}
-      AssumeRolePolicyDocument:
-        Version: 2012-10-17
-        Statement:
-          - Effect: Allow
-            Action:
-              - sts:AssumeRole
-            Principal:
-              Service:
-                - codepipeline.amazonaws.com
-      Policies:
-        - PolicyName: !Sub ${project}-codepipe-policy-${env}
-          PolicyDocument:
-            Version: 2012-10-17
-            Statement:
-              - Effect: Allow
-                Action:
-                  - iam:PassRole
-                  - sns:*
-                  - lambda:ListFunctions
-                  - lambda:InvokeFunction
-                  - s3:*
-                  - cloudwatch:*
-                  - cloudformation:*
-                  - codebuild:StartBuild
-                  - codebuild:BatchGetBuilds
-                Resource: "*"
-      Path: /
-
-  CloudWatchEventRole:
-    Type: AWS::IAM::Role
-    Condition: IsProd
-    Properties:
-      RoleName: !Sub ${project}-cloudwatch-${env}
-      AssumeRolePolicyDocument:
-        Version: 2012-10-17
-        Statement:
-          - Effect: Allow
-            Action:
-              - sts:AssumeRole
-            Principal:
-              Service:
-                - events.amazonaws.com
-      Policies:
-        - PolicyName: !Sub ${project}-cloudwatch-policy-${env}
-          PolicyDocument:
-            Version: 2012-10-17
-            Statement:
-              - Effect: Allow
-                Action: codepipeline:StartPipelineExecution
-                Resource: !Sub arn:aws:codepipeline:${region}:${AWS::AccountId}:${CodePipeline}
-    DependsOn: CodePipeline
 
 Outputs:
   CodePipeline:
     Description: exodus pipeline name
     Value: !Ref CodePipeline
-  CodePipelineBucket:
-    Description: exodus pipeline artifact bucket ARN
-    Value: !Sub arn:aws:s3:::${project}-pipeline-artifacts
-  CodeBuildProject:
-    Description: exodus CodeBuild project ARN
-    Value: !Sub arn:aws:codebuild:${region}:${AWS::AccountId}:project/${project}-codebuild-${env}
   SNSTopic:
     Description: exodus SNS topic ARN
     Value: !Ref SNSTopic

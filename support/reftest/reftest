@@ -196,8 +196,8 @@ def prepare(db, s3, config, opt):
             url, opt.key, opt.cert, opt.cacert
         )
 
-        # checksum verify
-        if cdn_data_checksum != item["sha256"]:
+        # For unstable content which did not provide sha256, it will skip the checksum verify
+        if item.get("sha256") and cdn_data_checksum != item["sha256"]:
             print(
                 "{} verify checksum failed, cdn_data_checksum is {}, but test_data_checksum is {}".format(
                     item["path"], cdn_data_checksum, item["sha256"]
@@ -207,9 +207,9 @@ def prepare(db, s3, config, opt):
 
         # push test data to s3 and dynamodb
         s3.upload_from_localfile(
-            temp_file.name, item["sha256"], item["content-type"]
+            temp_file.name, cdn_data_checksum, item["content-type"]
         )
-        db.put_item(item["path"], item["sha256"], opt.release_date)
+        db.put_item(item["path"], cdn_data_checksum, opt.release_date)
 
         # delete the NamedTemporaryFile
         temp_file.close()

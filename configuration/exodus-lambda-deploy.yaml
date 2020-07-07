@@ -12,15 +12,18 @@ Parameters:
       - stage
       - prod
     Default: dev
-    Description: The environment in which to deploy functions
+    Description: The environment for which resources are intended
   oai:
     Type: String
-    MinLength: 10
     Description: The origin access identity ID associated with the environment
   project:
     Type: String
     Default: exodus
-    Description: The project associated with the pipeline
+    Description: The project name under which resources are created
+  lambdafunctionrole:
+    Type: String
+    Default: None
+    Description: The IAM Role ARN for Lambda Function resource
 
 Resources:
   Distribution:
@@ -39,6 +42,8 @@ Resources:
             QueryString: false
             Cookies:
               Forward: none
+            Headers:
+              - Want-Digest
           LambdaFunctionAssociations:
             - EventType: origin-request
               LambdaFunctionARN: !Ref OriginRequestFunc.Version
@@ -60,7 +65,7 @@ Resources:
       FunctionName: !Sub ${project}-origin-request-${env}
       CodeUri:
       Handler: exodus_lambda.origin_request
-      Role: !GetAtt FuncRole.Arn
+      Role: !Sub ${lambdafunctionrole}
       Runtime: python3.7
       Timeout: 5
       AutoPublishAlias: live
@@ -71,64 +76,10 @@ Resources:
       FunctionName: !Sub ${project}-origin-response-${env}
       CodeUri:
       Handler: exodus_lambda.origin_response
-      Role: !GetAtt FuncRole.Arn
+      Role: !Sub ${lambdafunctionrole}
       Runtime: python3.7
       Timeout: 5
       AutoPublishAlias: live
-
-  FuncRole:
-    Type: AWS::IAM::Role
-    Properties:
-      RoleName: !Sub ${project}-lambda-${env}
-      AssumeRolePolicyDocument:
-        Version: 2012-10-17
-        Statement:
-          - Effect: Allow
-            Action:
-              - sts:AssumeRole
-            Principal:
-              Service:
-                - lambda.amazonaws.com
-                - edgelambda.amazonaws.com
-      ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/AWSLambdaFullAccess
-        - arn:aws:iam::aws:policy/CloudFrontFullAccess
-        - arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess
-        - arn:aws:iam::aws:policy/AWSCodePipelineFullAccess
-        - arn:aws:iam::aws:policy/AWSLambdaInvocation-DynamoDB
-      Path: /
-
-  OriginRequestAlarm:
-    Type: AWS::CloudWatch::Alarm
-    Properties:
-      AlarmName: !Sub ${project}-origin-request-alarm-${env}
-      AlarmDescription: !Sub ${project}-origin-request-${env} invocation errors
-      Namespace: AWS/Lambda
-      MetricName: Errors
-      Dimensions:
-        - Name: FunctionName
-          Value: !Ref OriginRequestFunc
-      Statistic: Sum
-      Period: 180
-      EvaluationPeriods: 1
-      ComparisonOperator: GreaterThanOrEqualToThreshold
-      Threshold: 3
-
-  OriginResponseAlarm:
-    Type: AWS::CloudWatch::Alarm
-    Properties:
-      AlarmName: !Sub ${project}-origin-response-alarm-${env}
-      AlarmDescription: !Sub ${project}-origin-response-${env} invocation errors
-      Namespace: AWS/Lambda
-      MetricName: Errors
-      Dimensions:
-        - Name: FunctionName
-          Value: !Ref OriginResponseFunc
-      Statistic: Sum
-      Period: 180
-      EvaluationPeriods: 1
-      ComparisonOperator: GreaterThanOrEqualToThreshold
-      Threshold: 3
 
 Outputs:
   Distribution:
@@ -142,11 +93,3 @@ Outputs:
   OriginResponseFunc:
     Description: origin-response function ARN with version
     Value: !Ref OriginResponseFunc.Version
-
-  OriginRequestAlarm:
-    Description: origin-request function alarm ARN
-    Value: !GetAtt OriginRequestAlarm.Arn
-
-  OriginResponseAlarm:
-    Description: origin-response function alarm ARN
-    Value: !GetAtt OriginResponseAlarm.Arn

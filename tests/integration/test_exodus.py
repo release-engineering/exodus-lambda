@@ -5,7 +5,7 @@ import pytest
 def test_exodus_basic(cdn_test_url):
     url = (
         cdn_test_url
-        + "/content/beta/rhel8/8/x86_64/exodus_test/os/bash-4.4.19-7.el8.x86_64.rpm"
+        + "/content/aus/rhel/server/6/6.5/x86_64/os/Packages/c/cpio-2.10-12.el6_5.x86_64.rpm"
     )
 
     r = requests.get(url)
@@ -16,7 +16,7 @@ def test_exodus_basic(cdn_test_url):
 def test_header_not_exist_file(cdn_test_url):
     url = (
         cdn_test_url
-        + "/content/beta/rhel8/8/x86_64/exodus_test/os/bash-4.4.19-7.el8.x86_64.rpm_no"
+        + "/content/aus/rhel/server/6/6.5/x86_64/os/Packages/c/cpio-2.10-12.el6_5.x86_64.rpm_not_exist"
     )
     r = requests.get(url)
     assert r.status_code == 404
@@ -26,9 +26,11 @@ def test_header_not_exist_file(cdn_test_url):
 # Test data for exodus-lambda
 # serving repo entry points with appropriate cache headers
 testdata_cache_control_path = [
-    "/content/beta/rhel8/8/x86_64/exodus_test/os/listing",
-    "/content/beta/rhel8/8/x86_64/exodus_test_ctype/os/repodata/repomd.xml",
-    "/content/beta/rhel8/8/x86_64/exodus_test/os/ostree/repo/refs/heads/sub_dir/testing",
+    "/content/dist/rhel/server/5/listing",
+    "/content/dist/rhel/server/5/5.6/listing",
+    "/content/dist/rhel/server/5/5.7/listing",
+    "/content/dist/rhel/server/7/7.2/x86_64/rhev-mgmt-agent/3/os/repodata/repomd.xml",
+    "/content/dist/rhel/atomic/7/7Server/x86_64/ostree/repo/refs/heads/rhel-atomic-host/7/x86_64/standard",
 ]
 
 
@@ -42,32 +44,32 @@ def test_header_cache_control(cdn_test_url, testdata_path):
 
 def test_header_want_digest_GET(cdn_test_url):
     headers = {"want-digest": "id-sha-256"}
-    url = cdn_test_url + "/content/beta/rhel8/8/x86_64/exodus_test/os/listing"
+    url = cdn_test_url + "/content/dist/rhel/server/5/5.7/listing"
     r = requests.get(url, headers=headers)
     assert r.status_code == 200
     assert (
         r.headers["digest"]
-        == "id-sha-256=jbuWD7I1f2C3IcJT6acQqIz1kI/pffRTD3krSieXQQc="
+        == "id-sha-256=tR9N3Ab93snnOJJnHx8lMAzNQjX6eYr9Acr5ZEbcK/E="
     )
 
 
 def test_header_want_digest_HEAD(cdn_test_url):
     headers = {"want-digest": "id-sha-256"}
-    url = cdn_test_url + "/content/beta/rhel8/8/x86_64/exodus_test/os/listing"
+    url = cdn_test_url + "/content/dist/rhel/server/5/5.7/listing"
     r = requests.head(url, headers=headers)
     assert r.status_code == 200
     assert (
         r.headers["digest"]
-        == "id-sha-256=jbuWD7I1f2C3IcJT6acQqIz1kI/pffRTD3krSieXQQc="
+        == "id-sha-256=tR9N3Ab93snnOJJnHx8lMAzNQjX6eYr9Acr5ZEbcK/E="
     )
 
 
 # Test data for exodus-lambda
 # serving yum repodata with correct Content-Type
 testdata_content_type_path = [
-    "/content/beta/rhel8/8/x86_64/exodus_test_ctype_2/os/repodata/acc399cea3af512ef5f773604f0ca7c129c6a973c6364786954ec49e88f3582f-filelists.sqlite.bz2",
-    "/content/beta/rhel8/8/x86_64/exodus_test_ctype_2/os/repodata/47e27d9fff2396c32b4a6c1462282fdb5c8330a14c8ae647e39242cf5c5281ce-primary.xml.gz",
-    "/origin/files/sha256/5c/5c50cbb468bf0bde6587019e5ba51346506793a65e914d06c6f98b4c9c0a1598/repomd.xml",
+    "/content/dist/rhel/server/7/7.4/x86_64/os/repodata/fd23895d43f54a50bbd0509809dd5f45298bfd6b-other.sqlite.bz2",
+    "/content/dist/rhel/server/7/7.4/x86_64/os/repodata/cb753af26534673064bd593500d747d7288d75b2-filelists.xml.gz",
+    "/content/dist/rhel/server/7/7.2/x86_64/rhev-mgmt-agent/3/os/repodata/repomd.xml",
 ]
 
 
@@ -96,3 +98,60 @@ def test_content_type_header_HEAD(cdn_test_url, testdata_path):
     r = requests.head(url)
     assert r.status_code == 200
     assert_content_type(url, r.headers["content-type"])
+
+
+testdata_origin_alias_path = [
+    "/origin/rpms/bash/4.4.19/8.el8_0/fd431d51/bash-4.4.19-8.el8_0.x86_64.rpm",
+    "/origin/rpm/bash/4.4.19/8.el8_0/fd431d51/bash-4.4.19-8.el8_0.x86_64.rpm",
+    "/content/origin/rpms/bash/4.4.19/8.el8_0/fd431d51/bash-4.4.19-8.el8_0.x86_64.rpm",
+    "/content/origin/rpm/bash/4.4.19/8.el8_0/fd431d51/bash-4.4.19-8.el8_0.x86_64.rpm",
+]
+
+
+# use Want-Digest/Digest to check if alias take effect
+@pytest.mark.parametrize("testdata_path", testdata_origin_alias_path)
+def test_origin_path_alias(cdn_test_url, testdata_path):
+    headers = {"want-digest": "id-sha-256"}
+    url = cdn_test_url + testdata_path
+    r = requests.head(url, headers=headers)
+    assert r.status_code == 200
+    assert (
+        r.headers["digest"]
+        == "id-sha-256=QWT/LAEW1mZXi6XkVqsDuIeI37QvuT/JGywdpwnYZoY="
+    )
+
+
+testdata_rhui_alias_path_aus = [
+    "/content/aus/rhel/server/6/6.5/x86_64/os/Packages/c/cpio-2.10-12.el6_5.x86_64.rpm",
+    "/content/aus/rhel/rhui/server/6/6.5/x86_64/os/Packages/c/cpio-2.10-12.el6_5.x86_64.rpm",
+]
+
+
+@pytest.mark.parametrize("testdata_path", testdata_rhui_alias_path_aus)
+def test_rhui_path_alias_aus(cdn_test_url, testdata_path):
+    headers = {"want-digest": "id-sha-256"}
+    url = cdn_test_url + testdata_path
+    r = requests.head(url, headers=headers)
+    assert r.status_code == 200
+    assert (
+        r.headers["digest"]
+        == "id-sha-256=BjFlOLkNOqsg9HhxMjB/bTMNqaSLqxGhPgphb89iLOU="
+    )
+
+
+testdata_rhui_alias_path_rhel8 = [
+    "/content/dist/rhel8/8.1/x86_64/baseos/os/Packages/i/iptables-1.8.2-16.el8.x86_64.rpm",
+    "/content/dist/rhel8/rhui/8.1/x86_64/baseos/os/Packages/i/iptables-1.8.2-16.el8.x86_64.rpm",
+]
+
+
+@pytest.mark.parametrize("testdata_path", testdata_rhui_alias_path_rhel8)
+def test_rhui_path_alias_rhel8(cdn_test_url, testdata_path):
+    headers = {"want-digest": "id-sha-256"}
+    url = cdn_test_url + testdata_path
+    r = requests.head(url, headers=headers)
+    assert r.status_code == 200
+    assert (
+        r.headers["digest"]
+        == "id-sha-256=WA2MMEwPzpikfPAoOEnl6ffo9ce9p2aSEkl2UEaUfkA="
+    )
