@@ -1,9 +1,10 @@
 import json
 import logging
+import urllib.parse
 
-import mock
 import pytest
 
+import mock
 from exodus_lambda.functions.origin_request import OriginRequest
 from test_utils.utils import generate_test_config
 
@@ -14,35 +15,42 @@ TEST_CONF = generate_test_config(CONF_PATH)
 
 
 @pytest.mark.parametrize(
-    "req_uri, real_uri",
+    "req_uri, real_uri, content_type",
     [
         (
             "/origin/rpm/repo/ver/dir/filename.ext",
             "/origin/rpms/repo/ver/dir/filename.ext",
+            "text/plain",
         ),
         (
             "/content/origin/repo/ver/dir/filename.ext",
             "/origin/repo/ver/dir/filename.ext",
+            "text/plain",
         ),
         (
             "/content/origin/rpm/repo/ver/dir/filename.ext",
             "/origin/rpms/repo/ver/dir/filename.ext",
+            "text/plain",
         ),
         (
             "/content/dist/rhel/rhui/some/repo/somefile.ext",
             "/content/dist/rhel/some/repo/somefile.ext",
+            "text/plain",
         ),
         (
             "/content/dist/rhel/rhui/some/listing",
             "/content/dist/rhel/rhui/some/listing",
+            "text/plain",
         ),
         (
             "/content/origin/repo/ver/origin/rpm/filename.ext",
             "/origin/repo/ver/origin/rpm/filename.ext",
+            "text/plain",
         ),
         (
             "/origin/rpms/repo/ver/dir/filename.ext",
             "/origin/rpms/repo/ver/dir/filename.ext",
+            "text/plain",
         ),
     ],
     ids=[
@@ -58,7 +66,12 @@ TEST_CONF = generate_test_config(CONF_PATH)
 @mock.patch("boto3.client")
 @mock.patch("exodus_lambda.functions.origin_request.datetime")
 def test_origin_request(
-    mocked_datetime, mocked_boto3_client, req_uri, real_uri, caplog
+    mocked_datetime,
+    mocked_boto3_client,
+    req_uri,
+    real_uri,
+    content_type,
+    caplog,
 ):
     mocked_datetime.now().isoformat.return_value = MOCKED_DT
     mocked_boto3_client().query.return_value = {
@@ -67,6 +80,7 @@ def test_origin_request(
                 "web_uri": {"S": real_uri},
                 "from_date": {"S": "2020-02-17T00:00:00.000+00:00"},
                 "object_key": {"S": "e4a3f2sum"},
+                "content_type": {"S": content_type},
             }
         ]
     }
@@ -81,7 +95,9 @@ def test_origin_request(
     assert "Item found for '%s'" % real_uri in caplog.text
 
     assert request == {
-        "uri": "/e4a3f2sum",
+        "uri": "/e4a3f2sum?{}".format(
+            urllib.parse.urlencode({"ResponseContentType": content_type})
+        ),
         "headers": {
             "exodus-original-uri": [
                 {"key": "exodus-original-uri", "value": req_uri}

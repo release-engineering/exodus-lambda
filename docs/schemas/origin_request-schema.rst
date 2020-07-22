@@ -39,3 +39,5 @@ Attributes
 ^^^^^^^^^^
 - object_key
     The key of the file object stored in the origin S3 bucket.
+- content_type
+    The file content type

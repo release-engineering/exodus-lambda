@@ -1,8 +1,8 @@
 import json
+import urllib.parse
 from datetime import datetime, timezone
 
 import boto3
-
 from cdn_definitions import origin_aliases, rhui_aliases
 
 from .base import LambdaBase
@@ -101,6 +101,12 @@ class OriginRequest(LambdaBase):
                 request["uri"] = (
                     "/" + query_result["Items"][0]["object_key"]["S"]
                 )
+                content_type = query_result["Items"][0]["content_type"]["S"]
+                if content_type:
+                    query = urllib.parse.urlencode(
+                        {"ResponseContentType": content_type}
+                    )
+                    request["uri"] += "?" + query
 
                 return request
             except Exception as err:
