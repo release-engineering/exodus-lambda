@@ -26,12 +26,6 @@ test_data:
   sha256: 4164ff2c0116d666578ba5e456ab03b88788dfb42fb93fc91b2c1da709d86686
   content-type: audio/x-pn-realaudio-plugin
 # listing
-- path: /content/dist/rhel/server/5/listing
-  sha256: 6e0230c69d88400d6064a4fce264aebb6918da0f12c86790c2bfc6edd3851907
-  content-type: text/plain
-- path: /content/dist/rhel/server/5/5.6/listing
-  sha256: b51f4ddc06fddec9e73892671f1f25300ccd4235fa798afd01caf96446dc2bf1
-  content-type: text/plain
 - path: /content/dist/rhel/server/5/5.7/listing
   sha256: b51f4ddc06fddec9e73892671f1f25300ccd4235fa798afd01caf96446dc2bf1
   content-type: text/plain
