@@ -26,8 +26,6 @@ def test_header_not_exist_file(cdn_test_url):
 # Test data for exodus-lambda
 # serving repo entry points with appropriate cache headers
 testdata_cache_control_path = [
-    "/content/dist/rhel/server/5/listing",
-    "/content/dist/rhel/server/5/5.6/listing",
     "/content/dist/rhel/server/5/5.7/listing",
     "/content/dist/rhel/server/7/7.2/x86_64/rhev-mgmt-agent/3/os/repodata/repomd.xml",
     "/content/dist/rhel/atomic/7/7Server/x86_64/ostree/repo/refs/heads/rhel-atomic-host/7/x86_64/standard",
