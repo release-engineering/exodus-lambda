@@ -103,7 +103,7 @@ origin_response
     For more information about this function's behavior, see
     :ref:`function_ref`.
 
-exodus-gw
+`exodus-gw`_
     A microservice dedicated to writing data onto the CDN, this component
     exposes an HTTP API for use by publishing tools, and enforces certain
     policies on published content.
@@ -143,3 +143,5 @@ publishing tools (exodus)
 .. _Amazon S3: https://aws.amazon.com/s3/
 
 .. _Lambda@Edge: https://aws.amazon.com/lambda/edge/
+
+.. _exodus-gw: https://release-engineering.github.io/exodus-gw/
