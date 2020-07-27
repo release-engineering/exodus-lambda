@@ -58,33 +58,38 @@ digraph {
         label=<
 
             <table border='1' cellborder='1' cellspacing='0'>
-                <tr><td colspan='3'><font point-size="14"><b>☁ DynamoDB</b></font></td></tr>
+                <tr><td colspan='4'><font point-size="14"><b>☁ DynamoDB</b></font></td></tr>
                 <tr>
                     <td><b>web_uri (partition key)</b></td>
                     <td><b>from_date (sort key)</b></td>
                     <td><b>object_key</b></td>
+                    <td><b>content_type</b></td>
                 </tr>
                 <tr>
                     <td>/content/dist/rhel/server/7/7Server/x86_64/os/Packages/t/tar-1.26-34.el7.x86_64.rpm</td>
                     <td>2020-03-26T01:07:39+00:00</td>
                     <td>8e7750e50734f...</td>
+                    <td>audio/x-pn-realaudio-plugin</td>
                 </tr>
                 <tr>
                     <td>/content/dist/rhel/server/7/7Server/x86_64/os/Packages/z/zlib-1.2.7-18.el7.x86_64.rpm</td>
                     <td>2020-03-26T01:07:39+00:00</td>
                     <td>db8dd5164d117...</td>
+                    <td>audio/x-pn-realaudio-plugin</td>
                 </tr>
                 <tr>
                     <td>/content/dist/rhel/server/7/7Server/x86_64/os/repodata/repomd.xml</td>
                     <td>2020-03-26T01:07:39+00:00</td>
                     <td>aec070645fe53...</td>
+                    <td>application/xml</td>
                 </tr>
                 <tr>
                     <td>/content/dist/rhel/server/7/7Server/x86_64/os/repodata/repomd.xml</td>
                     <td>2020-01-22T02:07:20+00:00</td>
                     <td>5d70f436aa013...</td>
+                    <td>application/xml</td>
                 </tr>
-                <tr><td colspan='3'>...</td></tr>
+                <tr><td colspan='4'>...</td></tr>
             </table>
         >
     ];
@@ -95,38 +100,32 @@ digraph {
         label=<
 
                 <table border='1' cellborder='1' cellspacing='0'>
-                    <tr><td colspan='3'><font point-size="14"><b>☁ S3</b></font></td></tr>
+                    <tr><td colspan='2'><font point-size="14"><b>☁ S3</b></font></td></tr>
                     <tr>
                         <td><b>key</b></td>
                         <td><b>object</b></td>
-                        <td><b>metadata</b></td>
                     </tr>
                     <tr>
                         <td>8e7750e50734f...</td>
                         <td><i>[blob tar-1.26-34.el7.x86_64.rpm]</i></td>
-                        <td>-</td>
                     </tr>
                     <tr>
                         <td>db8dd5164d117...</td>
                         <td><i>[blob zlib-1.2.7-18.el7.x86_64.rpm]</i></td>
-                        <td>-</td>
                     </tr>
                     <tr>
                         <td>aec070645fe5...</td>
                         <td><i>[blob some repomd.xml]</i></td>
-                        <td>{ContentType: application/xml}</td>
                     </tr>
                     <tr>
                         <td>5d70f436aa01...</td>
                         <td><i>[blob other repomd.xml]</i></td>
-                        <td>{ContentType: application/xml}</td>
                     </tr>
                     <tr>
                         <td>49ae93732fcf...</td>
                         <td><i>[blob some primary.sqlite.bz2]</i></td>
-                        <td>{ContentType: application/x-bzip2}</td>
                     </tr>
-                    <tr><td colspan='3'>...</td></tr>
+                    <tr><td colspan='2'>...</td></tr>
                 </table>
         >
     ];
