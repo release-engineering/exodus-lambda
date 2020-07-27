@@ -40,7 +40,7 @@
 <h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
 <p>This diagram shows the relationship between all major components used
 in the delivery of content via the CDN.</p>
-<div class="graphviz"><img src="_images/graphviz-ea426f000222dd0417976c00150b473f02b6331e.png" alt="digraph {
+<div class="graphviz"><img src="_images/graphviz-28811ee1179f8ab639e17926b43acfb4a0023a8f.png" alt="digraph {
     ranksep=&quot;1.4&quot;;
 
     # These are arranged and labelled to communicate the
@@ -100,33 +100,38 @@ in the delivery of content via the CDN.</p>
         label=&lt;
 
             &lt;table border='1' cellborder='1' cellspacing='0'&gt;
-                &lt;tr&gt;&lt;td colspan='3'&gt;&lt;font point-size=&quot;14&quot;&gt;&lt;b&gt;☁ DynamoDB&lt;/b&gt;&lt;/font&gt;&lt;/td&gt;&lt;/tr&gt;
+                &lt;tr&gt;&lt;td colspan='4'&gt;&lt;font point-size=&quot;14&quot;&gt;&lt;b&gt;☁ DynamoDB&lt;/b&gt;&lt;/font&gt;&lt;/td&gt;&lt;/tr&gt;
                 &lt;tr&gt;
                     &lt;td&gt;&lt;b&gt;web_uri (partition key)&lt;/b&gt;&lt;/td&gt;
                     &lt;td&gt;&lt;b&gt;from_date (sort key)&lt;/b&gt;&lt;/td&gt;
                     &lt;td&gt;&lt;b&gt;object_key&lt;/b&gt;&lt;/td&gt;
+                    &lt;td&gt;&lt;b&gt;content_type&lt;/b&gt;&lt;/td&gt;
                 &lt;/tr&gt;
                 &lt;tr&gt;
                     &lt;td&gt;/content/dist/rhel/server/7/7Server/x86_64/os/Packages/t/tar-1.26-34.el7.x86_64.rpm&lt;/td&gt;
                     &lt;td&gt;2020-03-26T01:07:39+00:00&lt;/td&gt;
                     &lt;td&gt;8e7750e50734f...&lt;/td&gt;
+                    &lt;td&gt;audio/x-pn-realaudio-plugin&lt;/td&gt;
                 &lt;/tr&gt;
                 &lt;tr&gt;
                     &lt;td&gt;/content/dist/rhel/server/7/7Server/x86_64/os/Packages/z/zlib-1.2.7-18.el7.x86_64.rpm&lt;/td&gt;
                     &lt;td&gt;2020-03-26T01:07:39+00:00&lt;/td&gt;
                     &lt;td&gt;db8dd5164d117...&lt;/td&gt;
+                    &lt;td&gt;audio/x-pn-realaudio-plugin&lt;/td&gt;
                 &lt;/tr&gt;
                 &lt;tr&gt;
                     &lt;td&gt;/content/dist/rhel/server/7/7Server/x86_64/os/repodata/repomd.xml&lt;/td&gt;
                     &lt;td&gt;2020-03-26T01:07:39+00:00&lt;/td&gt;
                     &lt;td&gt;aec070645fe53...&lt;/td&gt;
+                    &lt;td&gt;application/xml&lt;/td&gt;
                 &lt;/tr&gt;
                 &lt;tr&gt;
                     &lt;td&gt;/content/dist/rhel/server/7/7Server/x86_64/os/repodata/repomd.xml&lt;/td&gt;
                     &lt;td&gt;2020-01-22T02:07:20+00:00&lt;/td&gt;
                     &lt;td&gt;5d70f436aa013...&lt;/td&gt;
+                    &lt;td&gt;application/xml&lt;/td&gt;
                 &lt;/tr&gt;
-                &lt;tr&gt;&lt;td colspan='3'&gt;...&lt;/td&gt;&lt;/tr&gt;
+                &lt;tr&gt;&lt;td colspan='4'&gt;...&lt;/td&gt;&lt;/tr&gt;
             &lt;/table&gt;
         &gt;
     ];
@@ -137,38 +142,32 @@ in the delivery of content via the CDN.</p>
         label=&lt;
 
                 &lt;table border='1' cellborder='1' cellspacing='0'&gt;
-                    &lt;tr&gt;&lt;td colspan='3'&gt;&lt;font point-size=&quot;14&quot;&gt;&lt;b&gt;☁ S3&lt;/b&gt;&lt;/font&gt;&lt;/td&gt;&lt;/tr&gt;
+                    &lt;tr&gt;&lt;td colspan='2'&gt;&lt;font point-size=&quot;14&quot;&gt;&lt;b&gt;☁ S3&lt;/b&gt;&lt;/font&gt;&lt;/td&gt;&lt;/tr&gt;
                     &lt;tr&gt;
                         &lt;td&gt;&lt;b&gt;key&lt;/b&gt;&lt;/td&gt;
                         &lt;td&gt;&lt;b&gt;object&lt;/b&gt;&lt;/td&gt;
-                        &lt;td&gt;&lt;b&gt;metadata&lt;/b&gt;&lt;/td&gt;
                     &lt;/tr&gt;
                     &lt;tr&gt;
                         &lt;td&gt;8e7750e50734f...&lt;/td&gt;
                         &lt;td&gt;&lt;i&gt;[blob tar-1.26-34.el7.x86_64.rpm]&lt;/i&gt;&lt;/td&gt;
-                        &lt;td&gt;-&lt;/td&gt;
                     &lt;/tr&gt;
                     &lt;tr&gt;
                         &lt;td&gt;db8dd5164d117...&lt;/td&gt;
                         &lt;td&gt;&lt;i&gt;[blob zlib-1.2.7-18.el7.x86_64.rpm]&lt;/i&gt;&lt;/td&gt;
-                        &lt;td&gt;-&lt;/td&gt;
                     &lt;/tr&gt;
                     &lt;tr&gt;
                         &lt;td&gt;aec070645fe5...&lt;/td&gt;
                         &lt;td&gt;&lt;i&gt;[blob some repomd.xml]&lt;/i&gt;&lt;/td&gt;
-                        &lt;td&gt;{ContentType: application/xml}&lt;/td&gt;
                     &lt;/tr&gt;
                     &lt;tr&gt;
                         &lt;td&gt;5d70f436aa01...&lt;/td&gt;
                         &lt;td&gt;&lt;i&gt;[blob other repomd.xml]&lt;/i&gt;&lt;/td&gt;
-                        &lt;td&gt;{ContentType: application/xml}&lt;/td&gt;
                     &lt;/tr&gt;
                     &lt;tr&gt;
                         &lt;td&gt;49ae93732fcf...&lt;/td&gt;
                         &lt;td&gt;&lt;i&gt;[blob some primary.sqlite.bz2]&lt;/i&gt;&lt;/td&gt;
-                        &lt;td&gt;{ContentType: application/x-bzip2}&lt;/td&gt;
                     &lt;/tr&gt;
-                    &lt;tr&gt;&lt;td colspan='3'&gt;...&lt;/td&gt;&lt;/tr&gt;
+                    &lt;tr&gt;&lt;td colspan='2'&gt;...&lt;/td&gt;&lt;/tr&gt;
                 &lt;/table&gt;
         &gt;
     ];
