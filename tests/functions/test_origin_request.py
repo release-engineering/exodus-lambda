@@ -1,6 +1,5 @@
 import json
 import logging
-import urllib.parse
 
 import pytest
 
@@ -95,9 +94,8 @@ def test_origin_request(
     assert "Item found for '%s'" % real_uri in caplog.text
 
     assert request == {
-        "uri": "/e4a3f2sum?{}".format(
-            urllib.parse.urlencode({"ResponseContentType": content_type})
-        ),
+        "uri": "/e4a3f2sum",
+        "querystring": "response-content-type={}".format(content_type),
         "headers": {
             "exodus-original-uri": [
                 {"key": "exodus-original-uri", "value": req_uri}

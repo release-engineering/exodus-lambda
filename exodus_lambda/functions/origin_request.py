@@ -1,5 +1,4 @@
 import json
-import urllib.parse
 from datetime import datetime, timezone
 
 import boto3
@@ -67,6 +66,14 @@ class OriginRequest(LambdaBase):
         request = event["Records"][0]["cf"]["request"]
         uri = self.resolve_aliases(request["uri"])
 
+        self.logger.info(
+            "The request value for origin_request begining is '%s'",
+            json.dumps(request, indent=4, sort_keys=True),
+        )
+        self.logger.info(
+            "The uri value for origin_request begining is '%s'", uri
+        )
+
         table = self.conf["table"]["name"]
 
         self.logger.info("Querying '%s' table for '%s'...", table, uri)
@@ -103,11 +110,14 @@ class OriginRequest(LambdaBase):
                 )
                 content_type = query_result["Items"][0]["content_type"]["S"]
                 if content_type:
-                    query = urllib.parse.urlencode(
-                        {"ResponseContentType": content_type}
-                    )
-                    request["uri"] += "?" + query
+                    request[
+                        "querystring"
+                    ] = "response-content-type={0}".format(content_type)
 
+                self.logger.info(
+                    "The request value for origin_request end is '%s'",
+                    json.dumps(request, indent=4, sort_keys=True),
+                )
                 return request
             except Exception as err:
                 self.logger.exception(

@@ -96,3 +96,4 @@ disable=print-statement,
         # we use black code style and don't need additional checks
         bad-continuation,
         line-too-long,
+        invalid-name,
