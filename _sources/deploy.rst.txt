@@ -21,7 +21,7 @@ pairs, exodus-storage.yaml, run by the `AWS CLI`_ command
         The project name under which the resources are created.
         Default: exodus
     - oai:
-        The origin access identity ID associated with the environment.
+        An `AWS CloudFront`_ origin access identity.
 
 **Note**: The AWS region in which these resources are created is defined by
 local configuration or environment variables. See: `AWS Config`_.
@@ -55,8 +55,7 @@ exodus-pipeline.yaml, run by the `AWS CLI`_ command
         Available values: dev, stage, prod
         Default: dev
     - oai:
-        The origin access identity ID associated with the environment,
-        created alongside the environment's bucket-table pair.
+        An `AWS CloudFront`_ origin access identity.
     - repoOwner:
         The parent of the targeted repository.
         Default: release-engineering
@@ -126,8 +125,7 @@ deployment, exodus-lambda-deploy.yaml, can be run by the `AWS CLI`_ command
         Available values: dev, stage, prod
         Default: dev
     - oai
-        The origin access identity ID associated with the environment,
-        created alongside the environment's bucket-table pair.
+        An `AWS CloudFront`_ origin access identity.
     - project:
         The project name under which resources are created.
         Default: exodus
@@ -155,6 +153,8 @@ deployment, exodus-lambda-deploy.yaml, can be run by the `AWS CLI`_ command
 .. _AWS CloudFormation: https://aws.amazon.com/cloudformation/
 
 .. _AWS CLI: https://aws.amazon.com/cli/
+
+.. _AWS CloudFront: https://aws.amazon.com/cloudfront/
 
 .. _AWS Config: https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-configure.html
 
