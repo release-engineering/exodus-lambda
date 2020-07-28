@@ -130,7 +130,5 @@ html_sidebars = {
 autoclass_content = "both"
 autodoc_member_order = "bysource"
 autodoc_inherit_docstrings = False
-intersphinx_mapping = {
-    "python": ("https://docs.python.org/3", None),
-}
+intersphinx_mapping = {"python": ("https://docs.python.org/3", None)}
 graphviz_output_format = "png"

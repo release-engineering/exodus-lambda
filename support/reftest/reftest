@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 
 Prepare reference test data for Exodus-lambda integration test.
@@ -6,17 +6,17 @@ It requires a "data.yml" file specifying the reference test data.
 
 """
 
-import os
-import sys
-import yaml
-import boto3
-import hashlib
-import tempfile
-import requests
 import argparse
-
-from tqdm import tqdm
+import hashlib
+import sys
+import tempfile
 from datetime import datetime
+
+import requests
+import yaml
+
+import boto3
+from tqdm import tqdm
 
 
 class DBHandler:
@@ -28,7 +28,14 @@ class DBHandler:
             timespec="seconds"
         )
 
-    def put_item(self, web_uri, object_key, from_date=None, metadata={}):
+    def put_item(
+        self,
+        web_uri,
+        object_key,
+        from_date=None,
+        content_type=None,
+        metadata={},
+    ):
         if not from_date:
             from_date = self.default_from_date
         return self.dynamodb.put_item(
@@ -37,6 +44,7 @@ class DBHandler:
                 "web_uri": {"S": web_uri},
                 "from_date": {"S": from_date},
                 "object_key": {"S": object_key},
+                "content_type": {"S": content_type},
                 "metadata": {"M": metadata},
             },
         )
@@ -44,21 +52,13 @@ class DBHandler:
 
 class S3Handler:
     def __init__(self, bucket, session):
-        self.s3 = session.client("s3")
+        self.s3_client = session.client("s3")
         self.bucket = bucket
 
-    def upload_from_localfile(self, path, checksum, str_content_type):
-        if not str_content_type:
-            dict_content_type = {}
-        else:
-            dict_content_type = {"ContentType": str_content_type}
-
+    def upload_from_localfile(self, path, checksum):
         with open(path, "rb") as data:
-            self.s3.upload_fileobj(
-                Fileobj=data,
-                Bucket=self.bucket,
-                Key=checksum,
-                ExtraArgs=dict_content_type,
+            self.s3_client.upload_fileobj(
+                Fileobj=data, Bucket=self.bucket, Key=checksum
             )
 
 
@@ -155,9 +155,9 @@ class RefTestConfig:
 
 
 def load_config():
-    with open("data.yml") as f:
-        config = yaml.load(f, yaml.SafeLoader)
-    return RefTestConfig(config["prod-cdn-url"], config["test_data"],)
+    with open("data.yml") as data_file:
+        config = yaml.load(data_file, yaml.SafeLoader)
+    return RefTestConfig(config["prod-cdn-url"], config["test_data"])
 
 
 # It will return a TempFileObj and a checksum for test data verification
@@ -168,27 +168,27 @@ def download_to_local(url, key_path, cert_path, cacert_path):
         verify=cacert_path,
         stream=True,
         timeout=(30, 30),
-    ) as r:
-        r.raise_for_status()
-        total_size = int(r.headers.get("content-length", 0))
-        t = tqdm(desc=url, total=total_size, unit="iB", unit_scale=True)
+    ) as req:
+        req.raise_for_status()
+        total_size = int(req.headers.get("content-length", 0))
+        tbar = tqdm(desc=url, total=total_size, unit="iB", unit_scale=True)
 
         # the file is deleted as soon as it is closed.
         temp_file = tempfile.NamedTemporaryFile(delete=True)
 
         sha256 = hashlib.sha256()
 
-        for chunk in r.iter_content(chunk_size=8192):
+        for chunk in req.iter_content(chunk_size=8192):
             if chunk:  # filter out keep-alive new chunks
-                t.update(len(chunk))
+                tbar.update(len(chunk))
                 temp_file.write(chunk)
                 sha256.update(chunk)
                 temp_file.flush()
-        t.close()
+        tbar.close()
         return temp_file, sha256.hexdigest()
 
 
-def prepare(db, s3, config, opt):
+def prepare(db_client, s3_client, config, opt):
     for item in config.test_data:
         url = config.prod_cdn_url + item["path"]
         # download test data to local with a name "NamedTemporaryFile"
@@ -196,20 +196,25 @@ def prepare(db, s3, config, opt):
             url, opt.key, opt.cert, opt.cacert
         )
 
-        # For unstable content which did not provide sha256, it will skip the checksum verify
+        # For unstable content which did not provide sha256, it will skip the
+        # checksum verify
         if item.get("sha256") and cdn_data_checksum != item["sha256"]:
             print(
-                "{} verify checksum failed, cdn_data_checksum is {}, but test_data_checksum is {}".format(
-                    item["path"], cdn_data_checksum, item["sha256"]
+                "{} verify checksum failed, cdn_data_checksum is {}, ".format(
+                    item["path"], cdn_data_checksum
                 )
+                + "but test_data_checksum is {}".format(item["sha256"])
             )
             return False
 
         # push test data to s3 and dynamodb
-        s3.upload_from_localfile(
-            temp_file.name, cdn_data_checksum, item["content-type"]
+        s3_client.upload_from_localfile(temp_file.name, cdn_data_checksum)
+        db_client.put_item(
+            item["path"],
+            cdn_data_checksum,
+            from_date=opt.release_date,
+            content_type=item["content-type"],
         )
-        db.put_item(item["path"], cdn_data_checksum, opt.release_date)
 
         # delete the NamedTemporaryFile
         temp_file.close()

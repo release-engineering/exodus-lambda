@@ -15,9 +15,6 @@ Parameters:
     Type: String
     Default: exodus
     Description: The project name under which resources are created
-  oai:
-    Type: String
-    Description: The origin access identity ID associated with the environment
 
 Resources:
   Table:
@@ -50,8 +47,6 @@ Resources:
         BlockPublicPolicy: true
         IgnorePublicAcls: true
         RestrictPublicBuckets: true
-      VersioningConfiguration:
-        Status: Enabled
 
   BucketPolicy:
     Type: AWS::S3::BucketPolicy
@@ -69,7 +64,13 @@ Resources:
                   - !GetAtt Bucket.Arn
                   - "/*"
             Principal:
-              AWS: !Sub "arn:aws:iam::cloudfront:user/CloudFront Origin Access Identity ${oai}"
+              CanonicalUser: !GetAtt OriginAccessIdentity.S3CanonicalUserId
+
+  OriginAccessIdentity:
+    Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
+    Properties:
+      CloudFrontOriginAccessIdentityConfig:
+        Comment: !Sub ${project}-cdn-${env}
 
 Outputs:
   Table:
@@ -79,3 +80,7 @@ Outputs:
   Bucket:
     Description: Created bucket
     Value: !Ref Bucket
+
+  OriginAccessIdentity:
+    Description: Created origin access identity
+    Value: !Ref OriginAccessIdentity
