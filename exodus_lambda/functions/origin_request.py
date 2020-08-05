@@ -66,7 +66,13 @@ class OriginRequest(LambdaBase):
 
         request = event["Records"][0]["cf"]["request"]
         uri = self.resolve_aliases(request["uri"])
-
+        self.logger.info(
+            "The request value for origin_request beginning is '%s'",
+            json.dumps(request, indent=4, sort_keys=True),
+        )
+        self.logger.info(
+            "The uri value for origin_request beginning is '%s'", uri
+        )
         table = self.conf["table"]["name"]
 
         self.logger.info("Querying '%s' table for '%s'...", table, uri)
@@ -107,6 +113,11 @@ class OriginRequest(LambdaBase):
                         {"ResponseContentType": content_type}
                     )
                     request["uri"] += "?" + query
+
+                self.logger.info(
+                    "The request value for origin_request end is '%s'",
+                    json.dumps(request, indent=4, sort_keys=True),
+                )
 
                 return request
             except Exception as err:
