@@ -1,5 +1,5 @@
 import json
-import urllib.parse
+import urllib
 from datetime import datetime, timezone
 
 import boto3
@@ -109,10 +109,9 @@ class OriginRequest(LambdaBase):
                 )
                 content_type = query_result["Items"][0]["content_type"]["S"]
                 if content_type:
-                    query = urllib.parse.urlencode(
-                        {"ResponseContentType": content_type}
+                    request["querystring"] = urllib.parse.urlencode(
+                        {"response-content-type": content_type}
                     )
-                    request["uri"] += "?" + query
 
                 self.logger.info(
                     "The request value for origin_request end is '%s'",
