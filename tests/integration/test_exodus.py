@@ -1,5 +1,5 @@
-import requests
 import pytest
+import requests
 
 
 def test_exodus_basic(cdn_test_url):
@@ -87,7 +87,7 @@ def test_content_type_header_GET(cdn_test_url, testdata_path):
     url = cdn_test_url + testdata_path
     r = requests.get(url)
     assert r.status_code == 200
-    assert_content_type(url, r.headers["content-type"])
+    assert_content_type(url, r.headers["Content-Type"])
 
 
 @pytest.mark.parametrize("testdata_path", testdata_content_type_path)
@@ -95,7 +95,7 @@ def test_content_type_header_HEAD(cdn_test_url, testdata_path):
     url = cdn_test_url + testdata_path
     r = requests.head(url)
     assert r.status_code == 200
-    assert_content_type(url, r.headers["content-type"])
+    assert_content_type(url, r.headers["Content-Type"])
 
 
 testdata_origin_alias_path = [
