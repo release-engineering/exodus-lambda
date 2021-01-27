@@ -15,7 +15,10 @@ def test_alias_single():
 
     req = OriginRequest(CONF_PATH)
 
-    aliases = [Alias("/foo/bar", ""), Alias("/baz", "/quux")]
+    aliases = [
+        {"src": "/foo/bar", "dest": ""},
+        {"src": "/baz", "dest": "/quux"},
+    ]
 
     # Only the first layer of /foo/bar ends up being resolved.
     assert (
@@ -29,7 +32,7 @@ def test_alias_boundary():
 
     req = OriginRequest(CONF_PATH)
 
-    aliases = [Alias("/foo/bar", "/")]
+    aliases = [{"src": "/foo/bar", "dest": "/"}]
 
     # /foo/bar should not be resolved since it's not followed by /.
     assert req.uri_alias("/foo/bar-somefile", aliases) == "/foo/bar-somefile"
@@ -40,6 +43,6 @@ def test_alias_equal():
 
     req = OriginRequest(CONF_PATH)
 
-    aliases = [Alias("/foo/bar", "/quux")]
+    aliases = [{"src": "/foo/bar", "dest": "/quux"}]
 
     assert req.uri_alias("/foo/bar", aliases) == "/quux"

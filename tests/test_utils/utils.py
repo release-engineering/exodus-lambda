@@ -1,3 +1,4 @@
+import os
 import json
 
 
@@ -34,3 +35,9 @@ def generate_test_config(conf="configuration/lambda_config.json"):
     conf["logging"]["loggers"]["default"]["level"] = "DEBUG"
 
     return conf
+
+
+def mock_definitions():
+    return os.path.join(
+        os.path.dirname(os.path.dirname(__file__)), "test_data", "data.yaml"
+    )
