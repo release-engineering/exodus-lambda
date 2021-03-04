@@ -74,10 +74,10 @@ local configuration or environment variables. See: <a class="reference external"
 <div class="line"><strong>Example</strong>:</div>
 </div>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>aws cloudformation deploy <span class="se">\</span>
-       --template-file configuration/exodus-storage.yaml <span class="se">\</span>
-       --stack-name ... <span class="se">\</span>
-       --capabilities ... <span class="se">\</span>
-       --parameter-overrides <span class="nv">env</span><span class="o">=</span>... <span class="nv">project</span><span class="o">=</span>... <span class="nv">oai</span><span class="o">=</span>...
+<span class="go">       --template-file configuration/exodus-storage.yaml \</span>
+<span class="go">       --stack-name ... \</span>
+<span class="go">       --capabilities ... \</span>
+<span class="go">       --parameter-overrides env=... project=... oai=...</span>
 </pre></div>
 </div>
 </div>
@@ -184,19 +184,19 @@ Default: false</p>
 <div class="line"><strong>Example</strong>:</div>
 </div>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>aws cloudformation deploy <span class="se">\</span>
-       --template-file configuration/exodus-pipeline-resources.yaml <span class="se">\</span>
-       --stack-name ... --capabilities ... <span class="se">\</span>
-       --parameter-overrides <span class="nv">project</span><span class="o">=</span>... <span class="nv">region</span><span class="o">=</span>... <span class="nv">useCloudTrail</span><span class="o">=</span>... <span class="nv">codebuildrole</span><span class="o">=</span>...
+<span class="go">       --template-file configuration/exodus-pipeline-resources.yaml \</span>
+<span class="go">       --stack-name ... --capabilities ... \</span>
+<span class="go">       --parameter-overrides project=... region=... useCloudTrail=... codebuildrole=...</span>
 
 <span class="gp">$ </span>aws cloudformation deploy <span class="se">\</span>
-       --template-file configuration/exodus-pipeline.yaml <span class="se">\</span>
-       --stack-name ... <span class="se">\</span>
-       --capabilities ... <span class="se">\</span>
-       --parameter-overrides <span class="nv">env</span><span class="o">=</span>...  <span class="nv">project</span><span class="o">=</span>... <span class="se">\</span>
-           <span class="nv">repoOwner</span><span class="o">=</span>... <span class="nv">repoName</span><span class="o">=</span>... <span class="nv">repoBranch</span><span class="o">=</span>... <span class="se">\</span>
-           <span class="nv">githubToken</span><span class="o">=</span>... <span class="nv">region</span><span class="o">=</span>... <span class="nv">email</span><span class="o">=</span>... <span class="nv">oai</span><span class="o">=</span>...<span class="se">\</span>
-           <span class="nv">cloudformationrole</span><span class="o">=</span>... <span class="nv">codepipelinerole</span><span class="o">=</span>... <span class="se">\</span>
-           <span class="nv">cloudwatcheventrole</span><span class="o">=</span>... <span class="nv">lambdafunctionrole</span><span class="o">=</span>...
+<span class="go">       --template-file configuration/exodus-pipeline.yaml \</span>
+<span class="go">       --stack-name ... \</span>
+<span class="go">       --capabilities ... \</span>
+<span class="go">       --parameter-overrides env=...  project=... \</span>
+<span class="go">           repoOwner=... repoName=... repoBranch=... \</span>
+<span class="go">           githubToken=... region=... email=... oai=...\</span>
+<span class="go">           cloudformationrole=... codepipelinerole=... \</span>
+<span class="go">           cloudwatcheventrole=... lambdafunctionrole=...</span>
 </pre></div>
 </div>
 </div>
@@ -245,11 +245,11 @@ Default: exodus</p>
 <span class="gp">$ </span><span class="nb">export</span> <span class="nv">$ENV_TYPE</span><span class="o">=</span>...
 <span class="gp">$ </span>./scripts/build-package
 <span class="gp">$ </span>aws cloudformation deploy <span class="se">\</span>
-       --template-file configuration/exodus-lambda-pkg.yaml <span class="se">\</span>
-       --stack-name ... <span class="se">\</span>
-       --capabilities ... <span class="se">\</span>
-       --parameter-overrides <span class="nv">env</span><span class="o">=</span><span class="nv">$ENV_TYPE</span> <span class="nv">project</span><span class="o">=</span><span class="nv">$PROJECT</span> <span class="se">\</span>
-           <span class="nv">oai</span><span class="o">=</span>... <span class="nv">lambdafunctionrole</span><span class="o">=</span>...
+<span class="go">       --template-file configuration/exodus-lambda-pkg.yaml \</span>
+<span class="go">       --stack-name ... \</span>
+<span class="go">       --capabilities ... \</span>
+<span class="go">       --parameter-overrides env=$ENV_TYPE project=$PROJECT \</span>
+<span class="go">           oai=... lambdafunctionrole=...</span>
 </pre></div>
 </div>
 </div>
@@ -334,7 +334,7 @@ Default: exodus</p>
       &copy;2020, Red Hat.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.4.3</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.5.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |
