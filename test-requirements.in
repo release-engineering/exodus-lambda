@@ -1,0 +1,5 @@
+pytest
+mock
+more-itertools
+importlib-metadata
+wcwidth
