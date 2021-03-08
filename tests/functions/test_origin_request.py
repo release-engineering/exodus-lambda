@@ -6,7 +6,7 @@ import pytest
 
 import mock
 from exodus_lambda.functions.origin_request import OriginRequest
-from test_utils.utils import generate_test_config
+from test_utils.utils import generate_test_config, mock_definitions
 
 TEST_PATH = "/origin/rpms/repo/ver/dir/filename.ext"
 MOCKED_DT = "2020-02-17T15:38:05.864+00:00"
@@ -88,9 +88,9 @@ def test_origin_request(
     event = {"Records": [{"cf": {"request": {"uri": req_uri, "headers": {}}}}]}
 
     with caplog.at_level(logging.DEBUG):
-        request = OriginRequest(conf_file=TEST_CONF).handler(
-            event, context=None
-        )
+        request = OriginRequest(
+            conf_file=TEST_CONF, definitions_source=mock_definitions()
+        ).handler(event, context=None)
 
     assert "Item found for '%s'" % real_uri in caplog.text
 
@@ -116,9 +116,9 @@ def test_origin_request_no_item(mocked_datetime, mocked_boto3_client, caplog):
     event = {"Records": [{"cf": {"request": {"uri": TEST_PATH}}}]}
 
     with caplog.at_level(logging.DEBUG):
-        request = OriginRequest(conf_file=TEST_CONF).handler(
-            event, context=None
-        )
+        request = OriginRequest(
+            conf_file=TEST_CONF, definitions_source=mock_definitions()
+        ).handler(event, context=None)
 
     assert request == {"status": "404", "statusDescription": "Not Found"}
     assert "No item found for '%s'" % TEST_PATH in caplog.text
@@ -142,9 +142,9 @@ def test_origin_request_invalid_item(
     event = {"Records": [{"cf": {"request": {"uri": TEST_PATH}}}]}
 
     with pytest.raises(KeyError):
-        request = OriginRequest(conf_file=TEST_CONF).handler(
-            event, context=None
-        )
+        request = OriginRequest(
+            conf_file=TEST_CONF, definitions_source=mock_definitions()
+        ).handler(event, context=None)
 
     assert (
         "Exception occurred while processing %s"
