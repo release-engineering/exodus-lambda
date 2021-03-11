@@ -111,7 +111,7 @@ origin_response
     It is the only component permitted to perform writes on DynamoDB and S3
     (hence, the "exodus gateway").
 
-exodus-rsync
+`exodus-rsync`_
     A drop-in replacement for the ``rsync`` command. This command has
     an interface which is partially compatible with ``rsync``, but it
     performs publishes via API calls to ``exodus-gw`` rather than using
@@ -145,3 +145,5 @@ publishing tools (exodus)
 .. _Lambda@Edge: https://aws.amazon.com/lambda/edge/
 
 .. _exodus-gw: https://release-engineering.github.io/exodus-gw/
+
+.. _exodus-rsync: https://github.com/release-engineering/exodus-rsync
