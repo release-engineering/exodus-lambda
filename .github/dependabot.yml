@@ -1,9 +1,8 @@
 version: 2
 updates:
 - package-ecosystem: pip
-  directory: "/"
+  directory: /
   schedule:
-    interval: daily
-  open-pull-requests-limit: 10
+    interval: weekly
   allow:
-  - dependency-name: cdn-definitions
+  - dependency-type: all
