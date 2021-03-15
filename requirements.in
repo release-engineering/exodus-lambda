@@ -1,0 +1,14 @@
+boto3
+botocore
+docutils
+jmespath
+python-dateutil
+s3transfer
+six
+urllib3
+cdn-definitions
+requests
+chardet
+certifi
+idna
+PyYAML

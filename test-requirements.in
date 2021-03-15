@@ -1,0 +1,11 @@
+pytest
+mock
+importlib-metadata
+more-itertools
+attrs
+py
+packaging
+pluggy
+wcwidth
+zipp
+pyparsing
