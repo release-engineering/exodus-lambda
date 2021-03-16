@@ -1,17 +1,27 @@
 import json
-import urllib.parse
+import urllib
 from datetime import datetime, timezone
 
 import boto3
-from cdn_definitions import origin_aliases, rhui_aliases
+from cdn_definitions import load_data
 
 from .base import LambdaBase
 
 
 class OriginRequest(LambdaBase):
-    def __init__(self, conf_file="lambda_config.json"):
+    def __init__(
+        self, conf_file="lambda_config.json", definitions_source=None
+    ):
         super().__init__("origin-request", conf_file)
         self._db_client = None
+        self._definitions_source = definitions_source
+        self._definitions = None
+
+    @property
+    def definitions(self):
+        if self._definitions is None:
+            self._definitions = load_data(source=self._definitions_source)
+        return self._definitions
 
     @property
     def db_client(self):
@@ -35,8 +45,8 @@ class OriginRequest(LambdaBase):
             processed = []
 
             for alias in remaining:
-                if uri.startswith(alias.src + "/") or uri == alias.src:
-                    uri = uri.replace(alias.src, alias.dest, 1)
+                if uri.startswith(alias["src"] + "/") or uri == alias["src"]:
+                    uri = uri.replace(alias["src"], alias["dest"], 1)
                     processed.append(alias)
 
             if not processed:
@@ -52,12 +62,12 @@ class OriginRequest(LambdaBase):
 
     def resolve_aliases(self, uri):
         # aliases relating to origin, e.g. content/origin <=> origin
-        uri = self.uri_alias(uri, origin_aliases())
+        uri = self.uri_alias(uri, self.definitions.get("origin_alias"))
 
         # aliases relating to rhui; listing files are a special exemption
         # because they must be allowed to differ for rhui vs non-rhui.
         if not uri.endswith("/listing"):
-            uri = self.uri_alias(uri, rhui_aliases())
+            uri = self.uri_alias(uri, self.definitions.get("rhui_alias"))
 
         return uri
 
@@ -66,7 +76,13 @@ class OriginRequest(LambdaBase):
 
         request = event["Records"][0]["cf"]["request"]
         uri = self.resolve_aliases(request["uri"])
-
+        self.logger.info(
+            "The request value for origin_request beginning is '%s'",
+            json.dumps(request, indent=4, sort_keys=True),
+        )
+        self.logger.info(
+            "The uri value for origin_request beginning is '%s'", uri
+        )
         table = self.conf["table"]["name"]
 
         self.logger.info("Querying '%s' table for '%s'...", table, uri)
@@ -103,10 +119,14 @@ class OriginRequest(LambdaBase):
                 )
                 content_type = query_result["Items"][0]["content_type"]["S"]
                 if content_type:
-                    query = urllib.parse.urlencode(
-                        {"ResponseContentType": content_type}
+                    request["querystring"] = urllib.parse.urlencode(
+                        {"response-content-type": content_type}
                     )
-                    request["uri"] += "?" + query
+
+                self.logger.info(
+                    "The request value for origin_request end is '%s'",
+                    json.dumps(request, indent=4, sort_keys=True),
+                )
 
                 return request
             except Exception as err:

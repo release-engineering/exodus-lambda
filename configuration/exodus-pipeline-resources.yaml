@@ -145,12 +145,17 @@ Resources:
       Environment:
         Type: LINUX_CONTAINER
         ComputeType: BUILD_GENERAL1_SMALL
-        Image: aws/codebuild/amazonlinux2-x86_64-standard:2.0
+        Image: aws/codebuild/amazonlinux2-x86_64-standard:3.0
       Source:
         Type: CODEPIPELINE
         BuildSpec: |
           version: 0.2
           phases:
+            install:
+              runtime-versions:
+                python: 3.7
+              commands:
+                - pip install --upgrade pip
             build:
               commands:
                 - ./scripts/build-package

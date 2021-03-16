@@ -1,3 +1,4 @@
+import json
 import re
 from base64 import b64encode
 
@@ -13,6 +14,15 @@ class OriginResponse(LambdaBase):
 
         request = event["Records"][0]["cf"]["request"]
         response = event["Records"][0]["cf"]["response"]
+
+        self.logger.info(
+            "The request value for origin_response beginning is '%s'",
+            json.dumps(request, indent=4, sort_keys=True),
+        )
+        self.logger.info(
+            "The response value for origin_response beginning is '%s'",
+            json.dumps(response, indent=4, sort_keys=True),
+        )
 
         if "headers" in request and "want-digest" in request["headers"]:
             sum_hex = request["uri"].replace("/", "", 1)

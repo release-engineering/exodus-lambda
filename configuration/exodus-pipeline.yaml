@@ -222,8 +222,11 @@ Resources:
                 Region: !Ref region
                 Configuration:
                   EnvironmentVariables:
-                    !Sub '[{"name": "ENV_TYPE", "value": "${env}", "type": "PLAINTEXT"},
-                    {"name": "PROJECT", "value": "${project}", "type": "PLAINTEXT"}]'
+                    !Sub '[
+                      {"name": "ENV_TYPE", "value": "${env}", "type": "PLAINTEXT"},
+                      {"name": "PROJECT", "value": "${project}", "type": "PLAINTEXT"},
+                      {"name": "GITHUB_TOKEN", "value": "${githubToken}", "type": "PLAINTEXT"}
+                    ]'
                   ProjectName: !Sub ${project}-lambda-build
                 InputArtifacts:
                   - Name: SourceArtifact

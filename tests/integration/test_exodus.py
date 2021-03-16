@@ -1,5 +1,6 @@
-import requests
+import json
 import pytest
+import requests
 
 
 def test_exodus_basic(cdn_test_url):
@@ -9,6 +10,7 @@ def test_exodus_basic(cdn_test_url):
     )
 
     r = requests.get(url)
+    print(json.dumps(dict(r.headers), indent=2))
     assert r.status_code == 200
     assert "cache-control" not in r.headers
 
@@ -19,6 +21,7 @@ def test_header_not_exist_file(cdn_test_url):
         + "/content/aus/rhel/server/6/6.5/x86_64/os/Packages/c/cpio-2.10-12.el6_5.x86_64.rpm_not_exist"
     )
     r = requests.get(url)
+    print(json.dumps(dict(r.headers), indent=2))
     assert r.status_code == 404
     assert "cache-control" not in r.headers
 
@@ -36,6 +39,7 @@ testdata_cache_control_path = [
 def test_header_cache_control(cdn_test_url, testdata_path):
     url = cdn_test_url + testdata_path
     r = requests.get(url)
+    print(json.dumps(dict(r.headers), indent=2))
     assert r.status_code == 200
     assert r.headers["cache-control"] == "max-age=600"
 
@@ -44,6 +48,7 @@ def test_header_want_digest_GET(cdn_test_url):
     headers = {"want-digest": "id-sha-256"}
     url = cdn_test_url + "/content/dist/rhel/server/5/5.7/listing"
     r = requests.get(url, headers=headers)
+    print(json.dumps(dict(r.headers), indent=2))
     assert r.status_code == 200
     assert (
         r.headers["digest"]
@@ -55,6 +60,7 @@ def test_header_want_digest_HEAD(cdn_test_url):
     headers = {"want-digest": "id-sha-256"}
     url = cdn_test_url + "/content/dist/rhel/server/5/5.7/listing"
     r = requests.head(url, headers=headers)
+    print(json.dumps(dict(r.headers), indent=2))
     assert r.status_code == 200
     assert (
         r.headers["digest"]
@@ -86,16 +92,18 @@ def assert_content_type(url, content_type):
 def test_content_type_header_GET(cdn_test_url, testdata_path):
     url = cdn_test_url + testdata_path
     r = requests.get(url)
+    print(json.dumps(dict(r.headers), indent=2))
     assert r.status_code == 200
-    assert_content_type(url, r.headers["content-type"])
+    assert_content_type(url, r.headers["Content-Type"])
 
 
 @pytest.mark.parametrize("testdata_path", testdata_content_type_path)
 def test_content_type_header_HEAD(cdn_test_url, testdata_path):
     url = cdn_test_url + testdata_path
     r = requests.head(url)
+    print(json.dumps(dict(r.headers), indent=2))
     assert r.status_code == 200
-    assert_content_type(url, r.headers["content-type"])
+    assert_content_type(url, r.headers["Content-Type"])
 
 
 testdata_origin_alias_path = [
@@ -112,6 +120,7 @@ def test_origin_path_alias(cdn_test_url, testdata_path):
     headers = {"want-digest": "id-sha-256"}
     url = cdn_test_url + testdata_path
     r = requests.head(url, headers=headers)
+    print(json.dumps(dict(r.headers), indent=2))
     assert r.status_code == 200
     assert (
         r.headers["digest"]
@@ -130,6 +139,7 @@ def test_rhui_path_alias_aus(cdn_test_url, testdata_path):
     headers = {"want-digest": "id-sha-256"}
     url = cdn_test_url + testdata_path
     r = requests.head(url, headers=headers)
+    print(json.dumps(dict(r.headers), indent=2))
     assert r.status_code == 200
     assert (
         r.headers["digest"]
@@ -148,6 +158,7 @@ def test_rhui_path_alias_rhel8(cdn_test_url, testdata_path):
     headers = {"want-digest": "id-sha-256"}
     url = cdn_test_url + testdata_path
     r = requests.head(url, headers=headers)
+    print(json.dumps(dict(r.headers), indent=2))
     assert r.status_code == 200
     assert (
         r.headers["digest"]
