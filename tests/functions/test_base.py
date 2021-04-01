@@ -1,9 +1,10 @@
-import pytest
-
 import logging
 
+import pytest
+
 from exodus_lambda.functions.base import LambdaBase
-from test_utils.utils import generate_test_config
+
+from ..test_utils.utils import generate_test_config
 
 CONF_PATH = "configuration/lambda_config.json"
 TEST_CONF = generate_test_config(CONF_PATH)
@@ -38,14 +39,18 @@ def test_base_region(env_var, exp_var, monkeypatch):
 
 def test_logger_config(caplog):
     base_obj = LambdaBase(conf_file=TEST_CONF)
+    log = base_obj.logger
 
-    with caplog.at_level(logging.DEBUG):
-        base_obj.logger.debug("debug message")
-        base_obj.logger.info("info message")
-        base_obj.logger.warning("warning message")
-    assert "[DEBUG] - debug message\n" in caplog.text
-    assert "[INFO] - info message\n" in caplog.text
-    assert "[WARNING] - warning message\n" in caplog.text
+    log.setLevel(logging.DEBUG)
+
+    log.debug("debug message")
+    assert "debug message" in caplog.text
+
+    log.info("info message")
+    assert "info message" in caplog.text
+
+    log.warning("warning message")
+    assert "warning message" in caplog.text
 
 
 def test_root_logger_without_handlers(caplog):

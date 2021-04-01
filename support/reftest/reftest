@@ -12,10 +12,9 @@ import sys
 import tempfile
 from datetime import datetime
 
+import boto3
 import requests
 import yaml
-
-import boto3
 from tqdm import tqdm
 
 

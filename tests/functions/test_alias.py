@@ -1,7 +1,7 @@
 # More in depth tests for alias resolution.
-import pytest
-
 from collections import namedtuple
+
+import pytest
 
 from exodus_lambda.functions.origin_request import OriginRequest
 

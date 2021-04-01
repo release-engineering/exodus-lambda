@@ -1,5 +1,5 @@
-import pytest
 import boto3
+import pytest
 
 
 def get_distribution_url(stack_name):
