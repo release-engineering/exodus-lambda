@@ -1,5 +1,5 @@
-import os
 import json
+import os
 
 
 def generate_test_config(conf="configuration/lambda_config.json"):

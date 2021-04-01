@@ -1,7 +1,7 @@
 import json
-import os
-import logging.config
 import logging
+import logging.config
+import os
 
 
 class LambdaBase(object):

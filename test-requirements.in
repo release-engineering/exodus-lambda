@@ -1,0 +1,11 @@
+pytest
+mock
+more-itertools
+wcwidth
+black
+coveralls
+sphinx
+flake8
+pylint
+pytest-cov
+mypy

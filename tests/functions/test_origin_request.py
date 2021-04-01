@@ -2,11 +2,12 @@ import json
 import logging
 import urllib
 
+import mock
 import pytest
 
-import mock
 from exodus_lambda.functions.origin_request import OriginRequest
-from test_utils.utils import generate_test_config, mock_definitions
+
+from ..test_utils.utils import generate_test_config, mock_definitions
 
 TEST_PATH = "/origin/rpms/repo/ver/dir/filename.ext"
 MOCKED_DT = "2020-02-17T15:38:05.864+00:00"

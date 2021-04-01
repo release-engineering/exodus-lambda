@@ -4,7 +4,8 @@ import logging
 import pytest
 
 from exodus_lambda.functions.origin_response import OriginResponse
-from test_utils.utils import generate_test_config
+
+from ..test_utils.utils import generate_test_config
 
 CONF_PATH = "configuration/lambda_config.json"
 TEST_CONF = generate_test_config(CONF_PATH)
