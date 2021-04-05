@@ -4,7 +4,8 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17: http://docutils.sourceforge.net/" />
+
     <title>origin_response &#8212; exodus-lambda  documentation</title>
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
@@ -33,7 +34,7 @@
 
           <div class="body" role="main">
             
-  <div class="section" id="origin-response">
+  <section id="origin-response">
 <h1>origin_response<a class="headerlink" href="#origin-response" title="Permalink to this headline">¶</a></h1>
 <p>The origin_response function appends the following Cache-Control header to a
 CloudFront distribution’s HTTP response from the origin server for a defined
@@ -41,21 +42,21 @@ list of path patterns:</p>
 <blockquote>
 <div><p>[{“key”: “Cache-Control”, “value”: “max-age=600”,}]</p>
 </div></blockquote>
-<div class="section" id="deployment">
+<section id="deployment">
 <h2>Deployment<a class="headerlink" href="#deployment" title="Permalink to this headline">¶</a></h2>
 <p>This function may be deployed like any other AWS Lambda function using the
 following event.</p>
-<div class="section" id="event">
+<section id="event">
 <h3>Event<a class="headerlink" href="#event" title="Permalink to this headline">¶</a></h3>
 <p>The event for this function must be a CloudFront distribution origin-response.</p>
-</div>
-<div class="section" id="configuration">
+</section>
+<section id="configuration">
 <h3>Configuration<a class="headerlink" href="#configuration" title="Permalink to this headline">¶</a></h3>
 <p>The CloudFront distribution must support caching based on request headers.
 The custom ‘cache-control’ request header must be whitelisted.</p>
-</div>
-</div>
-</div>
+</section>
+</section>
+</section>
 
 
           </div>
@@ -78,7 +79,7 @@ The custom ‘cache-control’ request header must be whitelisted.</p>
 
 
 <h3>Navigation</h3>
-<p class="caption"><span class="caption-text">Contents:</span></p>
+<p><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../arch.html">Architecture</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../deploy.html">Deployment</a></li>
