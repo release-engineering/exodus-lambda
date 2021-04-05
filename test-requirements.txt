@@ -122,6 +122,7 @@ importlib-metadata==3.10.0 \
     --hash=sha256:c9db46394197244adf2f0b08ec5bc3cf16757e9590b02af1fca085c16c0d600a \
     --hash=sha256:d2d46ef77ffc85cbf7dac7e81dd663fde71c45326131bea8033b9bad42268ebe
     # via
+    #   -r test-requirements.in
     #   flake8
     #   pluggy
     #   pytest
