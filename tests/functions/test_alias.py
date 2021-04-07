@@ -1,8 +1,6 @@
 # More in depth tests for alias resolution.
 from collections import namedtuple
 
-import pytest
-
 from exodus_lambda.functions.origin_request import OriginRequest
 
 CONF_PATH = "exodus_lambda/functions/lambda_config.json"

@@ -1,4 +1,3 @@
-import json
 import logging
 
 import pytest
@@ -111,9 +110,7 @@ def test_origin_response_logger(caplog):
     }
 
     with caplog.at_level(logging.DEBUG):
-        response = OriginResponse(conf_file=TEST_CONF).handler(
-            event, context=None
-        )
+        OriginResponse(conf_file=TEST_CONF).handler(event, context=None)
 
     assert (
         "Cache-Control header added for '/some/repo/repodata/repomd.xml'"
