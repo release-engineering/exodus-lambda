@@ -19,7 +19,7 @@ def test_exodus_basic(cdn_test_url):
 def test_header_not_exist_file(cdn_test_url):
     url = (
         cdn_test_url
-        + "/content/aus/rhel/server/6/6.5/x86_64/os/Packages/c/cpio-2.10-12.el6_5.x86_64.rpm_not_exist"
+        + "/content/aus/rhel/server/6/6.5/x86_64/os/Packages/c/cpio-2.10-12.el6_5.x86_64.rpm_not_exist"  # noqa: E501
     )
     r = requests.get(url)
     print(json.dumps(dict(r.headers), indent=2))
@@ -32,7 +32,7 @@ def test_header_not_exist_file(cdn_test_url):
 testdata_cache_control_path = [
     "/content/dist/rhel/server/5/5.7/listing",
     "/content/dist/rhel/server/7/7.2/x86_64/rhev-mgmt-agent/3/os/repodata/repomd.xml",
-    "/content/dist/rhel/atomic/7/7Server/x86_64/ostree/repo/refs/heads/rhel-atomic-host/7/x86_64/standard",
+    "/content/dist/rhel/atomic/7/7Server/x86_64/ostree/repo/refs/heads/rhel-atomic-host/7/x86_64/standard",  # noqa: E501
 ]
 
 
@@ -72,8 +72,8 @@ def test_header_want_digest_HEAD(cdn_test_url):
 # Test data for exodus-lambda
 # serving yum repodata with correct Content-Type
 testdata_content_type_path = [
-    "/content/dist/rhel/server/7/7.4/x86_64/os/repodata/fd23895d43f54a50bbd0509809dd5f45298bfd6b-other.sqlite.bz2",
-    "/content/dist/rhel/server/7/7.4/x86_64/os/repodata/cb753af26534673064bd593500d747d7288d75b2-filelists.xml.gz",
+    "/content/dist/rhel/server/7/7.4/x86_64/os/repodata/fd23895d43f54a50bbd0509809dd5f45298bfd6b-other.sqlite.bz2",  # noqa: E501
+    "/content/dist/rhel/server/7/7.4/x86_64/os/repodata/cb753af26534673064bd593500d747d7288d75b2-filelists.xml.gz",  # noqa: E501
     "/content/dist/rhel/server/7/7.2/x86_64/rhev-mgmt-agent/3/os/repodata/repomd.xml",
 ]
 

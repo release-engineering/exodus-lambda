@@ -143,7 +143,7 @@ def test_origin_request_invalid_item(
     event = {"Records": [{"cf": {"request": {"uri": TEST_PATH}}}]}
 
     with pytest.raises(KeyError):
-        request = OriginRequest(
+        OriginRequest(
             conf_file=TEST_CONF, definitions_source=mock_definitions()
         ).handler(event, context=None)
 

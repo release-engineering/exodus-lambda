@@ -3,19 +3,11 @@ exodus-lambda
 
 AWS Lambda functions for Red Hat's Content Delivery Network
 
-[![Build Status](https://travis-ci.org/release-engineering/exodus-lambda.svg?branch=master)](https://travis-ci.org/release-engineering/exodus-lambda)
+[![Build Status](https://github.com/release-engineering/exodus-lambda/actions/workflows/ci.yml/badge.svg?branch=master)
 [![Coverage Status](https://coveralls.io/repos/github/release-engineering/exodus-lambda/badge.svg?branch=master)](https://coveralls.io/github/release-engineering/exodus-lambda?branch=master)
 
 - [Source](https://github.com/release-engineering/exodus-lambda)
 - [Documentation](https://release-engineering.github.io/exodus-lambda/)
-
-
-Installation
-------------
-
-
-Usage Example
--------------
 
 
 Development
