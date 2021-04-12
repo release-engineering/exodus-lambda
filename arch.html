@@ -4,8 +4,7 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17: http://docutils.sourceforge.net/" />
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Architecture &#8212; exodus-lambda  documentation</title>
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
@@ -34,13 +33,13 @@
 
           <div class="body" role="main">
             
-  <section id="architecture">
+  <div class="section" id="architecture">
 <span id="arch-ref"></span><h1>Architecture<a class="headerlink" href="#architecture" title="Permalink to this headline">¶</a></h1>
-<section id="overview">
+<div class="section" id="overview">
 <h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
 <p>This diagram shows the relationship between all major components used
 in the delivery of content via the CDN.</p>
-<div class="graphviz"><img src="_images/graphviz-28811ee1179f8ab639e17926b43acfb4a0023a8f.png" alt="digraph {
+digraph {
     ranksep=&quot;1.4&quot;;
 
     # These are arranged and labelled to communicate the
@@ -198,7 +197,7 @@ in the delivery of content via the CDN.</p>
             native_tools;
         }
     }
-}" class="graphviz" /></div>
+}
 <ul class="simple">
 <li><p>Numbered connections represent the sequence of events when the CDN processes
 a request.</p></li>
@@ -208,8 +207,8 @@ a request.</p></li>
 another CDN, so client requests may pass through additional layers not
 expressed here.</p></li>
 </ul>
-</section>
-<section id="components">
+</div>
+<div class="section" id="components">
 <h2>Components<a class="headerlink" href="#components" title="Permalink to this headline">¶</a></h2>
 <dl>
 <dt>client</dt><dd><p>A client requesting data from the CDN.</p>
@@ -296,8 +295,8 @@ and so may have improved performance or an extended feature set when
 compared with tools using rsync.</p>
 </dd>
 </dl>
-</section>
-</section>
+</div>
+</div>
 
 
           </div>
@@ -320,7 +319,7 @@ compared with tools using rsync.</p>
 
 
 <h3>Navigation</h3>
-<p><span class="caption-text">Contents:</span></p>
+<p class="caption"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Architecture</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#overview">Overview</a></li>
@@ -377,7 +376,7 @@ compared with tools using rsync.</p>
       &copy;2020, Red Hat.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.5.3</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.5.4</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

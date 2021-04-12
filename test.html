@@ -4,8 +4,7 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17: http://docutils.sourceforge.net/" />
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Tests &#8212; exodus-lambda  documentation</title>
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
@@ -33,12 +32,12 @@
 
           <div class="body" role="main">
             
-  <section id="tests">
+  <div class="section" id="tests">
 <h1>Tests<a class="headerlink" href="#tests" title="Permalink to this headline">¶</a></h1>
-<section id="integration-test">
+<div class="section" id="integration-test">
 <h2>Integration Test<a class="headerlink" href="#integration-test" title="Permalink to this headline">¶</a></h2>
 <p>The integration test is already integrated to <a class="reference external" href="https://aws.amazon.com/codepipeline/">AWS CodePipeline</a> pipelines.</p>
-<section id="test-data-prepare">
+<div class="section" id="test-data-prepare">
 <h3>Test data prepare<a class="headerlink" href="#test-data-prepare" title="Permalink to this headline">¶</a></h3>
 <p>In order to support automated validation/integration tests against the exodus CDN, we need to create a set of reference testdata which can be deployed and used in each environment.</p>
 <p>The test data prepare script located in the <code class="docutils literal notranslate"><span class="pre">support/reftest/</span></code> directory.
@@ -84,8 +83,8 @@ The <code class="docutils literal notranslate"><span class="pre">support/reftest
 <p class="admonition-title">Note</p>
 <p>If there are testdata paths which have unstable content and no stable alternatives, then the checksum field is not needed in <code class="docutils literal notranslate"><span class="pre">data.yml</span></code> and the checksum-verify step will be skipped.</p>
 </div>
-</section>
-<section id="running-the-test-locally">
+</div>
+<div class="section" id="running-the-test-locally">
 <h3>Running the test locally<a class="headerlink" href="#running-the-test-locally" title="Permalink to this headline">¶</a></h3>
 <p>The test code is located in the <code class="docutils literal notranslate"><span class="pre">tests/integration/</span></code> directory.
 The test <code class="docutils literal notranslate"><span class="pre">tests/integration/test_exodus.py</span></code> covers all major implemented behaviors from exodus CDN.</p>
@@ -104,9 +103,9 @@ $ tox -e integration-tests
 $ pytest tests/integration/ --cdn-test-url ...
 </pre></div>
 </div>
-</section>
-</section>
-</section>
+</div>
+</div>
+</div>
 
 
           </div>
@@ -129,7 +128,7 @@ $ pytest tests/integration/ --cdn-test-url ...
 
 
 <h3>Navigation</h3>
-<p><span class="caption-text">Contents:</span></p>
+<p class="caption"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="arch.html">Architecture</a></li>
 <li class="toctree-l1"><a class="reference internal" href="deploy.html">Deployment</a></li>
@@ -184,7 +183,7 @@ $ pytest tests/integration/ --cdn-test-url ...
       &copy;2020, Red Hat.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.5.3</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.5.4</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

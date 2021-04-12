@@ -4,8 +4,7 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17: http://docutils.sourceforge.net/" />
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Deployment &#8212; exodus-lambda  documentation</title>
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
@@ -34,9 +33,9 @@
 
           <div class="body" role="main">
             
-  <section id="deployment">
+  <div class="section" id="deployment">
 <h1>Deployment<a class="headerlink" href="#deployment" title="Permalink to this headline">¶</a></h1>
-<section id="cdn-storage-bucket-table">
+<div class="section" id="cdn-storage-bucket-table">
 <h2>CDN Storage (Bucket &amp; Table)<a class="headerlink" href="#cdn-storage-bucket-table" title="Permalink to this headline">¶</a></h2>
 <p>Each environment (dev, stage, prod, etc.) requires an <a class="reference external" href="https://aws.amazon.com/s3/">Amazon S3</a> bucket and a
 <a class="reference external" href="https://aws.amazon.com/dynamodb/">Amazon DynamoDB</a> table, as illustrated in <a class="reference internal" href="arch.html#arch-ref"><span class="std std-ref">Architecture</span></a>.</p>
@@ -81,8 +80,8 @@ local configuration or environment variables. See: <a class="reference external"
 <span class="go">       --parameter-overrides env=... project=... oai=...</span>
 </pre></div>
 </div>
-</section>
-<section id="lambda-deployment-pipelines">
+</div>
+<div class="section" id="lambda-deployment-pipelines">
 <h2>Lambda Deployment Pipelines<a class="headerlink" href="#lambda-deployment-pipelines" title="Permalink to this headline">¶</a></h2>
 <p>In order for the CDN to work as designed, <a class="reference external" href="https://aws.amazon.com/lambda/edge/">Lambda&#64;Edge</a> functions must be
 deployed to handle requests to and responses from the CDN. To automate the
@@ -200,8 +199,8 @@ Default: false</p>
 <span class="go">           cloudwatcheventrole=... lambdafunctionrole=...</span>
 </pre></div>
 </div>
-</section>
-<section id="lambda-functions">
+</div>
+<div class="section" id="lambda-functions">
 <h2>Lambda Functions<a class="headerlink" href="#lambda-functions" title="Permalink to this headline">¶</a></h2>
 <p>The <a class="reference external" href="https://aws.amazon.com/lambda/edge/">Lambda&#64;Edge</a> functions defined in this repository are intended to be
 deployed by <a class="reference external" href="https://aws.amazon.com/codepipeline/">AWS CodePipeline</a> pipelines, triggered by pushes to designated
@@ -253,8 +252,8 @@ Default: exodus</p>
 <span class="go">           oai=... lambdafunctionrole=...</span>
 </pre></div>
 </div>
-</section>
-</section>
+</div>
+</div>
 
 
           </div>
@@ -277,7 +276,7 @@ Default: exodus</p>
 
 
 <h3>Navigation</h3>
-<p><span class="caption-text">Contents:</span></p>
+<p class="caption"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="arch.html">Architecture</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Deployment</a><ul>
@@ -335,7 +334,7 @@ Default: exodus</p>
       &copy;2020, Red Hat.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.5.3</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.5.4</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |
