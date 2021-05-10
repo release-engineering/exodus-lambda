@@ -4,12 +4,13 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
     <title>origin_request &#8212; exodus-lambda  documentation</title>
-    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css" />
     <link rel="stylesheet" type="text/css" href="../_static/graphviz.css" />
-    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
     <script src="../_static/jquery.js"></script>
     <script src="../_static/underscore.js"></script>
     <script src="../_static/doctools.js"></script>
@@ -33,7 +34,7 @@
 
           <div class="body" role="main">
             
-  <div class="section" id="origin-request">
+  <section id="origin-request">
 <h1>origin_request<a class="headerlink" href="#origin-request" title="Permalink to this headline">¶</a></h1>
 <p>The origin_request function provides mapping from a web URI, delivered by an
 AWS CloudFront event, to the key of an object in an AWS S3 bucket.</p>
@@ -43,16 +44,16 @@ something like “/some-s3-file-object-key”.</p>
 table specified in the configuration file that this function is deployed with.</p>
 <p>Required schemas for the DynamoDB table and S3 bucket can be found in the
 <a class="reference internal" href="../schema-reference.html"><span class="doc">schema reference</span></a>.</p>
-<div class="section" id="deployment">
+<section id="deployment">
 <h2>Deployment<a class="headerlink" href="#deployment" title="Permalink to this headline">¶</a></h2>
 <p>This function may be deployed like any other AWS Lambda function using the
 following event and configuration file.</p>
-<div class="section" id="event">
+<section id="event">
 <h3>Event<a class="headerlink" href="#event" title="Permalink to this headline">¶</a></h3>
 <p>The event for this function must be a CloudFront distribution origin-request to
 an S3 bucket.</p>
-</div>
-<div class="section" id="configuration">
+</section>
+<section id="configuration">
 <h3>Configuration<a class="headerlink" href="#configuration" title="Permalink to this headline">¶</a></h3>
 <p>The origin_request function must be deployed with the lambda_config.json
 configuration file.</p>
@@ -75,9 +76,9 @@ configuration file.</p>
 </dl>
 </li>
 </ul>
-</div>
-</div>
-</div>
+</section>
+</section>
+</section>
 
 
           </div>
@@ -159,7 +160,7 @@ configuration file.</p>
       &copy;2020, Red Hat.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.5.4</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.0.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |
