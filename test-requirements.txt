@@ -88,9 +88,9 @@ coverage[toml]==5.5 \
     # via
     #   coveralls
     #   pytest-cov
-coveralls==3.0.1 \
-    --hash=sha256:7bd173b3425733661ba3063c88f180127cc2b20e9740686f86d2622b31b41385 \
-    --hash=sha256:cbb942ae5ef3d2b55388cb5b43e93a269544911535f1e750e1c656aef019ce60
+coveralls==3.1.0 \
+    --hash=sha256:172fb79c5f61c6ede60554f2cac46deff6d64ee735991fb2124fb414e188bdb4 \
+    --hash=sha256:9b3236e086627340bf2c95f89f757d093cbed43d17179d3f4fb568c347e7d29a
     # via -r test-requirements.in
 docopt==0.6.2 \
     --hash=sha256:49b3a825280bd66b3aa83585ef59c4a8c82f2c8a522dbe754a8bc8d08c85c491
