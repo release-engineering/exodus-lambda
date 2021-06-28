@@ -4,13 +4,13 @@
 #
 #    pip-compile --generate-hashes --output-file=requirements.txt requirements.in
 #
-boto3==1.17.62 \
-    --hash=sha256:d856a71d74351649ca8dd59ad17c8c3e79ea57734ff4a38a97611e1e10b06863 \
-    --hash=sha256:da1b2c884dbf56cc3ece07940a7b654f41a93b9fc40ee1ed21a76da25a05989c
+boto3==1.17.97 \
+    --hash=sha256:0ab5afc51461c30f27aebef944211d16f47697b98ff8d2e2f6e49e59584853bb \
+    --hash=sha256:77ea9ff6ce1d4a64839c358a713be80256584f478289a13562d1e0c1b9c362cc
     # via -r requirements.in
-botocore==1.20.62 \
-    --hash=sha256:e4f8cb923edf035c2ae5f6169c70e77e31df70b88919b92b826a6b9bd14511b1 \
-    --hash=sha256:f7c2c5c5ed5212b2628d8fb1c587b31c6e8d413ecbbd1a1cdf6f96ed6f5c8d5e
+botocore==1.20.101 \
+    --hash=sha256:2c56644dc1fdfc3f7cc5c690371d0770d8e6b9edb3f4e15f206e5bc27422dcd6 \
+    --hash=sha256:f7a44fab1a3739ca54e7f72e8625b71574f8218f05349e59d3b871c887444edd
     # via
     #   -r requirements.in
     #   boto3
@@ -18,9 +18,9 @@ botocore==1.20.62 \
 cdn-definitions==2.1.0 \
     --hash=sha256:2d4438564435e50c9a1a2db4928d622a2c09453dc3942ca8eea9d8f98ee1977a
     # via -r requirements.in
-certifi==2020.12.5 \
-    --hash=sha256:1a4995114262bffbc2413b159f2a1a480c969de6e6eb13ee966d470af86af59c \
-    --hash=sha256:719a74fb9e33b9bd44cc7f3a8d94bc35e4049deebe19ba7d8e108280cfd59830
+certifi==2021.5.30 \
+    --hash=sha256:2bbf76fd432960138b3ef6dda3dde0544f27cbf8546c458e60baf371917ba9ee \
+    --hash=sha256:50b1e4f8446b06f41be7dd6338db18e0990601dce795c2b1686458aa7e8fa7d8
     # via requests
 chardet==4.0.0 \
     --hash=sha256:0d6f53a15db4120f2b08c94f11e7d93d2c911ee118b6b30a04ec3ee8310179fa \
@@ -87,13 +87,13 @@ s3transfer==0.4.2 \
     --hash=sha256:9b3752887a2880690ce628bc263d6d13a3864083aeacff4890c1c9839a5eb0bc \
     --hash=sha256:cb022f4b16551edebbb31a377d3f09600dbada7363d8c5db7976e7f47732e1b2
     # via boto3
-six==1.15.0 \
-    --hash=sha256:30639c035cdb23534cd4aa2dd52c3bf48f06e5f4a941509c8bafd8ce11080259 \
-    --hash=sha256:8b74bedcbbbaca38ff6d7491d76f2b06b3592611af620f8426e82dddb04a5ced
+six==1.16.0 \
+    --hash=sha256:1e61c37477a1626458e36f7b1d82aa5c9b094fa4802892072e49de9c60c4c926 \
+    --hash=sha256:8abb2f1d86890a2dfb989f9a77cfcfd3e47c2a354b01111771326f8aa26e0254
     # via python-dateutil
-urllib3==1.26.4 \
-    --hash=sha256:2f4da4594db7e1e110a944bb1b551fdf4e6c136ad42e4234131391e21eb5b0df \
-    --hash=sha256:e7b021f7241115872f92f43c6508082facffbd1c048e3c6e2bb9c2a157e28937
+urllib3==1.26.6 \
+    --hash=sha256:39fb8672126159acb139a7718dd10806104dec1e2f0f6c88aab05d17df10c8d4 \
+    --hash=sha256:f57b4c16c62fa2760b7e3d97c35b255512fb6b59a259730f36ba32ce9f8e342f
     # via
     #   botocore
     #   requests
