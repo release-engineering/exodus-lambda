@@ -8,9 +8,9 @@ boto3==1.17.109 \
     --hash=sha256:bce638f57fbf054f8eba1abce56c849108646edde3564bd08316763323a4020e \
     --hash=sha256:c1f94af6989cb6bb90e22c063783b5b9b2b75ccf20bac993d9c35de84501e2bb
     # via -r requirements.in
-botocore==1.20.109 \
-    --hash=sha256:71e55a76305f9b55266a0930d37c3cfb3586a699a22f92e4329f9bd0ad63aa4d \
-    --hash=sha256:f0acd29847118e48c72c07a1bcf6f03417f22d67e05f310b8db51d77f4bd6234
+botocore==1.20.112 \
+    --hash=sha256:6d51de0981a3ef19da9e6a3c73b5ab427e3c0c8b92200ebd38d087299683dd2b \
+    --hash=sha256:d0b9b70b6eb5b65bb7162da2aaf04b6b086b15cc7ea322ddc3ef2f5e07944dcf
     # via
     #   -r requirements.in
     #   boto3
