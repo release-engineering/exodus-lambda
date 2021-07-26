@@ -4,13 +4,13 @@
 #
 #    pip-compile --generate-hashes --output-file=requirements.txt requirements.in
 #
-boto3==1.17.109 \
-    --hash=sha256:bce638f57fbf054f8eba1abce56c849108646edde3564bd08316763323a4020e \
-    --hash=sha256:c1f94af6989cb6bb90e22c063783b5b9b2b75ccf20bac993d9c35de84501e2bb
+boto3==1.18.6 \
+    --hash=sha256:68fbc8b7c13448f53164692163cc056fa242f8d7c39abbb77efc67b174b8f2a9 \
+    --hash=sha256:a0f5a806d072bd532c86ef10a2a5f7f1ca7e8e0e506561a21ab5d462a93aa810
     # via -r requirements.in
-botocore==1.20.109 \
-    --hash=sha256:71e55a76305f9b55266a0930d37c3cfb3586a699a22f92e4329f9bd0ad63aa4d \
-    --hash=sha256:f0acd29847118e48c72c07a1bcf6f03417f22d67e05f310b8db51d77f4bd6234
+botocore==1.21.6 \
+    --hash=sha256:c92dc2b69aec36b7482e5b05ac0a00d65ac972d745a74546942f09c95e68d335 \
+    --hash=sha256:cabff036f702411f47c6dae09134315e0b524c8eda6bb1de99ee75fc1ee07f7f
     # via
     #   -r requirements.in
     #   boto3
@@ -83,9 +83,9 @@ requests==2.25.1 \
     # via
     #   -r requirements.in
     #   cdn-definitions
-s3transfer==0.4.2 \
-    --hash=sha256:9b3752887a2880690ce628bc263d6d13a3864083aeacff4890c1c9839a5eb0bc \
-    --hash=sha256:cb022f4b16551edebbb31a377d3f09600dbada7363d8c5db7976e7f47732e1b2
+s3transfer==0.5.0 \
+    --hash=sha256:50ed823e1dc5868ad40c8dc92072f757aa0e653a192845c94a3b676f4a62da4c \
+    --hash=sha256:9c1dc369814391a6bda20ebbf4b70a0f34630592c9aa520856bf384916af2803
     # via boto3
 six==1.16.0 \
     --hash=sha256:1e61c37477a1626458e36f7b1d82aa5c9b094fa4802892072e49de9c60c4c926 \
