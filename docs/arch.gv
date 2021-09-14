@@ -69,13 +69,13 @@ digraph {
                     <td>/content/dist/rhel/server/7/7Server/x86_64/os/Packages/t/tar-1.26-34.el7.x86_64.rpm</td>
                     <td>2020-03-26T01:07:39+00:00</td>
                     <td>8e7750e50734f...</td>
-                    <td>audio/x-pn-realaudio-plugin</td>
+                    <td>application/x-rpm</td>
                 </tr>
                 <tr>
                     <td>/content/dist/rhel/server/7/7Server/x86_64/os/Packages/z/zlib-1.2.7-18.el7.x86_64.rpm</td>
                     <td>2020-03-26T01:07:39+00:00</td>
                     <td>db8dd5164d117...</td>
-                    <td>audio/x-pn-realaudio-plugin</td>
+                    <td>application/x-rpm</td>
                 </tr>
                 <tr>
                     <td>/content/dist/rhel/server/7/7Server/x86_64/os/repodata/repomd.xml</td>

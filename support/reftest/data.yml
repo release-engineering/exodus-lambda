@@ -17,14 +17,14 @@ test_data:
 # rpm
 - path: /content/aus/rhel/server/6/6.5/x86_64/os/Packages/c/cpio-2.10-12.el6_5.x86_64.rpm
   sha256: 06316538b90d3aab20f4787132307f6d330da9a48bab11a13e0a616fcf622ce5
-  content-type: audio/x-pn-realaudio-plugin
+  content-type: application/x-rpm
 - path: /content/dist/rhel8/8.1/x86_64/baseos/os/Packages/i/iptables-1.8.2-16.el8.x86_64.rpm
   sha256: 580d8c304c0fce98a47cf0283849e5e9f7e8f5c7bda766921249765046947e40
-  content-type: audio/x-pn-realaudio-plugin
+  content-type: application/x-rpm
 # rpm for orgin path alias test
 - path: /origin/rpms/bash/4.4.19/8.el8_0/fd431d51/bash-4.4.19-8.el8_0.x86_64.rpm
   sha256: 4164ff2c0116d666578ba5e456ab03b88788dfb42fb93fc91b2c1da709d86686
-  content-type: audio/x-pn-realaudio-plugin
+  content-type: application/x-rpm
 # listing
 - path: /content/dist/rhel/server/5/5.7/listing
   sha256: b51f4ddc06fddec9e73892671f1f25300ccd4235fa798afd01caf96446dc2bf1
