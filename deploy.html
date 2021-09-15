@@ -81,11 +81,11 @@ Default: exodus</p>
 <span class="gp">$ </span><span class="nb">export</span> <span class="nv">$ENV_TYPE</span><span class="o">=</span>...
 <span class="gp">$ </span>./scripts/build-package
 <span class="gp">$ </span>aws cloudformation deploy <span class="se">\</span>
-<span class="go">       --template-file configuration/exodus-lambda-pkg.yaml \</span>
-<span class="go">       --stack-name ... \</span>
-<span class="go">       --capabilities ... \</span>
-<span class="go">       --parameter-overrides env=$ENV_TYPE project=$PROJECT \</span>
-<span class="go">           oai=... lambdafunctionrole=...</span>
+       --template-file configuration/exodus-lambda-pkg.yaml <span class="se">\</span>
+       --stack-name ... <span class="se">\</span>
+       --capabilities ... <span class="se">\</span>
+       --parameter-overrides <span class="nv">env</span><span class="o">=</span><span class="nv">$ENV_TYPE</span> <span class="nv">project</span><span class="o">=</span><span class="nv">$PROJECT</span> <span class="se">\</span>
+           <span class="nv">oai</span><span class="o">=</span>... <span class="nv">lambdafunctionrole</span><span class="o">=</span>...
 </pre></div>
 </div>
 </section>
@@ -168,7 +168,7 @@ Default: exodus</p>
       &copy;2020, Red Hat.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.1.2</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.2.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |
