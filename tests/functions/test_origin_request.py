@@ -65,9 +65,11 @@ TEST_CONF = generate_test_config(CONF_PATH)
     ],
 )
 @mock.patch("boto3.client")
+@mock.patch("exodus_lambda.functions.origin_request.cachetools")
 @mock.patch("exodus_lambda.functions.origin_request.datetime")
 def test_origin_request(
     mocked_datetime,
+    mocked_cache,
     mocked_boto3_client,
     req_uri,
     real_uri,
@@ -75,6 +77,7 @@ def test_origin_request(
     caplog,
 ):
     mocked_datetime.now().isoformat.return_value = MOCKED_DT
+    mocked_cache.TTLCache.return_value = {"exodus-config": mock_definitions()}
     mocked_boto3_client().query.return_value = {
         "Items": [
             {
@@ -90,7 +93,7 @@ def test_origin_request(
 
     with caplog.at_level(logging.DEBUG):
         request = OriginRequest(
-            conf_file=TEST_CONF, definitions_source=mock_definitions()
+            conf_file=TEST_CONF,
         ).handler(event, context=None)
 
     assert "Item found for '%s'" % real_uri in caplog.text
@@ -109,28 +112,34 @@ def test_origin_request(
 
 
 @mock.patch("boto3.client")
+@mock.patch("exodus_lambda.functions.origin_request.cachetools")
 @mock.patch("exodus_lambda.functions.origin_request.datetime")
-def test_origin_request_no_item(mocked_datetime, mocked_boto3_client, caplog):
+def test_origin_request_no_item(
+    mocked_datetime, mocked_cache, mocked_boto3_client, caplog
+):
     mocked_datetime.now().isoformat.return_value = MOCKED_DT
+    mocked_cache.TTLCache.return_value = {"exodus-config": mock_definitions()}
     mocked_boto3_client().query.return_value = {"Items": []}
 
     event = {"Records": [{"cf": {"request": {"uri": TEST_PATH}}}]}
 
     with caplog.at_level(logging.DEBUG):
-        request = OriginRequest(
-            conf_file=TEST_CONF, definitions_source=mock_definitions()
-        ).handler(event, context=None)
+        request = OriginRequest(conf_file=TEST_CONF).handler(
+            event, context=None
+        )
 
     assert request == {"status": "404", "statusDescription": "Not Found"}
     assert "No item found for '%s'" % TEST_PATH in caplog.text
 
 
 @mock.patch("boto3.client")
+@mock.patch("exodus_lambda.functions.origin_request.cachetools")
 @mock.patch("exodus_lambda.functions.origin_request.datetime")
 def test_origin_request_invalid_item(
-    mocked_datetime, mocked_boto3_client, caplog
+    mocked_datetime, mocked_cache, mocked_boto3_client, caplog
 ):
     mocked_datetime.now().isoformat.return_value = MOCKED_DT
+    mocked_cache.TTLCache.return_value = {"exodus-config": mock_definitions()}
     mocked_boto3_client().query.return_value = {
         "Items": [
             {
@@ -143,9 +152,7 @@ def test_origin_request_invalid_item(
     event = {"Records": [{"cf": {"request": {"uri": TEST_PATH}}}]}
 
     with pytest.raises(KeyError):
-        OriginRequest(
-            conf_file=TEST_CONF, definitions_source=mock_definitions()
-        ).handler(event, context=None)
+        OriginRequest(conf_file=TEST_CONF).handler(event, context=None)
 
     assert (
         "Exception occurred while processing %s"
@@ -157,3 +164,48 @@ def test_origin_request_invalid_item(
         )
         in caplog.text
     )
+
+
+@mock.patch("boto3.client")
+def test_origin_request_definitions(mocked_boto3_client):
+    mocked_defs = mock_definitions()
+    mocked_boto3_client().query.return_value = {
+        "Items": [
+            {
+                "from_date": {"S": "2020-02-17T00:00:00.000+00:00"},
+                "config_id": {"S": "exodus-config"},
+                "config": {"S": json.dumps(mocked_defs)},
+            }
+        ]
+    }
+
+    assert mocked_defs == OriginRequest(conf_file=TEST_CONF).definitions
+
+
+@pytest.mark.parametrize(
+    "cur_time, count", [(1741221.281833067, 2), (1741025.281833067, 1)]
+)
+@mock.patch("boto3.client")
+@mock.patch("exodus_lambda.functions.origin_request.time.monotonic")
+def test_origin_request_definitions_cache(
+    mocked_time, mocked_boto3_client, cur_time, count
+):
+    mocked_defs = mock_definitions()
+    mocked_time.return_value = 1741021.281833067
+    mocked_boto3_client().query.return_value = {
+        "Items": [
+            {
+                "from_date": {"S": "2020-02-17T00:00:00.000+00:00"},
+                "config_id": {"S": "exodus-config"},
+                "config": {"S": json.dumps(mocked_defs)},
+            }
+        ]
+    }
+
+    obj = OriginRequest(conf_file=TEST_CONF)
+    obj.definitions
+    assert obj._cache.currsize == 1  # pylint:disable=protected-access
+
+    mocked_time.return_value = cur_time
+    obj.definitions
+    assert mocked_boto3_client().query.call_count == count

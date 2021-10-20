@@ -5,6 +5,13 @@
       "us-east-1"
     ]
   },
+  "config_table": {
+    "name": "$PROJECT-config-$ENV_TYPE",
+    "available_regions": [
+      "us-east-1"
+    ]
+  },
+  "config_cache_ttl": 2,
   "headers": {
     "max_age": "600"
   },

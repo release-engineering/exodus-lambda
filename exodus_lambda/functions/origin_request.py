@@ -1,27 +1,53 @@
 import json
+import time
 import urllib
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 import boto3
-from cdn_definitions import load_data
+import cachetools
 
 from .base import LambdaBase
 
 
 class OriginRequest(LambdaBase):
-    def __init__(
-        self, conf_file="lambda_config.json", definitions_source=None
-    ):
+    def __init__(self, conf_file="lambda_config.json"):
         super().__init__("origin-request", conf_file)
         self._db_client = None
-        self._definitions_source = definitions_source
-        self._definitions = None
+        self._cache = cachetools.TTLCache(
+            maxsize=1,
+            ttl=timedelta(
+                minutes=self.conf.get("config_cache_ttl", 2)
+            ).total_seconds(),
+            timer=time.monotonic,
+        )
 
     @property
     def definitions(self):
-        if self._definitions is None:
-            self._definitions = load_data(source=self._definitions_source)
-        return self._definitions
+        out = self._cache.get("exodus-config")
+        if out is None:
+            table = self.conf["config_table"]["name"]
+
+            query_result = self.db_client.query(
+                TableName=table,
+                Limit=1,
+                ScanIndexForward=False,
+                KeyConditionExpression="config_id = :id and from_date <= :d",
+                ExpressionAttributeValues={
+                    ":id": {"S": "exodus-config"},
+                    ":d": {
+                        "S": str(
+                            datetime.now(timezone.utc).isoformat(
+                                timespec="milliseconds"
+                            )
+                        )
+                    },
+                },
+            )
+            if query_result["Items"]:
+                item = query_result["Items"][0]
+                out = json.loads(item["config"]["S"])
+                self._cache["exodus-config"] = out
+        return out
 
     @property
     def db_client(self):

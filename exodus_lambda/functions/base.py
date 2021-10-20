@@ -17,8 +17,20 @@ class LambdaBase(object):
             if isinstance(self._conf_file, dict):
                 self._conf = self._conf_file
             else:
-                with open(self._conf_file, "r") as json_file:
-                    self._conf = json.load(json_file)
+                for conf_file in [
+                    self._conf_file,
+                    os.path.join(
+                        os.path.dirname(
+                            os.path.dirname(os.path.dirname(__file__))
+                        ),
+                        "configuration",
+                        "lambda_config.json",
+                    ),
+                ]:
+                    if os.path.exists(conf_file):
+                        with open(conf_file, "r") as json_file:
+                            self._conf = json.load(json_file)
+                        break
         return self._conf
 
     @property
