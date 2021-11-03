@@ -4,3 +4,4 @@ docutils
 cdn-definitions
 requests
 PyYAML
+cachetools

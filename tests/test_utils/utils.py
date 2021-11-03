@@ -1,6 +1,8 @@
 import json
 import os
 
+from cdn_definitions import load_data
+
 
 def generate_test_config(conf="configuration/lambda_config.json"):
     with open(conf, "r") as json_file:
@@ -34,10 +36,17 @@ def generate_test_config(conf="configuration/lambda_config.json"):
     conf["logging"]["loggers"]["origin-request"]["level"] = "DEBUG"
     conf["logging"]["loggers"]["default"]["level"] = "DEBUG"
 
+    conf["config_table"]["name"] = "test-config-table"
+    conf["config_table"]["cache_ttl"] = 2
+
     return conf
 
 
 def mock_definitions():
-    return os.path.join(
-        os.path.dirname(os.path.dirname(__file__)), "test_data", "data.yaml"
+    return load_data(
+        os.path.join(
+            os.path.dirname(os.path.dirname(__file__)),
+            "test_data",
+            "data.yaml",
+        )
     )
