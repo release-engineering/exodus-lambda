@@ -3,6 +3,7 @@ set -e
 
 pip install --require-hashes -r requirements.txt --target ./package
 pip install --no-deps --target ./package .
+cp ./configuration/exodus-lambda-deploy.yaml ./package
 envsubst < ./configuration/lambda_config.json > ./package/lambda_config.json
 aws cloudformation package \
 	--template ./package/exodus-lambda-deploy.yaml \
