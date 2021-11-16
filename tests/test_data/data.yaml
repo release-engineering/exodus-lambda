@@ -11,3 +11,7 @@ origin_alias:
 
 - src: /origin/rpm
   dest: /origin/rpms
+
+releasever_alias:
+- src: /content/dist/rhel/server/7/7Server
+  dest: /content/dist/rhel/server/7/7.9

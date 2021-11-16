@@ -53,6 +53,16 @@ TEST_CONF = generate_test_config(CONF_PATH)
             "/origin/rpms/repo/ver/dir/filename.ext",
             "text/plain",
         ),
+        (
+            "/content/dist/rhel/server/7/7Server/test.ext",
+            "/content/dist/rhel/server/7/7.9/test.ext",
+            "text/plain",
+        ),
+        (
+            "/content/dist/rhel/rhui/server/7/7Server/file.ext",
+            "/content/dist/rhel/server/7/7.9/file.ext",
+            "text/plain",
+        ),
     ],
     ids=[
         "/origin/rpm/",
@@ -62,6 +72,8 @@ TEST_CONF = generate_test_config(CONF_PATH)
         "rhui listing exception",
         "multiple alias keywords",
         "no alias keywords",
+        "releasever alias",
+        "layered rhui, releasever alias",
     ],
 )
 @mock.patch("boto3.client")

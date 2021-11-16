@@ -165,3 +165,22 @@ def test_rhui_path_alias_rhel8(cdn_test_url, testdata_path):
         r.headers["digest"]
         == "id-sha-256=WA2MMEwPzpikfPAoOEnl6ffo9ce9p2aSEkl2UEaUfkA="
     )
+
+
+testdata_releasever_alias_rhel6 = [
+    "/content/dist/rhel/server/6/6.10/x86_64/os/Packages/c/cpio-2.10-12.el6_5.x86_64.rpm",
+    "/content/dist/rhel/server/6/6Server/x86_64/os/Packages/c/cpio-2.10-12.el6_5.x86_64.rpm",
+]
+
+
+@pytest.mark.parametrize("testdata_path", testdata_releasever_alias_rhel6)
+def test_releasever_alias_rhel6(cdn_test_url, testdata_path):
+    headers = {"want-digest": "id-sha-256"}
+    url = cdn_test_url + testdata_path
+    r = requests.head(url, headers=headers)
+    print(json.dumps(dict(r.headers), indent=2))
+    assert r.status_code == 200
+    assert (
+        r.headers["digest"]
+        == "id-sha-256=BjFlOLkNOqsg9HhxMjB/bTMNqaSLqxGhPgphb89iLOU="
+    )

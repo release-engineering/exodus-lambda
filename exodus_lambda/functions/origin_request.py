@@ -95,6 +95,9 @@ class OriginRequest(LambdaBase):
         if not uri.endswith("/listing"):
             uri = self.uri_alias(uri, self.definitions.get("rhui_alias"))
 
+        # aliases relating to releasever; e.g. /content/dist/rhel8/8 <=> /content/dist/rhel8/8.5
+        uri = self.uri_alias(uri, self.definitions.get("releasever_alias"))
+
         return uri
 
     def handler(self, event, context):
