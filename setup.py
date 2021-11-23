@@ -35,7 +35,7 @@ setup(
         "Programming Language :: Python :: 3",
     ],
     install_requires=get_requirements(),
-    python_requires=">=3.7",
+    python_requires=">=3.9",
     project_urls={
         "Documentation": "https://release-engineering.github.io/exodus-lambda"
     },
