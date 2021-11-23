@@ -8,6 +8,7 @@ It requires a "data.yml" file specifying the reference test data.
 
 import argparse
 import hashlib
+import os
 import sys
 import tempfile
 from datetime import datetime
@@ -94,13 +95,13 @@ def parse_aws_session(parser):
 def parse_cdn_certs(parser):
     parser.add_argument(
         "--cert",
-        default="~/certs/rcm-debug/rcm-debug.crt",
+        default=os.path.expanduser("~/certs/rcm-debug/rcm-debug.crt"),
         type=str,
         help="Client certificate file and password",
     )
     parser.add_argument(
         "--key",
-        default="~/certs/rcm-debug/rcm-debug.key",
+        default=os.path.expanduser("~/certs/rcm-debug/rcm-debug.key"),
         type=str,
         help="Private key file name",
     )
