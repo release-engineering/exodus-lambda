@@ -38,15 +38,20 @@ class DBHandler:
     ):
         if not from_date:
             from_date = self.default_from_date
-        return self.dynamodb.put_item(
+
+        item = {
+            "web_uri": {"S": web_uri},
+            "from_date": {"S": from_date},
+            "object_key": {"S": object_key},
+            "metadata": {"M": metadata},
+        }
+
+        if content_type:
+            item["content_type"] = {"S": content_type}
+
+        self.dynamodb.put_item(
             TableName=self.table,
-            Item={
-                "web_uri": {"S": web_uri},
-                "from_date": {"S": from_date},
-                "object_key": {"S": object_key},
-                "content_type": {"S": content_type},
-                "metadata": {"M": metadata},
-            },
+            Item=item,
         )
 
 
@@ -213,7 +218,7 @@ def prepare(db_client, s3_client, config, opt):
             item["path"],
             cdn_data_checksum,
             from_date=opt.release_date,
-            content_type=item["content-type"],
+            content_type=item.get("content-type", None),
         )
 
         # delete the NamedTemporaryFile

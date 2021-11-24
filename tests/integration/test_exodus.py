@@ -184,3 +184,17 @@ def test_releasever_alias_rhel6(cdn_test_url, testdata_path):
         r.headers["digest"]
         == "id-sha-256=BjFlOLkNOqsg9HhxMjB/bTMNqaSLqxGhPgphb89iLOU="
     )
+
+
+testdata_no_content_type = [
+    "/content/dist/rhel8/8.2/x86_64/baseos/iso/rhel-8.2-x86_64-boot.iso"
+]
+
+
+@pytest.mark.parametrize("testdata_path", testdata_no_content_type)
+def test_no_content_type(cdn_test_url, testdata_path):
+    url = cdn_test_url + testdata_path
+    r = requests.get(url)
+    print(json.dumps(dict(r.headers), indent=2))
+    assert r.status_code == 200
+    assert r.headers["Content-Type"] == "application/octet-stream"
