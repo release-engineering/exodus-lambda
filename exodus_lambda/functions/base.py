@@ -28,7 +28,9 @@ class LambdaBase(object):
                     ),
                 ]:
                     if os.path.exists(conf_file):
-                        with open(conf_file, "r") as json_file:
+                        with open(
+                            conf_file, "r", encoding="UTF-8"
+                        ) as json_file:
                             self._conf = json.load(json_file)
                         break
         return self._conf
