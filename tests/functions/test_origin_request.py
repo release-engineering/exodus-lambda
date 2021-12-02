@@ -221,3 +221,60 @@ def test_origin_request_definitions_cache(
     mocked_time.return_value = cur_time
     obj.definitions
     assert mocked_boto3_client().query.call_count == count
+
+
+@pytest.mark.parametrize(
+    "req_uri, real_uri",
+    [
+        (
+            "/content/dist/rhel/some/filename.iso",
+            "/content/dist/rhel/some/filename.iso",
+        ),
+    ],
+    ids=[
+        "no content_type",
+    ],
+)
+@mock.patch("boto3.client")
+@mock.patch("exodus_lambda.functions.origin_request.cachetools")
+@mock.patch("exodus_lambda.functions.origin_request.datetime")
+def test_origin_request_no_content_type(
+    mocked_datetime,
+    mocked_cache,
+    mocked_boto3_client,
+    req_uri,
+    real_uri,
+    caplog,
+):
+    mocked_datetime.now().isoformat.return_value = MOCKED_DT
+    mocked_cache.TTLCache.return_value = {"exodus-config": mock_definitions()}
+    mocked_boto3_client().query.return_value = {
+        "Items": [
+            {
+                "web_uri": {"S": real_uri},
+                "from_date": {"S": "2020-02-17T00:00:00.000+00:00"},
+                "object_key": {"S": "e4a3f2sum"},
+            }
+        ]
+    }
+
+    event = {"Records": [{"cf": {"request": {"uri": req_uri, "headers": {}}}}]}
+
+    with caplog.at_level(logging.DEBUG):
+        request = OriginRequest(
+            conf_file=TEST_CONF,
+        ).handler(event, context=None)
+
+    assert "Item found for '%s'" % real_uri in caplog.text
+
+    assert request == {
+        "uri": "/e4a3f2sum",
+        "querystring": urllib.parse.urlencode(
+            {"response-content-type": "application/octet-stream"}
+        ),
+        "headers": {
+            "exodus-original-uri": [
+                {"key": "exodus-original-uri", "value": req_uri}
+            ]
+        },
+    }
