@@ -1,8 +1,6 @@
 import json
 import os
 
-from cdn_definitions import load_data
-
 
 def generate_test_config(conf="configuration/lambda_config.json"):
     with open(conf, "r") as json_file:
@@ -43,10 +41,12 @@ def generate_test_config(conf="configuration/lambda_config.json"):
 
 
 def mock_definitions():
-    return load_data(
-        os.path.join(
-            os.path.dirname(os.path.dirname(__file__)),
-            "test_data",
-            "data.yaml",
-        )
+    config_path = os.path.join(
+        os.path.dirname(os.path.dirname(__file__)),
+        "test_data",
+        "exodus-config.json",
     )
+    with open(config_path) as f:
+        exodus_config = json.load(f)
+
+    return exodus_config

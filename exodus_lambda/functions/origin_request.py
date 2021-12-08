@@ -100,11 +100,38 @@ class OriginRequest(LambdaBase):
 
         return uri
 
+    def handle_listing_request(self, uri):
+        if uri.endswith("/listing"):
+            self.logger.info("Handling listing request: %s", uri)
+            listing_data = self.definitions.get("listing")
+            if listing_data:
+                target = uri[: -len("/listing")]
+                listing = listing_data.get(target)
+                if listing:
+                    return {
+                        "body": "\n".join(listing["values"]) + "\n",
+                        "status": "200",
+                        "statusDescription": "OK",
+                        "headers": {
+                            "content-type": [
+                                {"key": "Content-Type", "value": "text/plain"}
+                            ]
+                        },
+                    }
+                self.logger.info("No listing found for '%s'", uri)
+            else:
+                self.logger.info("No listing data defined")
+
     def handler(self, event, context):
         # pylint: disable=unused-argument
 
         request = event["Records"][0]["cf"]["request"]
         uri = self.resolve_aliases(request["uri"])
+
+        listing_response = self.handle_listing_request(uri)
+        if listing_response:
+            return listing_response
+
         self.logger.info(
             "The request value for origin_request beginning is '%s'",
             json.dumps(request, indent=4, sort_keys=True),
