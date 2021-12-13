@@ -11,9 +11,9 @@
       "us-east-1"
     ]
   },
-  "config_cache_ttl": 2,
+  "config_cache_ttl": $EXODUS_CONFIG_CACHE_TTL,
   "headers": {
-    "max_age": "600"
+    "max_age": "$EXODUS_HEADERS_MAX_AGE"
   },
   "logging": {
     "version": 1,
@@ -27,10 +27,10 @@
     },
     "loggers": {
       "origin-response": {
-        "level": "WARNING"
+        "level": "$ORIGIN_RESPONSE_LOGGER_LEVEL"
       },
       "origin-request": {
-        "level": "WARNING"
+        "level": "$ORIGIN_REQUEST_LOGGER_LEVEL"
       },
       "default": {
         "level": "WARNING"
