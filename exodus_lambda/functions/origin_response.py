@@ -1,5 +1,4 @@
 import json
-import re
 from base64 import b64encode
 
 from .base import LambdaBase
@@ -31,14 +30,6 @@ class OriginResponse(LambdaBase):
                 {"key": "Digest", "value": f"id-sha-256={sum_b64}"}
             ]
 
-        max_age = self.conf["headers"]["max_age"]
-        max_age_pattern_whitelist = [
-            ".+/PULP_MANIFEST",
-            ".+/listing",
-            ".+/repodata/repomd.xml",
-            ".+/ostree/repo/refs/heads/.*/.*",
-        ]
-
         try:
             original_uri = request["headers"]["exodus-original-uri"][0][
                 "value"
@@ -52,14 +43,7 @@ class OriginResponse(LambdaBase):
             original_uri = None
 
         if original_uri:
-            for pattern in max_age_pattern_whitelist:
-                if re.match(pattern, original_uri):
-                    response["headers"]["cache-control"] = [
-                        {"key": "Cache-Control", "value": f"max-age={max_age}"}
-                    ]
-                    self.logger.info(
-                        "Cache-Control header added for '%s'", original_uri
-                    )
+            self.set_cache_control(original_uri, response)
 
         return response
 
