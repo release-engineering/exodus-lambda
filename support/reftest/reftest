@@ -195,6 +195,10 @@ def download_to_local(url, key_path, cert_path, cacert_path):
 
 def prepare(db_client, s3_client, config, opt):
     for item in config.test_data:
+        if not item.get("deploy", True):
+            # skip items that specify deploy=false
+            continue
+
         url = config.prod_cdn_url + item["path"]
         # download test data to local with a name "NamedTemporaryFile"
         temp_file, cdn_data_checksum = download_to_local(

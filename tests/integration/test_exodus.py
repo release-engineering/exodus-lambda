@@ -47,25 +47,31 @@ def test_header_cache_control(cdn_test_url, testdata_path):
 
 def test_header_want_digest_GET(cdn_test_url):
     headers = {"want-digest": "id-sha-256"}
-    url = cdn_test_url + "/content/dist/rhel/server/5/5.7/listing"
+    url = (
+        cdn_test_url
+        + "/content/dist/rhel/server/7/7.2/x86_64/rhev-mgmt-agent/3/os/repodata/repomd.xml"
+    )
     r = requests.get(url, headers=headers)
     print(json.dumps(dict(r.headers), indent=2))
     assert r.status_code == 200
     assert (
         r.headers["digest"]
-        == "id-sha-256=tR9N3Ab93snnOJJnHx8lMAzNQjX6eYr9Acr5ZEbcK/E="
+        == "id-sha-256=hYGantfjJjDl4O5HesjPpwtIG2V5vWIuIOfuki9ThDk="
     )
 
 
 def test_header_want_digest_HEAD(cdn_test_url):
     headers = {"want-digest": "id-sha-256"}
-    url = cdn_test_url + "/content/dist/rhel/server/5/5.7/listing"
+    url = (
+        cdn_test_url
+        + "/content/dist/rhel/server/7/7.2/x86_64/rhev-mgmt-agent/3/os/repodata/repomd.xml"
+    )
     r = requests.head(url, headers=headers)
     print(json.dumps(dict(r.headers), indent=2))
     assert r.status_code == 200
     assert (
         r.headers["digest"]
-        == "id-sha-256=tR9N3Ab93snnOJJnHx8lMAzNQjX6eYr9Acr5ZEbcK/E="
+        == "id-sha-256=hYGantfjJjDl4O5HesjPpwtIG2V5vWIuIOfuki9ThDk="
     )
 
 

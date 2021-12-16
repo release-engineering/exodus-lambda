@@ -2,6 +2,7 @@ import json
 import logging
 import logging.config
 import os
+import re
 
 
 class LambdaBase(object):
@@ -57,6 +58,28 @@ class LambdaBase(object):
                 root_logger.handlers[0].setFormatter(formatter)
             self._logger = logging.getLogger(self._logger_name)
         return self._logger
+
+    @property
+    def max_age(self):
+        return self.conf["headers"]["max_age"]
+
+    def set_cache_control(self, uri, response):
+        max_age_pattern_whitelist = [
+            ".+/PULP_MANIFEST",
+            ".+/listing",
+            ".+/repodata/repomd.xml",
+            ".+/ostree/repo/refs/heads/.*/.*",
+        ]
+
+        for pattern in max_age_pattern_whitelist:
+            if re.match(pattern, uri):
+                response["headers"]["cache-control"] = [
+                    {
+                        "key": "Cache-Control",
+                        "value": f"max-age={self.max_age}",
+                    }
+                ]
+                self.logger.info("Cache-Control header added for '%s'", uri)
 
     def handler(self, event, context):
         raise NotImplementedError

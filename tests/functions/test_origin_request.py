@@ -299,7 +299,10 @@ def test_origin_request_listing_typical(mocked_cache, caplog):
         "status": "200",
         "statusDescription": "OK",
         "headers": {
-            "content-type": [{"key": "Content-Type", "value": "text/plain"}]
+            "content-type": [{"key": "Content-Type", "value": "text/plain"}],
+            "cache-control": [
+                {"key": "Cache-Control", "value": "max-age=600"}
+            ],
         },
     }
 

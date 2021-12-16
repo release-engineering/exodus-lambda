@@ -130,6 +130,7 @@ class OriginRequest(LambdaBase):
 
         listing_response = self.handle_listing_request(uri)
         if listing_response:
+            self.set_cache_control(uri, listing_response)
             return listing_response
 
         self.logger.info(

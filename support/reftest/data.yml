@@ -32,6 +32,7 @@ test_data:
 - path: /content/dist/rhel/server/5/5.7/listing
   sha256: b51f4ddc06fddec9e73892671f1f25300ccd4235fa798afd01caf96446dc2bf1
   content-type: text/plain
+  deploy: false
 # PULP_MANIFEST
 - path: /content/dist/rhel8/8.2/x86_64/baseos/iso/PULP_MANIFEST
   sha256: 2fb7a09fd67432ad7b7c95d24fe332827e24920347319c24bfef236cb0b72f19
