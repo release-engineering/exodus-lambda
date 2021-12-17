@@ -40,6 +40,4 @@ test_data:
 # */ostree/repo/refs/heads/*/* unstable content skip checksum-verify
 - path: /content/dist/rhel/atomic/7/7Server/x86_64/ostree/repo/refs/heads/rhel-atomic-host/7/x86_64/standard
   content-type: text/plain
-- path: /content/dist/rhel/atomic/7/7.9/x86_64/ostree/repo/refs/heads/rhel-atomic-host/7/x86_64/standard
-  content-type: text/plain
 - path: /content/dist/rhel8/8.2/x86_64/baseos/iso/rhel-8.2-x86_64-boot.iso

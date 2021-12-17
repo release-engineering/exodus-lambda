@@ -117,10 +117,6 @@
             "dest": "/content/dist/rhel/arm/7.7"
         },
         {
-            "src": "/content/dist/rhel/atomic/7/7Server",
-            "dest": "/content/dist/rhel/atomic/7/7.9"
-        },
-        {
             "src": "/content/dist/rhel/client/7/7Client",
             "dest": "/content/dist/rhel/client/7/7.9"
         },
