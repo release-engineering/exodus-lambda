@@ -1,7 +1,8 @@
 import json
-import os
-import logging.config
 import logging
+import logging.config
+import os
+import re
 
 
 class LambdaBase(object):
@@ -17,8 +18,22 @@ class LambdaBase(object):
             if isinstance(self._conf_file, dict):
                 self._conf = self._conf_file
             else:
-                with open(self._conf_file, "r") as json_file:
-                    self._conf = json.load(json_file)
+                for conf_file in [
+                    self._conf_file,
+                    os.path.join(
+                        os.path.dirname(
+                            os.path.dirname(os.path.dirname(__file__))
+                        ),
+                        "configuration",
+                        "lambda_config.json",
+                    ),
+                ]:
+                    if os.path.exists(conf_file):
+                        with open(
+                            conf_file, "r", encoding="UTF-8"
+                        ) as json_file:
+                            self._conf = json.load(json_file)
+                        break
         return self._conf
 
     @property
@@ -43,6 +58,28 @@ class LambdaBase(object):
                 root_logger.handlers[0].setFormatter(formatter)
             self._logger = logging.getLogger(self._logger_name)
         return self._logger
+
+    @property
+    def max_age(self):
+        return self.conf["headers"]["max_age"]
+
+    def set_cache_control(self, uri, response):
+        max_age_pattern_whitelist = [
+            ".+/PULP_MANIFEST",
+            ".+/listing",
+            ".+/repodata/repomd.xml",
+            ".+/ostree/repo/refs/heads/.*/.*",
+        ]
+
+        for pattern in max_age_pattern_whitelist:
+            if re.match(pattern, uri):
+                response["headers"]["cache-control"] = [
+                    {
+                        "key": "Cache-Control",
+                        "value": f"max-age={self.max_age}",
+                    }
+                ]
+                self.logger.info("Cache-Control header added for '%s'", uri)
 
     def handler(self, event, context):
         raise NotImplementedError

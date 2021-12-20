@@ -1,10 +1,10 @@
-import json
 import logging
 
 import pytest
 
 from exodus_lambda.functions.origin_response import OriginResponse
-from test_utils.utils import generate_test_config
+
+from ..test_utils.utils import generate_test_config
 
 CONF_PATH = "configuration/lambda_config.json"
 TEST_CONF = generate_test_config(CONF_PATH)
@@ -110,9 +110,7 @@ def test_origin_response_logger(caplog):
     }
 
     with caplog.at_level(logging.DEBUG):
-        response = OriginResponse(conf_file=TEST_CONF).handler(
-            event, context=None
-        )
+        OriginResponse(conf_file=TEST_CONF).handler(event, context=None)
 
     assert (
         "Cache-Control header added for '/some/repo/repodata/repomd.xml'"

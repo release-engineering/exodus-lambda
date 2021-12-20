@@ -1,0 +1,332 @@
+{
+    "origin_alias": [
+        {
+            "src": "/content/origin",
+            "dest": "/origin"
+        },
+        {
+            "src": "/origin/rpm",
+            "dest": "/origin/rpms"
+        }
+    ],
+    "rhui_alias": [
+        {
+            "src": "/content/e4s/rhel9/rhui",
+            "dest": "/content/e4s/rhel9"
+        },
+        {
+            "src": "/content/eus/rhel9/rhui",
+            "dest": "/content/eus/rhel9"
+        },
+        {
+            "src": "/content/dist/rhel9/rhui",
+            "dest": "/content/dist/rhel9"
+        },
+        {
+            "src": "/content/beta/rhel9/rhui",
+            "dest": "/content/beta/rhel9"
+        },
+        {
+            "src": "/content/aus/rhel8/rhui",
+            "dest": "/content/aus/rhel8"
+        },
+        {
+            "src": "/content/aus/rhel/rhui",
+            "dest": "/content/aus/rhel"
+        },
+        {
+            "src": "/content/beta/rhel8/rhui",
+            "dest": "/content/beta/rhel8"
+        },
+        {
+            "src": "/content/beta/rhel-alt/rhui",
+            "dest": "/content/beta/rhel-alt"
+        },
+        {
+            "src": "/content/beta/rhel/rhui",
+            "dest": "/content/beta/rhel"
+        },
+        {
+            "src": "/content/beta/rhs/rhui",
+            "dest": "/content/beta/rhs"
+        },
+        {
+            "src": "/content/dist/layered/rhui",
+            "dest": "/content/dist/layered"
+        },
+        {
+            "src": "/content/beta/layered/rhui",
+            "dest": "/content/beta/layered"
+        },
+        {
+            "src": "/content/dist/middleware/rhui",
+            "dest": "/content/dist/middleware"
+        },
+        {
+            "src": "/content/dist/rhel8/rhui",
+            "dest": "/content/dist/rhel8"
+        },
+        {
+            "src": "/content/dist/rhel-alt/rhui",
+            "dest": "/content/dist/rhel-alt"
+        },
+        {
+            "src": "/content/dist/rhel/rhui",
+            "dest": "/content/dist/rhel"
+        },
+        {
+            "src": "/content/dist/rhes/rhui",
+            "dest": "/content/dist/rhes"
+        },
+        {
+            "src": "/content/dist/rhs/rhui",
+            "dest": "/content/dist/rhs"
+        },
+        {
+            "src": "/content/e4s/rhel8/rhui",
+            "dest": "/content/e4s/rhel8"
+        },
+        {
+            "src": "/content/e4s/rhel/rhui",
+            "dest": "/content/e4s/rhel"
+        },
+        {
+            "src": "/content/els/rhel/rhui",
+            "dest": "/content/els/rhel"
+        },
+        {
+            "src": "/content/eus/rhel8/rhui",
+            "dest": "/content/eus/rhel8"
+        },
+        {
+            "src": "/content/eus/rhel/rhui",
+            "dest": "/content/eus/rhel"
+        },
+        {
+            "src": "/content/rc/rhel/rhui",
+            "dest": "/content/rc/rhel"
+        }
+    ],
+    "releasever_alias": [
+        {
+            "src": "/content/dist/rhel-alt/server/7/7Server",
+            "dest": "/content/dist/rhel-alt/server/7/7.9"
+        },
+        {
+            "src": "/content/dist/rhel/arm/7Server",
+            "dest": "/content/dist/rhel/arm/7.7"
+        },
+        {
+            "src": "/content/dist/rhel/client/7/7Client",
+            "dest": "/content/dist/rhel/client/7/7.9"
+        },
+        {
+            "src": "/content/dist/rhel/computenode/7/7ComputeNode",
+            "dest": "/content/dist/rhel/computenode/7/7.9"
+        },
+        {
+            "src": "/content/dist/rhel/power-9/7/7Server",
+            "dest": "/content/dist/rhel/power-9/7/7.7"
+        },
+        {
+            "src": "/content/dist/rhel/power-le/7/7Server",
+            "dest": "/content/dist/rhel/power-le/7/7.9"
+        },
+        {
+            "src": "/content/dist/rhel/power/7/7Server",
+            "dest": "/content/dist/rhel/power/7/7.9"
+        },
+        {
+            "src": "/content/dist/rhel/server/7/7Server",
+            "dest": "/content/dist/rhel/server/7/7.9"
+        },
+        {
+            "src": "/content/dist/rhel/system-z/7/7Server",
+            "dest": "/content/dist/rhel/system-z/7/7.9"
+        },
+        {
+            "src": "/content/dist/rhel/workstation/7/7Workstation",
+            "dest": "/content/dist/rhel/workstation/7/7.9"
+        },
+        {
+            "src": "/content/dist/rhel8/8",
+            "dest": "/content/dist/rhel8/8.5"
+        },
+        {
+            "src": "/content/dist/rhel9/9",
+            "dest": "/content/dist/rhel9/9.0"
+        }
+    ],
+    "listing": {
+        "/content/dist/rhel/rhui/server/7/7Server": {
+            "var": "basearch",
+            "values": [
+                "x86_64"
+            ]
+        },
+        "/content/beta/rhel/rhui/server/7": {
+            "var": "basearch",
+            "values": [
+                "x86_64"
+            ]
+        },
+        "/content/dist/rhel/rhui/server/7": {
+            "var": "releasever",
+            "values": [
+                "7.0",
+                "7.1",
+                "7.2",
+                "7.3",
+                "7.4",
+                "7.5",
+                "7.6",
+                "7.7",
+                "7.8",
+                "7.9",
+                "7Server"
+            ]
+        },
+        "/content/dist/rhel/server/7": {
+            "var": "releasever",
+            "values": [
+                "7.0",
+                "7.1",
+                "7.2",
+                "7.3",
+                "7.4",
+                "7.5",
+                "7.6",
+                "7.7",
+                "7.8",
+                "7.9",
+                "7Server"
+            ]
+        },
+        "/content/dist/rhel/server/7/7Server": {
+            "var": "basearch",
+            "values": [
+                "x86_64"
+            ]
+        },
+        "/content/dist/rhel/server/7/7.0": {
+            "var": "basearch",
+            "values": [
+                "x86_64"
+            ]
+        },
+        "/content/dist/rhel/server/7/7.1": {
+            "var": "basearch",
+            "values": [
+                "x86_64"
+            ]
+        },
+        "/content/dist/rhel/server/7/7.2": {
+            "var": "basearch",
+            "values": [
+                "x86_64"
+            ]
+        },
+        "/content/dist/rhel/server/7/7.3": {
+            "var": "basearch",
+            "values": [
+                "x86_64"
+            ]
+        },
+        "/content/dist/rhel/server/7/7.4": {
+            "var": "basearch",
+            "values": [
+                "x86_64"
+            ]
+        },
+        "/content/dist/rhel/server/7/7.5": {
+            "var": "basearch",
+            "values": [
+                "x86_64"
+            ]
+        },
+        "/content/dist/rhel/server/7/7.6": {
+            "var": "basearch",
+            "values": [
+                "x86_64"
+            ]
+        },
+        "/content/dist/rhel/server/7/7.7": {
+            "var": "basearch",
+            "values": [
+                "x86_64"
+            ]
+        },
+        "/content/dist/rhel/server/7/7.8": {
+            "var": "basearch",
+            "values": [
+                "x86_64"
+            ]
+        },
+        "/content/dist/rhel/server/7/7.9": {
+            "var": "basearch",
+            "values": [
+                "x86_64"
+            ]
+        },
+        "/content/dist/rhel/rhui/server/7/7.0": {
+            "var": "basearch",
+            "values": [
+                "x86_64"
+            ]
+        },
+        "/content/dist/rhel/rhui/server/7/7.1": {
+            "var": "basearch",
+            "values": [
+                "x86_64"
+            ]
+        },
+        "/content/dist/rhel/rhui/server/7/7.2": {
+            "var": "basearch",
+            "values": [
+                "x86_64"
+            ]
+        },
+        "/content/dist/rhel/rhui/server/7/7.3": {
+            "var": "basearch",
+            "values": [
+                "x86_64"
+            ]
+        },
+        "/content/dist/rhel/rhui/server/7/7.4": {
+            "var": "basearch",
+            "values": [
+                "x86_64"
+            ]
+        },
+        "/content/dist/rhel/rhui/server/7/7.5": {
+            "var": "basearch",
+            "values": [
+                "x86_64"
+            ]
+        },
+        "/content/dist/rhel/rhui/server/7/7.6": {
+            "var": "basearch",
+            "values": [
+                "x86_64"
+            ]
+        },
+        "/content/dist/rhel/rhui/server/7/7.7": {
+            "var": "basearch",
+            "values": [
+                "x86_64"
+            ]
+        },
+        "/content/dist/rhel/rhui/server/7/7.8": {
+            "var": "basearch",
+            "values": [
+                "x86_64"
+            ]
+        },
+        "/content/dist/rhel/rhui/server/7/7.9": {
+            "var": "basearch",
+            "values": [
+                "x86_64"
+            ]
+        }
+    }
+}

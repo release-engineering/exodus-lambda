@@ -1,0 +1,7 @@
+boto3
+botocore
+docutils
+cdn-definitions
+requests
+PyYAML
+cachetools

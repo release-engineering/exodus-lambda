@@ -8,14 +8,14 @@ It requires a "data.yml" file specifying the reference test data.
 
 import argparse
 import hashlib
+import os
 import sys
 import tempfile
 from datetime import datetime
 
+import boto3
 import requests
 import yaml
-
-import boto3
 from tqdm import tqdm
 
 
@@ -38,15 +38,20 @@ class DBHandler:
     ):
         if not from_date:
             from_date = self.default_from_date
-        return self.dynamodb.put_item(
+
+        item = {
+            "web_uri": {"S": web_uri},
+            "from_date": {"S": from_date},
+            "object_key": {"S": object_key},
+            "metadata": {"M": metadata},
+        }
+
+        if content_type:
+            item["content_type"] = {"S": content_type}
+
+        self.dynamodb.put_item(
             TableName=self.table,
-            Item={
-                "web_uri": {"S": web_uri},
-                "from_date": {"S": from_date},
-                "object_key": {"S": object_key},
-                "content_type": {"S": content_type},
-                "metadata": {"M": metadata},
-            },
+            Item=item,
         )
 
 
@@ -95,13 +100,13 @@ def parse_aws_session(parser):
 def parse_cdn_certs(parser):
     parser.add_argument(
         "--cert",
-        default="~/certs/rcm-debug/rcm-debug.crt",
+        default=os.path.expanduser("~/certs/rcm-debug/rcm-debug.crt"),
         type=str,
         help="Client certificate file and password",
     )
     parser.add_argument(
         "--key",
-        default="~/certs/rcm-debug/rcm-debug.key",
+        default=os.path.expanduser("~/certs/rcm-debug/rcm-debug.key"),
         type=str,
         help="Private key file name",
     )
@@ -190,6 +195,10 @@ def download_to_local(url, key_path, cert_path, cacert_path):
 
 def prepare(db_client, s3_client, config, opt):
     for item in config.test_data:
+        if not item.get("deploy", True):
+            # skip items that specify deploy=false
+            continue
+
         url = config.prod_cdn_url + item["path"]
         # download test data to local with a name "NamedTemporaryFile"
         temp_file, cdn_data_checksum = download_to_local(
@@ -213,7 +222,7 @@ def prepare(db_client, s3_client, config, opt):
             item["path"],
             cdn_data_checksum,
             from_date=opt.release_date,
-            content_type=item["content-type"],
+            content_type=item.get("content-type", None),
         )
 
         # delete the NamedTemporaryFile

@@ -1,27 +1,53 @@
 import json
+import time
 import urllib
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 import boto3
-from cdn_definitions import load_data
+import cachetools
 
 from .base import LambdaBase
 
 
 class OriginRequest(LambdaBase):
-    def __init__(
-        self, conf_file="lambda_config.json", definitions_source=None
-    ):
+    def __init__(self, conf_file="lambda_config.json"):
         super().__init__("origin-request", conf_file)
         self._db_client = None
-        self._definitions_source = definitions_source
-        self._definitions = None
+        self._cache = cachetools.TTLCache(
+            maxsize=1,
+            ttl=timedelta(
+                minutes=self.conf.get("config_cache_ttl", 2)
+            ).total_seconds(),
+            timer=time.monotonic,
+        )
 
     @property
     def definitions(self):
-        if self._definitions is None:
-            self._definitions = load_data(source=self._definitions_source)
-        return self._definitions
+        out = self._cache.get("exodus-config")
+        if out is None:
+            table = self.conf["config_table"]["name"]
+
+            query_result = self.db_client.query(
+                TableName=table,
+                Limit=1,
+                ScanIndexForward=False,
+                KeyConditionExpression="config_id = :id and from_date <= :d",
+                ExpressionAttributeValues={
+                    ":id": {"S": "exodus-config"},
+                    ":d": {
+                        "S": str(
+                            datetime.now(timezone.utc).isoformat(
+                                timespec="milliseconds"
+                            )
+                        )
+                    },
+                },
+            )
+            if query_result["Items"]:
+                item = query_result["Items"][0]
+                out = json.loads(item["config"]["S"])
+                self._cache["exodus-config"] = out
+        return out
 
     @property
     def db_client(self):
@@ -69,13 +95,44 @@ class OriginRequest(LambdaBase):
         if not uri.endswith("/listing"):
             uri = self.uri_alias(uri, self.definitions.get("rhui_alias"))
 
+        # aliases relating to releasever; e.g. /content/dist/rhel8/8 <=> /content/dist/rhel8/8.5
+        uri = self.uri_alias(uri, self.definitions.get("releasever_alias"))
+
         return uri
+
+    def handle_listing_request(self, uri):
+        if uri.endswith("/listing"):
+            self.logger.info("Handling listing request: %s", uri)
+            listing_data = self.definitions.get("listing")
+            if listing_data:
+                target = uri[: -len("/listing")]
+                listing = listing_data.get(target)
+                if listing:
+                    return {
+                        "body": "\n".join(listing["values"]) + "\n",
+                        "status": "200",
+                        "statusDescription": "OK",
+                        "headers": {
+                            "content-type": [
+                                {"key": "Content-Type", "value": "text/plain"}
+                            ]
+                        },
+                    }
+                self.logger.info("No listing found for '%s'", uri)
+            else:
+                self.logger.info("No listing data defined")
 
     def handler(self, event, context):
         # pylint: disable=unused-argument
 
         request = event["Records"][0]["cf"]["request"]
         uri = self.resolve_aliases(request["uri"])
+
+        listing_response = self.handle_listing_request(uri)
+        if listing_response:
+            self.set_cache_control(uri, listing_response)
+            return listing_response
+
         self.logger.info(
             "The request value for origin_request beginning is '%s'",
             json.dumps(request, indent=4, sort_keys=True),
@@ -117,11 +174,16 @@ class OriginRequest(LambdaBase):
                 request["uri"] = (
                     "/" + query_result["Items"][0]["object_key"]["S"]
                 )
-                content_type = query_result["Items"][0]["content_type"]["S"]
-                if content_type:
-                    request["querystring"] = urllib.parse.urlencode(
-                        {"response-content-type": content_type}
-                    )
+                content_type = (
+                    query_result["Items"][0].get("content_type", {}).get("S")
+                )
+                if not content_type:
+                    # return "application/octet-stream" when content_type is empty
+                    content_type = "application/octet-stream"
+
+                request["querystring"] = urllib.parse.urlencode(
+                    {"response-content-type": content_type}
+                )
 
                 self.logger.info(
                     "The request value for origin_request end is '%s'",

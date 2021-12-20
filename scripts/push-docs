@@ -5,7 +5,7 @@ ORG=release-engineering
 REPO=exodus-lambda
 
 enabled(){
-  if [ "$TRAVIS_BRANCH" != "master" ] || [ "$TRAVIS_PULL_REQUEST" != "false" ]; then
+  if [ "$GITHUB_EVENT_NAME" == "pull_request" ]; then
     return 1
   fi
 }
@@ -30,6 +30,13 @@ if enabled; then
 fi
 
 git add -A .
+
+if git diff --cached --quiet; then
+  # zero exit from git diff means nothing changed.
+  echo "No changes to docs, bailing out"
+  exit 0
+fi
+
 git commit -m "Build documentation for ${version} at ${rev}"
 
 if enabled; then
