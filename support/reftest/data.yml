@@ -35,7 +35,7 @@ test_data:
   deploy: false
 # PULP_MANIFEST
 - path: /content/dist/rhel8/8.2/x86_64/baseos/iso/PULP_MANIFEST
-  sha256: 2fb7a09fd67432ad7b7c95d24fe332827e24920347319c24bfef236cb0b72f19
+  sha256: 9ffeee1021dc043fec158c6feb28f7eba65db631d95e1725fd200adc3f3ed389
   content-type: text/plain
 # */ostree/repo/refs/heads/*/* unstable content skip checksum-verify
 - path: /content/dist/rhel/atomic/7/7Server/x86_64/ostree/repo/refs/heads/rhel-atomic-host/7/x86_64/standard

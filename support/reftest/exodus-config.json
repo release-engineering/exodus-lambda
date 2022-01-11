@@ -1,0 +1,34 @@
+{
+    "origin_alias": [
+        {
+            "src": "/content/origin",
+            "dest": "/origin"
+        },
+        {
+            "src": "/origin/rpm",
+            "dest": "/origin/rpms"
+        }
+    ],
+    "rhui_alias": [
+        {
+            "src": "/content/aus/rhel/rhui",
+            "dest": "/content/aus/rhel"
+        },
+        {
+            "src": "/content/dist/rhel8/rhui",
+            "dest": "/content/dist/rhel8"
+        }
+    ],
+    "releasever_alias": [
+        {
+            "src": "/content/dist/rhel/server/6/6Server",
+            "dest": "/content/dist/rhel/server/6/6.10"
+        }
+    ],
+    "listing": {
+        "/content/dist/rhel/server/5/5.7": {
+            "var": "basearch",
+            "values": ["i386", "ia64", "x86_64"]
+        }
+    }
+}
