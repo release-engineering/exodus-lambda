@@ -5,8 +5,7 @@ from exodus_lambda.functions.origin_request import OriginRequest
 
 from ..test_utils.utils import generate_test_config
 
-CONF_PATH = "configuration/lambda_config.json"
-TEST_CONF = generate_test_config(CONF_PATH)
+TEST_CONF = generate_test_config()
 
 Alias = namedtuple("Alias", ["src", "dest"])
 
