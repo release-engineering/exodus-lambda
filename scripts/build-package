@@ -9,7 +9,7 @@ export EXODUS_CONFIG_CACHE_TTL=${EXODUS_CONFIG_CACHE_TTL:-2}
 pip install --require-hashes -r requirements.txt --target ./package
 pip install --no-deps --target ./package .
 cp ./configuration/exodus-lambda-deploy.yaml ./package
-envsubst < ./configuration/lambda_config.json > ./package/lambda_config.json
+envsubst < ./configuration/lambda_config.template > ./package/lambda_config.json
 aws cloudformation package \
 	--template ./package/exodus-lambda-deploy.yaml \
 	--s3-bucket $PROJECT-pipeline-artifacts \

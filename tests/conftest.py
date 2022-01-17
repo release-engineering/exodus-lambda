@@ -61,7 +61,7 @@ def mock_conf_file():
     test_env["ORIGIN_REQUEST_LOGGER_LEVEL"] = "DEBUG"
     test_env["EXODUS_HEADERS_MAX_AGE"] = "600"
 
-    cmd = "envsubst < ./configuration/lambda_config.json > {temp_path}"
+    cmd = "envsubst < ./configuration/lambda_config.template > {temp_path}"
     cmd = cmd.format(temp_path=temp_file.name)
 
     subprocess.run(
