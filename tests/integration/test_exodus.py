@@ -1,4 +1,5 @@
 import json
+import re
 
 import pytest
 import requests
@@ -42,7 +43,7 @@ def test_header_cache_control(cdn_test_url, testdata_path):
     r = requests.get(url)
     print(json.dumps(dict(r.headers), indent=2))
     assert r.status_code == 200
-    assert r.headers["cache-control"] == "max-age=600"
+    assert re.match("^max-age=[0-9]+$", r.headers["cache-control"])
 
 
 def test_header_want_digest_GET(cdn_test_url):
