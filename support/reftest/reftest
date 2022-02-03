@@ -19,6 +19,8 @@ import requests
 import yaml
 from tqdm import tqdm
 
+DATA_DIR = os.path.dirname(__file__)
+
 
 class DBHandler:
     def __init__(self, table, config_table, session):
@@ -183,10 +185,10 @@ class RefTestConfig:
 
 
 def load_config():
-    with open("data.yml") as data_file:
+    with open(os.path.join(DATA_DIR, "data.yml")) as data_file:
         data = yaml.load(data_file, yaml.SafeLoader)
 
-    with open("exodus-config.json") as config_file:
+    with open(os.path.join(DATA_DIR, "exodus-config.json")) as config_file:
         config = json.load(config_file)
 
     return RefTestConfig(data["prod-cdn-url"], data["test_data"], config)
