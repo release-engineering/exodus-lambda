@@ -8,6 +8,7 @@ It requires a "data.yml" file specifying the reference test data.
 
 import argparse
 import hashlib
+import json
 import os
 import sys
 import tempfile
@@ -20,9 +21,10 @@ from tqdm import tqdm
 
 
 class DBHandler:
-    def __init__(self, table, session):
+    def __init__(self, table, config_table, session):
         self.dynamodb = session.client("dynamodb")
         self.table = table
+        self.config_table = config_table
 
         self.default_from_date = datetime.utcnow().isoformat(
             timespec="seconds"
@@ -51,6 +53,21 @@ class DBHandler:
 
         self.dynamodb.put_item(
             TableName=self.table,
+            Item=item,
+        )
+
+    def put_config(self, config, from_date=None):
+        if not from_date:
+            from_date = self.default_from_date
+
+        item = {
+            "from_date": {"S": from_date},
+            "config_id": {"S": "exodus-config"},
+            "config": {"S": json.dumps(config)},
+        }
+
+        self.dynamodb.put_item(
+            TableName=self.config_table,
             Item=item,
         )
 
@@ -129,7 +146,7 @@ def parse_args():
         help="""
         prepare reference test data in dynamodb and s3
         for integration test,
-         e.g. $./reftest prepare --bucket exodus-bucket --table exodus-table
+         e.g. $./reftest prepare --bucket exodus-bucket --table exodus-table --config-table exodus-config
         """,
     )
     parser_prepare.add_argument(
@@ -149,20 +166,30 @@ def parse_args():
         required=True,
         help="The AWS dynamoDB used to store test data",
     )
+    parser_prepare.add_argument(
+        "--config-table",
+        required=True,
+        help="The AWS dynamoDB used to store Exodus config",
+    )
 
     return root_parser.parse_args()
 
 
 class RefTestConfig:
-    def __init__(self, prod_cdn_url, test_data):
+    def __init__(self, prod_cdn_url, test_data, test_config):
         self.prod_cdn_url = prod_cdn_url
         self.test_data = test_data
+        self.test_config = test_config
 
 
 def load_config():
     with open("data.yml") as data_file:
-        config = yaml.load(data_file, yaml.SafeLoader)
-    return RefTestConfig(config["prod-cdn-url"], config["test_data"])
+        data = yaml.load(data_file, yaml.SafeLoader)
+
+    with open("exodus-config.json") as config_file:
+        config = json.load(config_file)
+
+    return RefTestConfig(data["prod-cdn-url"], data["test_data"], config)
 
 
 # It will return a TempFileObj and a checksum for test data verification
@@ -228,6 +255,9 @@ def prepare(db_client, s3_client, config, opt):
         # delete the NamedTemporaryFile
         temp_file.close()
 
+    # deploy Exodus config to config table
+    db_client.put_config(config.test_config)
+
     return True
 
 
@@ -242,7 +272,7 @@ def main():
         region_name=opt.default_region,
     )
 
-    db_client = DBHandler(table=opt.table, session=session)
+    db_client = DBHandler(table=opt.table, config_table=opt.config_table, session=session)
     s3_client = S3Handler(bucket=opt.bucket, session=session)
 
     res = False

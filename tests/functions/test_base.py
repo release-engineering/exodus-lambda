@@ -1,4 +1,5 @@
 import logging
+import os
 
 import pytest
 
@@ -6,13 +7,13 @@ from exodus_lambda.functions.base import LambdaBase
 
 from ..test_utils.utils import generate_test_config
 
-CONF_PATH = "configuration/lambda_config.json"
-TEST_CONF = generate_test_config(CONF_PATH)
+CONF_FILE = os.environ.get("EXODUS_LAMBDA_CONF_FILE")
+TEST_CONF = generate_test_config()
 
 
 def test_base_handler():
     with pytest.raises(NotImplementedError):
-        LambdaBase(conf_file=CONF_PATH).handler(event=None, context=None)
+        LambdaBase(conf_file=CONF_FILE).handler(event=None, context=None)
 
 
 @pytest.mark.parametrize(

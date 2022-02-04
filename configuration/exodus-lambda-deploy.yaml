@@ -26,6 +26,25 @@ Parameters:
     Description: The IAM Role ARN for Lambda Function resource
 
 Resources:
+  CachePolicy:
+    Type: AWS::CloudFront::CachePolicy
+    Properties:
+      CachePolicyConfig:
+        DefaultTTL: 86400
+        MaxTTL: 31536000
+        MinTTL: 0
+        Name: !Sub ${project}-cache-policy-${env}
+        ParametersInCacheKeyAndForwardedToOrigin:
+          CookiesConfig:
+            CookieBehavior: none
+          EnableAcceptEncodingGzip: false
+          HeadersConfig:
+            HeaderBehavior: whitelist
+            Headers:
+              - Want-Digest
+          QueryStringsConfig:
+            QueryStringBehavior: none
+
   Distribution:
     Type: AWS::CloudFront::Distribution
     Properties:
@@ -38,12 +57,7 @@ Resources:
           CachedMethods:
             - GET
             - HEAD
-          ForwardedValues:
-            QueryString: false
-            Cookies:
-              Forward: none
-            Headers:
-              - Want-Digest
+          CachePolicyId: !Ref CachePolicy
           LambdaFunctionAssociations:
             - EventType: origin-request
               LambdaFunctionARN: !Ref OriginRequestFunc.Version

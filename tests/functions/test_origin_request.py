@@ -11,8 +11,7 @@ from ..test_utils.utils import generate_test_config, mock_definitions
 
 TEST_PATH = "/origin/rpms/repo/ver/dir/filename.ext"
 MOCKED_DT = "2020-02-17T15:38:05.864+00:00"
-CONF_PATH = "configuration/lambda_config.json"
-TEST_CONF = generate_test_config(CONF_PATH)
+TEST_CONF = generate_test_config()
 
 
 @pytest.mark.parametrize(

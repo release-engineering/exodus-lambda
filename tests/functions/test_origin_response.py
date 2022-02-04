@@ -6,8 +6,7 @@ from exodus_lambda.functions.origin_response import OriginResponse
 
 from ..test_utils.utils import generate_test_config
 
-CONF_PATH = "configuration/lambda_config.json"
-TEST_CONF = generate_test_config(CONF_PATH)
+TEST_CONF = generate_test_config()
 MAX_AGE = TEST_CONF["headers"]["max_age"]
 
 
@@ -60,7 +59,7 @@ def test_origin_response_valid_headers(original_uri, want_digest):
             }
         ]
 
-    response = OriginResponse(conf_file=CONF_PATH).handler(event, context=None)
+    response = OriginResponse(conf_file=TEST_CONF).handler(event, context=None)
     assert response["headers"] == expected_headers
 
 
@@ -75,14 +74,14 @@ def test_origin_response_empty_headers(test_input):
         ]
     }
 
-    response = OriginResponse(conf_file=CONF_PATH).handler(event, context=None)
+    response = OriginResponse(conf_file=TEST_CONF).handler(event, context=None)
     assert response["headers"] == {}
 
 
 def test_origin_response_missing_headers():
     event = {"Records": [{"cf": {"request": {}, "response": {}}}]}
 
-    response = OriginResponse(conf_file=CONF_PATH).handler(event, context=None)
+    response = OriginResponse(conf_file=TEST_CONF).handler(event, context=None)
     assert response == {}
 
 

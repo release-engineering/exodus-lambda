@@ -1,11 +1,14 @@
 import json
+import os
 from base64 import b64encode
 
 from .base import LambdaBase
 
+CONF_FILE = os.environ.get("EXODUS_LAMBDA_CONF_FILE") or "lambda_config.json"
+
 
 class OriginResponse(LambdaBase):
-    def __init__(self, conf_file="lambda_config.json"):
+    def __init__(self, conf_file=CONF_FILE):
         super().__init__("origin-response", conf_file)
 
     def handler(self, event, context):

@@ -1,8 +1,10 @@
 import json
 import os
 
+CONF_FILE = os.environ.get("EXODUS_LAMBDA_CONF_FILE")
 
-def generate_test_config(conf="configuration/lambda_config.json"):
+
+def generate_test_config(conf=CONF_FILE):
     with open(conf, "r") as json_file:
         conf = json.load(json_file)
 
