@@ -78,10 +78,24 @@ class S3Handler:
         self.bucket = bucket
 
     def upload_from_localfile(self, path, checksum):
-        with open(path, "rb") as data:
-            self.s3_client.upload_fileobj(
-                Fileobj=data, Bucket=self.bucket, Key=checksum
-            )
+        st = os.stat(path)
+        bar = tqdm(
+            desc="%s [upload]" % checksum,
+            total=st.st_size,
+            unit="iB",
+            unit_scale=True,
+        )
+
+        try:
+            with open(path, "rb") as data:
+                self.s3_client.upload_fileobj(
+                    Fileobj=data,
+                    Bucket=self.bucket,
+                    Key=checksum,
+                    Callback=bar.update,
+                )
+        finally:
+            bar.close()
 
 
 def parse_aws_session(parser):
