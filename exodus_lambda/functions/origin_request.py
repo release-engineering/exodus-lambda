@@ -168,15 +168,19 @@ class OriginRequest(LambdaBase):
             self.logger.info("Item found for '%s'", uri)
 
             try:
+                # Validate If the item's "object_key" is "absent"
+                object_key = query_result["Items"][0]["object_key"]["S"]
+                if object_key == "absent":
+                    self.logger.info("Item absent for '%s'", uri)
+                    return {"status": "404", "statusDescription": "Not Found"}
+
                 # Add custom header containing the original request uri
                 request["headers"]["exodus-original-uri"] = [
                     {"key": "exodus-original-uri", "value": request["uri"]}
                 ]
 
                 # Update request uri to point to S3 object key
-                request["uri"] = (
-                    "/" + query_result["Items"][0]["object_key"]["S"]
-                )
+                request["uri"] = "/" + object_key
                 content_type = (
                     query_result["Items"][0].get("content_type", {}).get("S")
                 )
