@@ -73,6 +73,23 @@ class DBHandler:
             Item=item,
         )
 
+    def put_absent_item(self, path, from_date=None):
+        if not from_date:
+            from_date = self.default_from_date
+
+        item = {
+            "web_uri": {"S": path},
+            "from_date": {"S": from_date},
+            "object_key": {"S": "absent"},
+            "content_type": {"S": ""},
+            "metadata": {"M": {}},
+        }
+
+        self.dynamodb.put_item(
+            TableName=self.table,
+            Item=item,
+        )
+
 
 class S3Handler:
     def __init__(self, bucket, session):
@@ -242,6 +259,11 @@ def prepare(db_client, s3_client, config, opt):
             # skip items that specify deploy=false
             continue
 
+        if item.get("state") == "absent":
+            # skip all the downloading and checking when absent=true
+            db_client.put_absent_item(item["path"])
+            continue
+
         url = config.prod_cdn_url + item["path"]
         # download test data to local with a name "NamedTemporaryFile"
         temp_file, cdn_data_checksum = download_to_local(
@@ -288,7 +310,9 @@ def main():
         region_name=opt.default_region,
     )
 
-    db_client = DBHandler(table=opt.table, config_table=opt.config_table, session=session)
+    db_client = DBHandler(
+        table=opt.table, config_table=opt.config_table, session=session
+    )
     s3_client = S3Handler(bucket=opt.bucket, session=session)
 
     res = False

@@ -205,3 +205,16 @@ def test_no_content_type(cdn_test_url, testdata_path):
     print(json.dumps(dict(r.headers), indent=2))
     assert r.status_code == 200
     assert r.headers["Content-Type"] == "application/octet-stream"
+
+
+testdata_absent_item = [
+    "/content/dist/rhel8/8.2/x86_64/baseos/iso/does-not-exist.iso"
+]
+
+
+@pytest.mark.parametrize("testdata_path", testdata_absent_item)
+def test_absent_item(cdn_test_url, testdata_path):
+    url = cdn_test_url + testdata_path
+    r = requests.get(url)
+    print(json.dumps(dict(r.headers), indent=2))
+    assert r.status_code == 404
