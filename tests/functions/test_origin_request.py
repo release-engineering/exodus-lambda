@@ -352,3 +352,38 @@ def test_origin_request_listing_data_not_found(
     assert "No item found for '%s'", req_uri in caplog.text
     # It should return 404.
     assert request == {"status": "404", "statusDescription": "Not Found"}
+
+
+@mock.patch("boto3.client")
+@mock.patch("exodus_lambda.functions.origin_request.cachetools")
+@mock.patch("exodus_lambda.functions.origin_request.datetime")
+def test_origin_request_absent_items(
+    mocked_datetime,
+    mocked_cache,
+    mocked_boto3_client,
+    caplog,
+):
+    req_uri = "/content/dist/rhel/some/deletion.iso"
+    real_uri = "/content/dist/rhel/some/deletion.iso"
+    mocked_datetime.now().isoformat.return_value = MOCKED_DT
+    mocked_cache.TTLCache.return_value = {"exodus-config": mock_definitions()}
+    mocked_boto3_client().query.return_value = {
+        "Items": [
+            {
+                "web_uri": {"S": real_uri},
+                "from_date": {"S": "2020-02-17T00:00:00.000+00:00"},
+                "object_key": {"S": "absent"},
+            }
+        ]
+    }
+
+    event = {"Records": [{"cf": {"request": {"uri": req_uri, "headers": {}}}}]}
+
+    with caplog.at_level(logging.DEBUG):
+        request = OriginRequest(
+            conf_file=TEST_CONF,
+        ).handler(event, context=None)
+
+    assert "Item absent for '%s'" % real_uri in caplog.text
+
+    assert request == {"status": "404", "statusDescription": "Not Found"}
