@@ -12,9 +12,12 @@
     ]
   },
   "config_cache_ttl": $EXODUS_CONFIG_CACHE_TTL,
+  "cookie_ttl": $EXODUS_COOKIE_TTL,
   "headers": {
-    "max_age": "$EXODUS_HEADERS_MAX_AGE"
+    "max_age": $EXODUS_HEADERS_MAX_AGE
   },
+  "secret_arn": "$EXODUS_SECRET_ARN",
+  "key_id": "$EXODUS_KEY_ID",
   "logging": {
     "version": 1,
     "incremental": "True",

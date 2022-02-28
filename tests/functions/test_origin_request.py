@@ -4,6 +4,7 @@ import urllib
 
 import mock
 import pytest
+from botocore.exceptions import ClientError
 
 from exodus_lambda.functions.origin_request import OriginRequest
 
@@ -387,3 +388,114 @@ def test_origin_request_absent_items(
     assert "Item absent for '%s'" % real_uri in caplog.text
 
     assert request == {"status": "404", "statusDescription": "Not Found"}
+
+
+@mock.patch("boto3.client")
+@mock.patch("exodus_lambda.functions.origin_request.datetime")
+def test_origin_request_cookie_uri(
+    mocked_datetime, mocked_boto3_client, dummy_private_key, caplog
+):
+    uri = "/_/cookie/origin/repo/ver/dir/filename.ext"
+    arn = "arn:aws:secretsmanager:example"
+
+    mocked_datetime.now().isoformat.return_value = MOCKED_DT
+    mocked_boto3_client().get_secret_value.return_value = {
+        "ARN": arn,
+        "Name": "example_secret",
+        "VersionId": "d6acfecc-9c2d-4141-97ad-70b4149424d2",
+        "SecretString": json.dumps({"cookie_key": dummy_private_key}),
+    }
+
+    event = {
+        "Records": [
+            {
+                "cf": {
+                    "request": {"uri": uri, "headers": {}},
+                    "config": {"distributionDomainName": "ex.cloudfront.net"},
+                }
+            }
+        ]
+    }
+
+    request = OriginRequest(conf_file=TEST_CONF).handler(event, context=None)
+
+    assert "Handling cookie request: %s" % uri in caplog.text
+    assert "Attempting to get secret %s" % arn in caplog.text
+    assert "Loaded and cached secret %s" % arn in caplog.text
+    assert request["status"] == "302"
+    assert request["headers"]["cache-control"] == [{"value": "no-store"}]
+    assert request["headers"]["location"] == [
+        {"value": "/origin/repo/ver/dir/filename.ext"}
+    ]
+    assert request["headers"]["set-cookie"] == [
+        {
+            "value": "CloudFront-Key-Pair-Id=K1MOU91G3N7WPY; Secure; "
+            "Path=/content/; Max-Age=43200"
+        },
+        {
+            "value": "CloudFront-Policy=eyJTdGF0ZW1lbnQiOlt7IlJlc291cmNlIjoiaH"
+            "R0cHM6Ly9leC5jbG91ZGZyb250Lm5ldC9jb250ZW50LyoiLCJDb25kaXRpb24iOns"
+            "iRGF0ZUxlc3NUaGFuIjp7IkFXUzpFcG9jaFRpbWUiOjF9fX1dfQ__; Secure; "
+            "Path=/content/; Max-Age=43200"
+        },
+        {
+            "value": "CloudFront-Signature=G8t5tL4HD1KjlT-qvmw0JIXQESaij7N-Qd-"
+            "12DONOWocj9Vo6sFRR1Gxcm4VyxYD2WbsyYPr0DiwkEIVCevp7ET4lakVFrhhpz~l"
+            "SR616CqocVzRxOqMiHcoHkQKAhPLU3tbGs1XnSqcl6R6TB4Q1PPvRv2NUHm3T8ujK"
+            "1TmKAM_; Secure; Path=/content/; Max-Age=43200"
+        },
+        {
+            "value": "CloudFront-Key-Pair-Id=K1MOU91G3N7WPY; Secure; "
+            "Path=/origin/; Max-Age=43200"
+        },
+        {
+            "value": "CloudFront-Policy=eyJTdGF0ZW1lbnQiOlt7IlJlc291cmNlIjoiaH"
+            "R0cHM6Ly9leC5jbG91ZGZyb250Lm5ldC9vcmlnaW4vKiIsIkNvbmRpdGlvbiI6eyJ"
+            "EYXRlTGVzc1RoYW4iOnsiQVdTOkVwb2NoVGltZSI6MX19fV19; Secure; "
+            "Path=/origin/; Max-Age=43200"
+        },
+        {
+            "value": "CloudFront-Signature=K2Dor2IYm9WViaawbNs-jfsdMuLebxp4LBz"
+            "LgnhX8qKZ~NTQYg-x9kIy0DzXCybKJ3bYUomwWJoXWVJxTUjghRBXjBgQtb7GYrk9"
+            "yRD6TXJ46uhE9~zSWQInCnwyIAQRgZCuS~BR41C8dPRP56DWSPs0kHWiVGOrP2JI6"
+            "YiP3rA_; Secure; Path=/origin/; Max-Age=43200"
+        },
+    ]
+
+
+@mock.patch("boto3.client")
+def test_origin_request_cookie_uri_without_secret(mocked_boto3_client, caplog):
+    uri = "/_/cookie/origin/repo/ver/dir/filename.ext"
+    arn = "arn:aws:secretsmanager:example"
+
+    mocked_boto3_client().get_secret_value.side_effect = ClientError(
+        error_response={
+            "Code": "ResourceNotFoundException",
+            "Message": "Requested resource not found",
+        },
+        operation_name="get_secret_value",
+    )
+
+    event = {
+        "Records": [
+            {
+                "cf": {
+                    "request": {
+                        "uri": uri,
+                        "headers": {},
+                    },
+                    "config": {
+                        "distributionDomainName": "d149itc2w5r6.cloudfront.net"
+                    },
+                }
+            }
+        ]
+    }
+
+    with pytest.raises(ClientError):
+        OriginRequest(conf_file=TEST_CONF).handler(event, context=None)
+
+    assert "Handling cookie request: %s" % uri in caplog.text
+    assert "Attempting to get secret %s" % arn in caplog.text
+    assert "Couldn't load secret %s" % arn in caplog.text
+    assert "botocore.exceptions.ClientError: An error occurred" in caplog.text

@@ -8,7 +8,7 @@ def generate_test_config(conf=CONF_FILE):
     with open(conf, "r") as json_file:
         conf = json.load(json_file)
 
-    # table
+    # tables
     conf["table"]["name"] = "test-table"
     conf["table"]["available_regions"] = [
         "us-east-1",
@@ -27,6 +27,7 @@ def generate_test_config(conf=CONF_FILE):
         "ap-southeast-2",
         "ap-northeast-1",
     ]
+    conf["config_table"]["name"] = "test-config-table"
 
     # logging
     conf["logging"]["formatters"]["default"][
@@ -35,9 +36,6 @@ def generate_test_config(conf=CONF_FILE):
     conf["logging"]["loggers"]["origin-response"]["level"] = "DEBUG"
     conf["logging"]["loggers"]["origin-request"]["level"] = "DEBUG"
     conf["logging"]["loggers"]["default"]["level"] = "DEBUG"
-
-    conf["config_table"]["name"] = "test-config-table"
-    conf["config_table"]["cache_ttl"] = 2
 
     return conf
 
