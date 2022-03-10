@@ -32,8 +32,8 @@ Parameters:
 Conditions:
   EnableKeyGroup: !Not
     - !Equals
-      - !Ref keyids
-      - None
+      - !Join ["", !Ref keyids]
+      - ""
 
 Resources:
   KeyGroup:
