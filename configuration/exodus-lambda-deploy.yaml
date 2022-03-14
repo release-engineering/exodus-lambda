@@ -30,10 +30,8 @@ Parameters:
     Description: A list of secret key IDs for Distribution key groups
 
 Conditions:
-  EnableKeyGroup: !Not
-    - !Equals
-      - !Join ["", !Ref keyids]
-      - ""
+  EnableKeyGroup:
+    !Not [!Equals [!Join ["", !Ref keyids], None]]
 
 Resources:
   KeyGroup:
