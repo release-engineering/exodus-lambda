@@ -12,6 +12,12 @@ from .signer import Signer
 
 CONF_FILE = os.environ.get("EXODUS_LAMBDA_CONF_FILE") or "lambda_config.json"
 
+# Endpoint for AWS services.
+# Normally, should be None.
+# You might want to try e.g. "https://localhost:3377" if you want to test
+# this code against localstack.
+ENDPOINT_URL = os.environ.get("EXODUS_AWS_ENDPOINT_URL") or None
+
 
 class OriginRequest(LambdaBase):
     def __init__(self, conf_file=CONF_FILE):
@@ -29,7 +35,11 @@ class OriginRequest(LambdaBase):
     @property
     def db_client(self):
         if not self._db_client:
-            self._db_client = boto3.client("dynamodb", region_name=self.region)
+            self._db_client = boto3.client(
+                "dynamodb",
+                region_name=self.region,
+                endpoint_url=ENDPOINT_URL,
+            )
 
         return self._db_client
 
@@ -37,7 +47,9 @@ class OriginRequest(LambdaBase):
     def sm_client(self):
         if not self._sm_client:
             self._sm_client = boto3.client(
-                "secretsmanager", region_name=self.region
+                "secretsmanager",
+                region_name=self.region,
+                endpoint_url=ENDPOINT_URL,
             )
 
         return self._sm_client
