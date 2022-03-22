@@ -86,7 +86,7 @@ Resources:
               LambdaFunctionARN: !Ref OriginResponseFunc.Version
           TargetOriginId: !Sub S3-${project}-cdn-${env}
           TrustedKeyGroups:
-            !If
+            - !If
               - EnableKeyGroup
               - !Ref KeyGroup
               - !Ref AWS::NoValue
