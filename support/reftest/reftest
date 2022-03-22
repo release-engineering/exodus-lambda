@@ -21,10 +21,12 @@ from tqdm import tqdm
 
 DATA_DIR = os.path.dirname(__file__)
 
+ENDPOINT_URL = os.environ.get("EXODUS_AWS_ENDPOINT_URL") or None
+
 
 class DBHandler:
     def __init__(self, table, config_table, session):
-        self.dynamodb = session.client("dynamodb")
+        self.dynamodb = session.client("dynamodb", endpoint_url=ENDPOINT_URL)
         self.table = table
         self.config_table = config_table
 
@@ -93,7 +95,7 @@ class DBHandler:
 
 class S3Handler:
     def __init__(self, bucket, session):
-        self.s3_client = session.client("s3")
+        self.s3_client = session.client("s3", endpoint_url=ENDPOINT_URL)
         self.bucket = bucket
 
     def upload_from_localfile(self, path, checksum):
