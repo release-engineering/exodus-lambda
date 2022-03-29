@@ -1,15 +1,10 @@
 #!/bin/bash
 set -e
 
-export ORIGIN_RESPONSE_LOGGER_LEVEL=${ORIGIN_RESPONSE_LOGGER_LEVEL:-WARNING}
-export ORIGIN_REQUEST_LOGGER_LEVEL=${ORIGIN_REQUEST_LOGGER_LEVEL:-WARNING}
-export EXODUS_HEADERS_MAX_AGE=${EXODUS_HEADERS_MAX_AGE:-600}
-export EXODUS_CONFIG_CACHE_TTL=${EXODUS_CONFIG_CACHE_TTL:-2}
-
 pip install --require-hashes -r requirements.txt --target ./package
 pip install --no-deps --target ./package .
 cp ./configuration/exodus-lambda-deploy.yaml ./package
-envsubst < ./configuration/lambda_config.template > ./package/lambda_config.json
+scripts/mk-config > ./package/lambda_config.json
 aws cloudformation package \
 	--template ./package/exodus-lambda-deploy.yaml \
 	--s3-bucket $PROJECT-pipeline-artifacts \

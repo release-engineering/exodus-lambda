@@ -1,27 +1,30 @@
 {
   "table": {
-    "name": "$PROJECT-cdn-$ENV_TYPE",
+    "name": "$EXODUS_TABLE",
     "available_regions": [
       "us-east-1"
     ]
   },
   "config_table": {
-    "name": "$PROJECT-config-$ENV_TYPE",
+    "name": "$EXODUS_CONFIG_TABLE",
     "available_regions": [
       "us-east-1"
     ]
   },
   "config_cache_ttl": $EXODUS_CONFIG_CACHE_TTL,
+  "cookie_ttl": $EXODUS_COOKIE_TTL,
   "headers": {
-    "max_age": "$EXODUS_HEADERS_MAX_AGE"
+    "max_age": $EXODUS_HEADERS_MAX_AGE
   },
+  "secret_arn": "$EXODUS_SECRET_ARN",
+  "key_id": "$EXODUS_KEY_ID",
   "logging": {
     "version": 1,
     "incremental": "True",
     "disable_existing_loggers": "False",
     "formatters": {
       "default": {
-        "format": "%(asctime)s - %(levelname)s - %(aws_request_id)s - %(message)s\n",
+        "format": "$EXODUS_LOG_FORMAT",
         "datefmt": "%Y-%m-%d %H:%M:%S"
       }
     },

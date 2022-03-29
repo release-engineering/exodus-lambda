@@ -1,5 +1,8 @@
 import json
 import os
+from datetime import datetime, timedelta, timezone
+
+from exodus_lambda.functions.signer import Signer
 
 CONF_FILE = os.environ.get("EXODUS_LAMBDA_CONF_FILE")
 
@@ -8,7 +11,7 @@ def generate_test_config(conf=CONF_FILE):
     with open(conf, "r") as json_file:
         conf = json.load(json_file)
 
-    # table
+    # tables
     conf["table"]["name"] = "test-table"
     conf["table"]["available_regions"] = [
         "us-east-1",
@@ -27,6 +30,7 @@ def generate_test_config(conf=CONF_FILE):
         "ap-southeast-2",
         "ap-northeast-1",
     ]
+    conf["config_table"]["name"] = "test-config-table"
 
     # logging
     conf["logging"]["formatters"]["default"][
@@ -35,9 +39,6 @@ def generate_test_config(conf=CONF_FILE):
     conf["logging"]["loggers"]["origin-response"]["level"] = "DEBUG"
     conf["logging"]["loggers"]["origin-request"]["level"] = "DEBUG"
     conf["logging"]["loggers"]["default"]["level"] = "DEBUG"
-
-    conf["config_table"]["name"] = "test-config-table"
-    conf["config_table"]["cache_ttl"] = 2
 
     return conf
 
@@ -52,3 +53,22 @@ def mock_definitions():
         exodus_config = json.load(f)
 
     return exodus_config
+
+
+def generate_test_cookies():
+    # Env var for using signed cookies
+    key = os.environ.get("EXODUS_CDN_PRIVATE_KEY")
+    key_id = os.environ.get("EXODUS_CDN_KEY_ID")
+
+    if not key or not key_id:
+        # envvar absent, requests will not be signed
+        return {}
+
+    expiration = datetime.now(timezone.utc) + timedelta(hours=1)
+    signer = Signer(key, key_id)
+    cookies = signer.cookies_for_policy(
+        append="",
+        resource="https://*",
+        date_less_than=expiration,
+    )
+    return {item.split("=")[0]: item.split("=")[1] for item in cookies}

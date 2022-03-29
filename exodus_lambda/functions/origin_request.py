@@ -8,14 +8,22 @@ import boto3
 import cachetools
 
 from .base import LambdaBase
+from .signer import Signer
 
 CONF_FILE = os.environ.get("EXODUS_LAMBDA_CONF_FILE") or "lambda_config.json"
+
+# Endpoint for AWS services.
+# Normally, should be None.
+# You might want to try e.g. "https://localhost:3377" if you want to test
+# this code against localstack.
+ENDPOINT_URL = os.environ.get("EXODUS_AWS_ENDPOINT_URL") or None
 
 
 class OriginRequest(LambdaBase):
     def __init__(self, conf_file=CONF_FILE):
         super().__init__("origin-request", conf_file)
         self._db_client = None
+        self._sm_client = None
         self._cache = cachetools.TTLCache(
             maxsize=1,
             ttl=timedelta(
@@ -23,6 +31,28 @@ class OriginRequest(LambdaBase):
             ).total_seconds(),
             timer=time.monotonic,
         )
+
+    @property
+    def db_client(self):
+        if not self._db_client:
+            self._db_client = boto3.client(
+                "dynamodb",
+                region_name=self.region,
+                endpoint_url=ENDPOINT_URL,
+            )
+
+        return self._db_client
+
+    @property
+    def sm_client(self):
+        if not self._sm_client:
+            self._sm_client = boto3.client(
+                "secretsmanager",
+                region_name=self.region,
+                endpoint_url=ENDPOINT_URL,
+            )
+
+        return self._sm_client
 
     @property
     def definitions(self):
@@ -50,14 +80,47 @@ class OriginRequest(LambdaBase):
                 item = query_result["Items"][0]
                 out = json.loads(item["config"]["S"])
                 self._cache["exodus-config"] = out
+
         return out
 
     @property
-    def db_client(self):
-        if not self._db_client:
-            self._db_client = boto3.client("dynamodb", region_name=self.region)
+    def secret(self):
+        out = self._cache.get("secret")
+        if out is None:
+            try:
+                arn = self.conf["secret_arn"]
+                self.logger.info("Attempting to get secret %s", arn)
 
-        return self._db_client
+                response = self.sm_client.get_secret_value(SecretId=arn)
+                # get_secret_value response syntax:
+                #  {
+                #    "ARN": "string",
+                #    "Name": "string",
+                #    "VersionId": "string",
+                #    "SecretBinary": b"bytes",
+                #    "SecretString": "string",
+                #    "VersionStages": [
+                #        "string",
+                #    ],
+                #    "CreatedDate": datetime(2015, 1, 1)
+                #  }
+                #
+                # We're interested in SecretString and expect it to be a JSON string
+                # containing cookie_key.
+                out = json.loads(response["SecretString"])
+                self._cache["secret"] = out
+                self.logger.info("Loaded and cached secret %s", arn)
+            except Exception as exc_info:
+                self.logger.error(
+                    "Couldn't load secret %s", arn, exc_info=exc_info
+                )
+                raise exc_info
+
+        return out
+
+    @property
+    def cookie_key(self):
+        return self.secret["cookie_key"]
 
     def uri_alias(self, uri, aliases):
         # Resolve every alias between paths within the uri (e.g.
@@ -103,6 +166,43 @@ class OriginRequest(LambdaBase):
 
         return uri
 
+    def handle_cookie_request(self, event):
+        now = datetime.utcnow()
+        ttl = timedelta(minutes=self.conf.get("cookie_ttl", 720))
+        domain = event["Records"][0]["cf"]["config"]["distributionDomainName"]
+        uri = event["Records"][0]["cf"]["request"]["uri"]
+
+        self.logger.info("Handling cookie request: %s", uri)
+
+        signer = Signer(self.cookie_key, self.conf.get("key_id"))
+        cookies_content = signer.cookies_for_policy(
+            append="; Secure; Path=/content/; Max-Age=%s"
+            % int(ttl.total_seconds()),
+            resource="https://%s/content/*" % domain,
+            date_less_than=now + ttl,
+        )
+        cookies_origin = signer.cookies_for_policy(
+            append="; Secure; Path=/origin/; Max-Age=%s"
+            % int(ttl.total_seconds()),
+            resource="https://%s/origin/*" % domain,
+            date_less_than=now + ttl,
+        )
+
+        return {
+            "status": "302",
+            "headers": {
+                "location": [
+                    {"value": uri[len("/_/cookie") :]},
+                ],
+                "cache-control": [
+                    {"value": "no-store"},
+                ],
+                "set-cookie": [
+                    {"value": x} for x in (cookies_content + cookies_origin)
+                ],
+            },
+        }
+
     def handle_listing_request(self, uri):
         if uri.endswith("/listing"):
             self.logger.info("Handling listing request: %s", uri)
@@ -125,10 +225,16 @@ class OriginRequest(LambdaBase):
             else:
                 self.logger.info("No listing data defined")
 
+        return {}
+
     def handler(self, event, context):
         # pylint: disable=unused-argument
 
         request = event["Records"][0]["cf"]["request"]
+
+        if request["uri"].startswith("/_/cookie/"):
+            return self.handle_cookie_request(event)
+
         uri = self.resolve_aliases(request["uri"])
 
         listing_response = self.handle_listing_request(uri)
@@ -168,15 +274,19 @@ class OriginRequest(LambdaBase):
             self.logger.info("Item found for '%s'", uri)
 
             try:
+                # Validate If the item's "object_key" is "absent"
+                object_key = query_result["Items"][0]["object_key"]["S"]
+                if object_key == "absent":
+                    self.logger.info("Item absent for '%s'", uri)
+                    return {"status": "404", "statusDescription": "Not Found"}
+
                 # Add custom header containing the original request uri
                 request["headers"]["exodus-original-uri"] = [
                     {"key": "exodus-original-uri", "value": request["uri"]}
                 ]
 
                 # Update request uri to point to S3 object key
-                request["uri"] = (
-                    "/" + query_result["Items"][0]["object_key"]["S"]
-                )
+                request["uri"] = "/" + object_key
                 content_type = (
                     query_result["Items"][0].get("content_type", {}).get("S")
                 )

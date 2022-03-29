@@ -19,10 +19,14 @@ import requests
 import yaml
 from tqdm import tqdm
 
+DATA_DIR = os.path.dirname(__file__)
+
+ENDPOINT_URL = os.environ.get("EXODUS_AWS_ENDPOINT_URL") or None
+
 
 class DBHandler:
     def __init__(self, table, config_table, session):
-        self.dynamodb = session.client("dynamodb")
+        self.dynamodb = session.client("dynamodb", endpoint_url=ENDPOINT_URL)
         self.table = table
         self.config_table = config_table
 
@@ -71,17 +75,48 @@ class DBHandler:
             Item=item,
         )
 
+    def put_absent_item(self, path, from_date=None):
+        if not from_date:
+            from_date = self.default_from_date
+
+        item = {
+            "web_uri": {"S": path},
+            "from_date": {"S": from_date},
+            "object_key": {"S": "absent"},
+            "content_type": {"S": ""},
+            "metadata": {"M": {}},
+        }
+
+        self.dynamodb.put_item(
+            TableName=self.table,
+            Item=item,
+        )
+
 
 class S3Handler:
     def __init__(self, bucket, session):
-        self.s3_client = session.client("s3")
+        self.s3_client = session.client("s3", endpoint_url=ENDPOINT_URL)
         self.bucket = bucket
 
     def upload_from_localfile(self, path, checksum):
-        with open(path, "rb") as data:
-            self.s3_client.upload_fileobj(
-                Fileobj=data, Bucket=self.bucket, Key=checksum
-            )
+        st = os.stat(path)
+        bar = tqdm(
+            desc="%s [upload]" % checksum,
+            total=st.st_size,
+            unit="iB",
+            unit_scale=True,
+        )
+
+        try:
+            with open(path, "rb") as data:
+                self.s3_client.upload_fileobj(
+                    Fileobj=data,
+                    Bucket=self.bucket,
+                    Key=checksum,
+                    Callback=bar.update,
+                )
+        finally:
+            bar.close()
 
 
 def parse_aws_session(parser):
@@ -183,10 +218,10 @@ class RefTestConfig:
 
 
 def load_config():
-    with open("data.yml") as data_file:
+    with open(os.path.join(DATA_DIR, "data.yml")) as data_file:
         data = yaml.load(data_file, yaml.SafeLoader)
 
-    with open("exodus-config.json") as config_file:
+    with open(os.path.join(DATA_DIR, "exodus-config.json")) as config_file:
         config = json.load(config_file)
 
     return RefTestConfig(data["prod-cdn-url"], data["test_data"], config)
@@ -224,6 +259,11 @@ def prepare(db_client, s3_client, config, opt):
     for item in config.test_data:
         if not item.get("deploy", True):
             # skip items that specify deploy=false
+            continue
+
+        if item.get("state") == "absent":
+            # skip all the downloading and checking when absent=true
+            db_client.put_absent_item(item["path"])
             continue
 
         url = config.prod_cdn_url + item["path"]
@@ -272,7 +312,9 @@ def main():
         region_name=opt.default_region,
     )
 
-    db_client = DBHandler(table=opt.table, config_table=opt.config_table, session=session)
+    db_client = DBHandler(
+        table=opt.table, config_table=opt.config_table, session=session
+    )
     s3_client = S3Handler(bucket=opt.bucket, session=session)
 
     res = False
