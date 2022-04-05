@@ -1,0 +1,8 @@
+{
+  "enabled": true,
+  "dockerfile": {
+    "fileMatch": [".*Containerfile$"]
+  },
+  "automerge": true,
+  "stabilityDays": 3
+}
