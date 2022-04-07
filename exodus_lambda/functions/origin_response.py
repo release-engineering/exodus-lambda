@@ -33,6 +33,11 @@ class OriginResponse(LambdaBase):
                 {"key": "Digest", "value": f"id-sha-256={sum_b64}"}
             ]
 
+        if "headers" in request and "x-exodus-query" in request["headers"]:
+            response["headers"]["x-exodus-version"] = [
+                {"key": "X-Exodus-Version", "value": self.lambda_version}
+            ]
+
         try:
             original_uri = request["headers"]["exodus-original-uri"][0][
                 "value"

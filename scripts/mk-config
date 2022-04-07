@@ -14,4 +14,7 @@ export EXODUS_CONFIG_TABLE=${EXODUS_CONFIG_TABLE:-$PROJECT-config-$ENV_TYPE}
 export EXODUS_SECRET_ARN=${EXODUS_SECRET_ARN}
 export EXODUS_KEY_ID=${EXODUS_KEY_ID}
 
+REVISION="${CODEBUILD_RESOLVED_SOURCE_VERSION:-$(git rev-parse HEAD)}"
+export EXODUS_LAMBDA_VERSION="${EXODUS_LAMBDA_VERSION:-$(date -u --iso=s) ${REVISION}}"
+
 envsubst < ./configuration/lambda_config.template

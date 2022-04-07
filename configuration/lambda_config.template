@@ -18,6 +18,7 @@
   },
   "secret_arn": "$EXODUS_SECRET_ARN",
   "key_id": "$EXODUS_KEY_ID",
+  "lambda_version": "$EXODUS_LAMBDA_VERSION",
   "logging": {
     "version": 1,
     "incremental": "True",

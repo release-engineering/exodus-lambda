@@ -63,6 +63,7 @@ def mock_conf_file():
     test_env["EXODUS_KEY_ID"] = "K1MOU91G3N7WPY"
     test_env["ORIGIN_RESPONSE_LOGGER_LEVEL"] = "DEBUG"
     test_env["ORIGIN_REQUEST_LOGGER_LEVEL"] = "DEBUG"
+    test_env["EXODUS_LAMBDA_VERSION"] = "fake version"
 
     cmd = "envsubst < ./configuration/lambda_config.template > {temp_path}"
     cmd = cmd.format(temp_path=temp_file.name)
