@@ -63,6 +63,7 @@ Resources:
             HeaderBehavior: whitelist
             Headers:
               - Want-Digest
+              - X-Exodus-Query
           QueryStringsConfig:
             QueryStringBehavior: none
 

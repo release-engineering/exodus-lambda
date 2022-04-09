@@ -49,6 +49,10 @@ class LambdaBase(object):
     def max_age(self):
         return self.conf["headers"]["max_age"]
 
+    @property
+    def lambda_version(self):
+        return self.conf["lambda_version"]
+
     def set_cache_control(self, uri, response):
         max_age_pattern_whitelist = [
             ".+/PULP_MANIFEST",

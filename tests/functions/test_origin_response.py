@@ -11,14 +11,16 @@ MAX_AGE = TEST_CONF["headers"]["max_age"]
 
 
 @pytest.mark.parametrize(
-    "original_uri, want_digest",
+    "original_uri, want_digest, x_exodus_query",
     [
-        ("/some/repo/listing", True),
-        ("/some/repo/repodata/repomd.xml", True),
-        ("/some/repo/ostree/repo/refs/heads/ok/test", False),
+        ("/some/repo/listing", True, False),
+        ("/some/repo/repodata/repomd.xml", True, False),
+        ("/some/repo/ostree/repo/refs/heads/ok/test", False, True),
     ],
 )
-def test_origin_response_valid_headers(original_uri, want_digest):
+def test_origin_response_valid_headers(
+    original_uri, want_digest, x_exodus_query
+):
     event = {
         "Records": [
             {
@@ -56,6 +58,17 @@ def test_origin_response_valid_headers(original_uri, want_digest):
                 "key": "Digest",
                 "value": "id-sha-256=vn8wB98+UftI//V9qcAcUua45g7OrKt6rw"
                 "4FtXV4STo=",
+            }
+        ]
+
+    if x_exodus_query:
+        event["Records"][0]["cf"]["request"]["headers"]["x-exodus-query"] = [
+            {"key": "X-Exodus-Query", "value": "true"}
+        ]
+        expected_headers["x-exodus-version"] = [
+            {
+                "key": "X-Exodus-Version",
+                "value": "fake version",
             }
         ]
 
