@@ -35,6 +35,13 @@ jobs:
     - name: Build documentation
       run: tox -e docs
 
+    - name: Test fakefront image
+      run: |
+        docker build . -t fakefront -f support/fakefront/Containerfile
+        # sanity check that the image can load at least to the point of
+        # detecting incomplete config.
+        docker run fakefront 2>&1 | tee /dev/stderr | grep 'Must set EXODUS_AWS_ENDPOINT_URL'
+
     - name: Publish documentation
       if: ${{ success() }}
       env:
