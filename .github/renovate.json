@@ -1,5 +1,6 @@
 {
   "enabled": true,
+  "enabledManagers": ["dockerfile", "github-actions"],
   "dockerfile": {
     "fileMatch": [".*Containerfile$"]
   },
