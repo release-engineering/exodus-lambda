@@ -86,7 +86,8 @@ origin_request
     the client has requested existing content, this Lambda function will
     rewrite the request's URI into a valid S3 object key before returning the
     request to the controller. The function itself does not request data from
-    S3, nor generate a response directly.
+    S3, nor generate a response directly in the typical case (although it does
+    for some edge cases).
 
     For more information about this function's behavior, see
     :ref:`function_ref`.
