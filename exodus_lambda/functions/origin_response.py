@@ -34,9 +34,7 @@ class OriginResponse(LambdaBase):
             ]
 
         if "headers" in request and "x-exodus-query" in request["headers"]:
-            response["headers"]["x-exodus-version"] = [
-                {"key": "X-Exodus-Version", "value": self.lambda_version}
-            ]
+            self.set_lambda_version(response)
 
         try:
             original_uri = request["headers"]["exodus-original-uri"][0][

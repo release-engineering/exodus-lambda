@@ -499,3 +499,39 @@ def test_origin_request_cookie_uri_without_secret(mocked_boto3_client, caplog):
     assert "Attempting to get secret %s" % arn in caplog.text
     assert "Couldn't load secret %s" % arn in caplog.text
     assert "botocore.exceptions.ClientError: An error occurred" in caplog.text
+
+
+@mock.patch("boto3.client")
+@mock.patch("exodus_lambda.functions.origin_request.cachetools")
+@mock.patch("exodus_lambda.functions.origin_request.datetime")
+def test_origin_request_with_version_check(
+    mocked_datetime, mocked_cache, mocked_boto3_client, caplog
+):
+    req_uri = "/content/dist/rhel/server/7/listing"
+
+    mocked_datetime.now().isoformat.return_value = MOCKED_DT
+    mocked_cache.TTLCache.return_value = {"exodus-config": {}}
+    mocked_boto3_client().query.return_value = {"Items": []}
+
+    event = {
+        "Records": [
+            {
+                "cf": {
+                    "request": {
+                        "uri": req_uri,
+                        "headers": {"x-exodus-query": 1},
+                    }
+                }
+            }
+        ]
+    }
+    request = OriginRequest(conf_file=TEST_CONF).handler(event, context=None)
+    assert request == {
+        "status": "404",
+        "statusDescription": "Not Found",
+        "headers": {
+            "x-exodus-version": [
+                {"key": "X-Exodus-Version", "value": "fake version"}
+            ]
+        },
+    }
