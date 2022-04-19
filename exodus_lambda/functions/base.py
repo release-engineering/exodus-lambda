@@ -53,6 +53,11 @@ class LambdaBase(object):
     def lambda_version(self):
         return self.conf["lambda_version"]
 
+    def set_lambda_version(self, response):
+        response.setdefault("headers", {})["x-exodus-version"] = [
+            {"key": "X-Exodus-Version", "value": self.lambda_version}
+        ]
+
     def set_cache_control(self, uri, response):
         max_age_pattern_whitelist = [
             ".+/PULP_MANIFEST",

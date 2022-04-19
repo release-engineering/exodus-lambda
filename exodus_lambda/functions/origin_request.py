@@ -1,3 +1,4 @@
+import functools
 import json
 import os
 import time
@@ -31,6 +32,7 @@ class OriginRequest(LambdaBase):
             ).total_seconds(),
             timer=time.monotonic,
         )
+        self.handler = self.__wrap_version_check(self.handler)
 
     @property
     def db_client(self):
@@ -226,6 +228,24 @@ class OriginRequest(LambdaBase):
                 self.logger.info("No listing data defined")
 
         return {}
+
+    def __wrap_version_check(self, handler):
+        # Decorator wrapping every request to add x-exodus-version on responses
+        # which generated directly without going to origin-response.
+
+        @functools.wraps(handler)
+        def new_handler(event, context):
+            request = event["Records"][0]["cf"]["request"]
+            response = handler(event, context)
+
+            if "status" in response and "x-exodus-query" in (
+                request.get("headers") or {}
+            ):
+                self.set_lambda_version(response)
+
+            return response
+
+        return new_handler
 
     def handler(self, event, context):
         # pylint: disable=unused-argument
