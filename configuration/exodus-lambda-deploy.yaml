@@ -24,6 +24,10 @@ Parameters:
     Type: String
     Default: None
     Description: The IAM Role ARN for Lambda Function resource
+  lambdaenvironmenturi:
+    Type: String
+    Default: None
+    Description: S3 URI of a template with env vars for the lambdas (currently ignored)
   keyids:
     Type: CommaDelimitedList
     Default: None

@@ -5,15 +5,10 @@ import pytest
 
 from exodus_lambda.functions.base import LambdaBase
 
-from ..test_utils.utils import generate_test_config
-
-CONF_FILE = os.environ.get("EXODUS_LAMBDA_CONF_FILE")
-TEST_CONF = generate_test_config()
-
 
 def test_base_handler():
     with pytest.raises(NotImplementedError):
-        LambdaBase(conf_file=CONF_FILE).handler(event=None, context=None)
+        LambdaBase().handler(event=None, context=None)
 
 
 @pytest.mark.parametrize(
@@ -25,9 +20,9 @@ def test_base_handler():
     ],
     ids=["fake", "available", "unavailable"],
 )
-def test_base_region(env_var, exp_var, monkeypatch):
+def test_base_region(env_var, exp_var, monkeypatch, configured_env):
     """Ensure correct regions are selected for various inputs"""
-    base = LambdaBase(conf_file=TEST_CONF)
+    base = LambdaBase()
 
     # Environment variable is set
     monkeypatch.setenv("AWS_REGION", env_var)
@@ -39,7 +34,7 @@ def test_base_region(env_var, exp_var, monkeypatch):
 
 
 def test_logger_config(caplog):
-    base_obj = LambdaBase(conf_file=TEST_CONF)
+    base_obj = LambdaBase()
     log = base_obj.logger
 
     log.setLevel(logging.DEBUG)
@@ -60,7 +55,7 @@ def test_root_logger_without_handlers(caplog):
     """
     root_logger = logging.getLogger()
     root_logger.handlers = []
-    base_obj = LambdaBase(conf_file=TEST_CONF)
+    base_obj = LambdaBase()
     base_obj.logger.warning("warning message")
     assert root_logger.handlers == []
     assert "warning message" not in caplog.text

@@ -8,7 +8,7 @@ CONF_FILE = os.environ.get("EXODUS_LAMBDA_CONF_FILE") or "lambda_config.json"
 
 
 class OriginResponse(LambdaBase):
-    def __init__(self, conf_file=CONF_FILE):
+    def __init__(self, conf_file=None):
         super().__init__("origin-response", conf_file)
 
     def handler(self, event, context):
@@ -55,4 +55,6 @@ class OriginResponse(LambdaBase):
 
 
 # Make handler available at module level
-lambda_handler = OriginResponse().handler  # pylint: disable=invalid-name
+lambda_handler = OriginResponse(
+    conf_file=CONF_FILE
+).handler  # pylint: disable=invalid-name
