@@ -4,6 +4,7 @@ import tempfile
 
 import boto3
 import pytest
+import requests
 
 
 def get_distribution_url(stack_name):
@@ -30,6 +31,11 @@ def pytest_addoption(parser):
         action="store",
         help="enable integration tests against this lambda stack",
     )
+    parser.addoption(
+        "--src-version",
+        action="store",
+        help="enable lambda source version validation",
+    )
 
 
 @pytest.fixture
@@ -45,6 +51,19 @@ def cdn_test_url(request):
     else:
         pytest.skip("Test skipped without --cdn-test-url or --lambda-stack")
     return url
+
+
+@pytest.fixture
+def src_version(request):
+    # fetch exodus-lambda git version for version check
+    # if src_version is unknown, version check will be skipped
+    if request.config.getoption("--src-version"):
+        version = request.config.getoption("--src-version")
+    elif os.environ.get("CODEBUILD_RESOLVED_SOURCE_VERSION"):
+        version = os.environ.get("CODEBUILD_RESOLVED_SOURCE_VERSION")
+    else:
+        return None
+    return version
 
 
 def mock_conf_file():
@@ -105,3 +124,31 @@ ZsdWx8TW+aPSL3MxH7/k36mW1pumheBFPy+YAou+Kb4qHN/PJul1uhfG6DUnvpMF
 K8PZxUBy9cZ0KOEpAkA1b7cZpW40ZowMvAH6sF+7Ok1NFd+08AMXLiSJ6z7Sk29s
 UrfAc2T6ZnfNC4qLIaDyo87CzVG/wk1Upr21z0YD
 -----END RSA PRIVATE KEY-----"""
+
+
+class VersionCheckingAdapter(requests.adapters.HTTPAdapter):
+    def __init__(self, expected_version):
+        self.expected_version = expected_version
+        super().__init__()
+
+    def send(self, request, *args, **kwargs):
+        request.headers["X-Exodus-Query"] = "1"
+        response = super().send(request, *args, **kwargs)
+
+        version = response.headers["X-Exodus-Version"]
+        if self.expected_version not in version:
+            raise AssertionError(
+                "Expected to run against version %s but server sent X-Exodus-Version: %s"
+                % (self.expected_version, version)
+            )
+        return response
+
+
+@pytest.fixture
+def requests_session(src_version):
+    session = requests.Session()
+    if src_version:
+        # we have an expected version, mount an adapter which
+        # will check for that version
+        session.mount("https://", VersionCheckingAdapter(src_version))
+    return session
