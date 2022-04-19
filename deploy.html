@@ -89,6 +89,43 @@ Default: exodus</p>
 </pre></div>
 </div>
 </section>
+<section id="environment-variables">
+<h2>Environment Variables<a class="headerlink" href="#environment-variables" title="Permalink to this headline">¶</a></h2>
+<p>Lambdas should be configured using the following environment variables.
+All variables not listed as “required” have reasonable defaults.</p>
+<blockquote>
+<div><dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">EXODUS_TABLE</span></code> <em>(required)</em></dt><dd><p>The name of a DynamoDB table containing URI/content mappings.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">EXODUS_CONFIG_TABLE</span></code> <em>(required)</em></dt><dd><p>The name of a DynamoDB table containing volatile config influencing the
+lambdas, such as $releasever aliases. This config can be updated
+without a new deployment.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">EXODUS_SECRET_ARN</span></code> <em>(required)</em></dt><dd><p>ARN identifying a secret from which a private key can be loaded for
+signing cookies.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">EXODUS_KEY_ID</span></code> <em>(required)</em></dt><dd><p>ID of the keypair corresponding to the private key found in the above secret.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">EXODUS_TABLE_REGIONS</span></code></dt><dd><p>Comma-separated list of regions in which <code class="docutils literal notranslate"><span class="pre">EXODUS_TABLE</span></code> can be accessed
+(if it is configured as a global table).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">EXODUS_CONFIG_CACHE_TTL</span></code></dt><dd><p>How long, in minutes, to cache volatile config read from <code class="docutils literal notranslate"><span class="pre">EXODUS_CONFIG_TABLE</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">EXODUS_COOKIE_TTL</span></code></dt><dd><p>How long, in minutes, before signed cookies expire.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">EXODUS_HEADERS_MAX_AGE</span></code></dt><dd><p>How long, in seconds, before certain pieces of mutable content (such as repomd.xml)
+should be considered stale. Used to set <code class="docutils literal notranslate"><span class="pre">Cache-Control:</span> <span class="pre">max-age</span></code> on some responses.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">EXODUS_LAMBDA_VERSION</span></code></dt><dd><p>A version string uniquely identifying the currently deployed version of exodus-lambda,
+for debugging purposes.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">EXODUS_LOG_FORMAT</span></code></dt><dd><p>Format string for Python loggers.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">EXODUS_&lt;loggername&gt;_LOG_LEVEL</span></code></dt><dd><p>Set the log level of a specified logger (e.g. to “INFO”, “DEBUG”, etc.)</p>
+</dd>
+</dl>
+</div></blockquote>
+</section>
 </section>
 
 
@@ -117,6 +154,7 @@ Default: exodus</p>
 <li class="toctree-l1"><a class="reference internal" href="arch.html">Architecture</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Deployment</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#lambda-functions">Lambda Functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#environment-variables">Environment Variables</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="function-reference.html">Function Reference</a></li>

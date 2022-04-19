@@ -8,7 +8,7 @@ Using this function, a URI like "/path/to/s3/file" would be transformed to
 something like "/some-s3-file-object-key".
 
 The mapping between the URI and the object key is defined by the AWS DynamoDB
-table specified in the configuration file that this function is deployed with.
+table specified by the ``EXODUS_TABLE`` environment variable.
 
 Required schemas for the DynamoDB table and S3 bucket can be found in the
 :doc:`schema reference <../schema-reference>`.
@@ -23,16 +23,3 @@ Event
 ^^^^^
 The event for this function must be a CloudFront distribution origin-request to
 an S3 bucket.
-
-Configuration
-^^^^^^^^^^^^^
-The origin_request function must be deployed with the lambda_config.json
-configuration file.
-
-- table
-    The DynamoDB table from which to derive path to key mapping.
-
-    - name
-        The name of the DynamoDB table.
-    - region
-        The AWS region in which the table resides.
