@@ -66,6 +66,49 @@ def src_version(request):
     return version
 
 
+@pytest.fixture
+def configured_env(monkeypatch):
+    """When requested, this fixture sets some complete and reasonably realistic
+    config via env vars, enough so that lambdas can execute without crashing.
+    """
+
+    monkeypatch.setenv("EXODUS_SECRET_ARN", "arn:aws:secretsmanager:example")
+    monkeypatch.setenv("EXODUS_KEY_ID", "K1MOU91G3N7WPY")
+    monkeypatch.setenv("EXODUS_ORIGIN-RESPONSE_LOGGER_LEVEL", "DEBUG")
+    monkeypatch.setenv("EXODUS_ORIGIN-REQUEST_LOGGER_LEVEL", "DEBUG")
+    monkeypatch.setenv("EXODUS_LAMBDA_VERSION", "fake version")
+
+    monkeypatch.setenv("EXODUS_TABLE", "test-table")
+    monkeypatch.setenv(
+        "EXODUS_TABLE_REGIONS",
+        ",".join(
+            [
+                "us-east-1",
+                "us-east-2",
+                "us-west-1",
+                "us-west-2",
+                "ca-central-1",
+                "eu-central-1",
+                "eu-west-2",
+                "eu-west-3",
+                "eu-west-1",
+                "sa-east-1",
+                "ap-south-1",
+                "ap-northeast-2",
+                "ap-southeast-1",
+                "ap-southeast-2",
+                "ap-northeast-1",
+            ]
+        ),
+    )
+    monkeypatch.setenv("EXODUS_CONFIG_TABLE", "test-config-table")
+
+    monkeypatch.setenv("EXODUS_LOG_FORMAT", "[%(levelname)s] - %(message)s")
+    monkeypatch.setenv("EXODUS_ORIGIN-RESPONSE_LOG_LEVEL", "DEBUG")
+    monkeypatch.setenv("EXODUS_ORIGIN-REQUEST_LOG_LEVEL", "DEBUG")
+    monkeypatch.setenv("EXODUS_DEFAULT_LOG_LEVEL", "DEBUG")
+
+
 def mock_conf_file():
     temp_file = tempfile.NamedTemporaryFile(prefix="lambda_unittests_")
 
@@ -105,6 +148,15 @@ MOCK_LAMBDA_CONF_FILE = mock_conf_file()
 def pytest_sessionfinish(session, exitstatus):
     # remove temp conf after whole test run finished
     MOCK_LAMBDA_CONF_FILE.close()
+
+
+@pytest.fixture(autouse=True)
+def unset_conf_file(monkeypatch):
+    # We are curretly forced to set EXODUS_LAMBDA_CONF_FILE env var at import
+    # time to avoid a crash, which is done above. But when we're actually
+    # running tests, make sure it's unset because we prefer to use environment
+    # variables for configuration.
+    monkeypatch.delenv("EXODUS_LAMBDA_CONF_FILE")
 
 
 @pytest.fixture
