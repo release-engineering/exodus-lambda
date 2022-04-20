@@ -104,9 +104,9 @@ def configured_env(monkeypatch):
     monkeypatch.setenv("EXODUS_CONFIG_TABLE", "test-config-table")
 
     monkeypatch.setenv("EXODUS_LOG_FORMAT", "[%(levelname)s] - %(message)s")
-    monkeypatch.setenv("EXODUS_ORIGIN-RESPONSE_LOG_LEVEL", "DEBUG")
-    monkeypatch.setenv("EXODUS_ORIGIN-REQUEST_LOG_LEVEL", "DEBUG")
-    monkeypatch.setenv("EXODUS_DEFAULT_LOG_LEVEL", "DEBUG")
+    monkeypatch.setenv("EXODUS_LOGGER_RESPONSE", "origin-response DEBUG")
+    monkeypatch.setenv("EXODUS_LOGGER_REQUEST", "origin-request DEBUG")
+    monkeypatch.setenv("EXODUS_LOGGER_DEFAULT", "default DEBUG")
 
 
 def mock_conf_file():

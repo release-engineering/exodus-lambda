@@ -196,17 +196,23 @@ class EnvironmentLambdaConfig(LambdaConfig):
 
         # We support setting levels on arbitrary loggers by setting env vars of the form:
         #
-        #   EXODUS_<loggername>_LOG_LEVEL
+        #   EXODUS_LOGGER_*=loggername loglevel
         #
         # Gather all such vars of that form.
-        # Note: we only support lowercase logger names.
         for varname, value in environ.items():
             varname = varname.lower()
-            if varname.endswith("_log_level") and varname.startswith(
-                "exodus_"
-            ):
-                loggername = varname[len("exodus_") : -len("_log_level")]
-                loggers[loggername] = {"level": value.upper()}
+            if varname.startswith("exodus_logger_"):
+                split = value.split(" ")
+                if len(split) < 2:
+                    LOG.warning(
+                        "Ignoring invalid logger env var: %s = %s",
+                        varname,
+                        value,
+                    )
+                else:
+                    level = split[-1]
+                    loggername = " ".join(split[0:-1])
+                    loggers[loggername] = {"level": level.upper()}
 
         return {
             "version": 1,

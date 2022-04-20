@@ -80,8 +80,16 @@ All variables not listed as "required" have reasonable defaults.
     ``EXODUS_LOG_FORMAT``
         Format string for Python loggers.
 
-    ``EXODUS_<loggername>_LOG_LEVEL``
-        Set the log level of a specified logger (e.g. to "INFO", "DEBUG", etc.)
+    ``EXODUS_LOGGER_*``
+        Should contain a value of the form ``<loggername> <level>``,
+        such as ``origin-request DEBUG``.
+
+        Sets the level of the specified logger.
+
+        The environment variable's wildcard suffix allows for any number
+        of loggers to be configured. The specific value used as a suffix
+        has no effect.
+
 
 
 .. _AWS CloudFormation: https://aws.amazon.com/cloudformation/
