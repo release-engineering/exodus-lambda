@@ -94,7 +94,7 @@ Default: exodus</p>
 <p>Lambdas should be configured using the following environment variables.
 All variables not listed as “required” have reasonable defaults.</p>
 <blockquote>
-<div><dl class="simple">
+<div><dl>
 <dt><code class="docutils literal notranslate"><span class="pre">EXODUS_TABLE</span></code> <em>(required)</em></dt><dd><p>The name of a DynamoDB table containing URI/content mappings.</p>
 </dd>
 <dt><code class="docutils literal notranslate"><span class="pre">EXODUS_CONFIG_TABLE</span></code> <em>(required)</em></dt><dd><p>The name of a DynamoDB table containing volatile config influencing the
@@ -121,7 +121,12 @@ for debugging purposes.</p>
 </dd>
 <dt><code class="docutils literal notranslate"><span class="pre">EXODUS_LOG_FORMAT</span></code></dt><dd><p>Format string for Python loggers.</p>
 </dd>
-<dt><code class="docutils literal notranslate"><span class="pre">EXODUS_&lt;loggername&gt;_LOG_LEVEL</span></code></dt><dd><p>Set the log level of a specified logger (e.g. to “INFO”, “DEBUG”, etc.)</p>
+<dt><code class="docutils literal notranslate"><span class="pre">EXODUS_LOGGER_*</span></code></dt><dd><p>Should contain a value of the form <code class="docutils literal notranslate"><span class="pre">&lt;loggername&gt;</span> <span class="pre">&lt;level&gt;</span></code>,
+such as <code class="docutils literal notranslate"><span class="pre">origin-request</span> <span class="pre">DEBUG</span></code>.</p>
+<p>Sets the level of the specified logger.</p>
+<p>The environment variable’s wildcard suffix allows for any number
+of loggers to be configured. The specific value used as a suffix
+has no effect.</p>
 </dd>
 </dl>
 </div></blockquote>
