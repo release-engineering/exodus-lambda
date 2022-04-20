@@ -41,7 +41,7 @@ AWS CloudFront event, to the key of an object in an AWS S3 bucket.</p>
 <p>Using this function, a URI like “/path/to/s3/file” would be transformed to
 something like “/some-s3-file-object-key”.</p>
 <p>The mapping between the URI and the object key is defined by the AWS DynamoDB
-table specified by the <code class="docutils literal notranslate"><span class="pre">EXODUS_TABLE</span></code> environment variable.</p>
+table specified in the configuration file that this function is deployed with.</p>
 <p>Required schemas for the DynamoDB table and S3 bucket can be found in the
 <a class="reference internal" href="../schema-reference.html"><span class="doc">schema reference</span></a>.</p>
 <section id="deployment">
@@ -52,6 +52,30 @@ following event and configuration file.</p>
 <h3>Event<a class="headerlink" href="#event" title="Permalink to this headline">¶</a></h3>
 <p>The event for this function must be a CloudFront distribution origin-request to
 an S3 bucket.</p>
+</section>
+<section id="configuration">
+<h3>Configuration<a class="headerlink" href="#configuration" title="Permalink to this headline">¶</a></h3>
+<p>The origin_request function must be deployed with the lambda_config.json
+configuration file.</p>
+<ul class="simple">
+<li><dl class="simple">
+<dt>table</dt><dd><p>The DynamoDB table from which to derive path to key mapping.</p>
+<ul>
+<li><dl class="simple">
+<dt>name</dt><dd><p>The name of the DynamoDB table.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>region</dt><dd><p>The AWS region in which the table resides.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
 </section>
 </section>
 </section>
