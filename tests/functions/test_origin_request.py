@@ -8,16 +8,11 @@ from botocore.exceptions import ClientError
 
 from exodus_lambda.functions.origin_request import OriginRequest
 
-from ..test_utils.utils import mock_definitions
+from ..test_utils.utils import generate_test_config, mock_definitions
 
 TEST_PATH = "/origin/rpms/repo/ver/dir/filename.ext"
 MOCKED_DT = "2020-02-17T15:38:05.864+00:00"
-
-
-@pytest.fixture(autouse=True)
-def autouse_configured_env(configured_env):
-    # make all these tests have a configured environment by default
-    pass
+TEST_CONF = generate_test_config()
 
 
 @pytest.mark.parametrize(
@@ -109,7 +104,9 @@ def test_origin_request(
     event = {"Records": [{"cf": {"request": {"uri": req_uri, "headers": {}}}}]}
 
     with caplog.at_level(logging.DEBUG):
-        request = OriginRequest().handler(event, context=None)
+        request = OriginRequest(
+            conf_file=TEST_CONF,
+        ).handler(event, context=None)
 
     if req_uri.endswith("/listing"):
         assert "Handling listing request" in caplog.text
@@ -142,7 +139,9 @@ def test_origin_request_no_item(
     event = {"Records": [{"cf": {"request": {"uri": TEST_PATH}}}]}
 
     with caplog.at_level(logging.DEBUG):
-        request = OriginRequest().handler(event, context=None)
+        request = OriginRequest(conf_file=TEST_CONF).handler(
+            event, context=None
+        )
 
     assert request == {"status": "404", "statusDescription": "Not Found"}
     assert "No item found for '%s'" % TEST_PATH in caplog.text
@@ -168,7 +167,7 @@ def test_origin_request_invalid_item(
     event = {"Records": [{"cf": {"request": {"uri": TEST_PATH}}}]}
 
     with pytest.raises(KeyError):
-        OriginRequest().handler(event, context=None)
+        OriginRequest(conf_file=TEST_CONF).handler(event, context=None)
 
     assert (
         "Exception occurred while processing %s"
@@ -195,7 +194,7 @@ def test_origin_request_definitions(mocked_boto3_client):
         ]
     }
 
-    assert mocked_defs == OriginRequest().definitions
+    assert mocked_defs == OriginRequest(conf_file=TEST_CONF).definitions
 
 
 @pytest.mark.parametrize(
@@ -218,7 +217,7 @@ def test_origin_request_definitions_cache(
         ]
     }
 
-    obj = OriginRequest()
+    obj = OriginRequest(conf_file=TEST_CONF)
     obj.definitions
     assert obj._cache.currsize == 1  # pylint:disable=protected-access
 
@@ -265,7 +264,9 @@ def test_origin_request_no_content_type(
     event = {"Records": [{"cf": {"request": {"uri": req_uri, "headers": {}}}}]}
 
     with caplog.at_level(logging.DEBUG):
-        request = OriginRequest().handler(event, context=None)
+        request = OriginRequest(
+            conf_file=TEST_CONF,
+        ).handler(event, context=None)
 
     assert "Item found for '%s'" % real_uri in caplog.text
 
@@ -289,7 +290,7 @@ def test_origin_request_listing_typical(mocked_cache, caplog):
     mocked_cache.TTLCache.return_value = {"exodus-config": mock_definitions()}
 
     event = {"Records": [{"cf": {"request": {"uri": req_uri, "headers": {}}}}]}
-    request = OriginRequest().handler(event, context=None)
+    request = OriginRequest(conf_file=TEST_CONF).handler(event, context=None)
 
     assert "Handling listing request: %s" % req_uri in caplog.text
     # It should successfully generate appropriate listing response.
@@ -319,7 +320,7 @@ def test_origin_request_listing_not_found(
     mocked_boto3_client().query.return_value = {"Items": []}
 
     event = {"Records": [{"cf": {"request": {"uri": req_uri, "headers": {}}}}]}
-    request = OriginRequest().handler(event, context=None)
+    request = OriginRequest(conf_file=TEST_CONF).handler(event, context=None)
 
     assert "Handling listing request: %s" % req_uri in caplog.text
     # It should fail to generate listing.
@@ -343,7 +344,7 @@ def test_origin_request_listing_data_not_found(
     mocked_boto3_client().query.return_value = {"Items": []}
 
     event = {"Records": [{"cf": {"request": {"uri": req_uri, "headers": {}}}}]}
-    request = OriginRequest().handler(event, context=None)
+    request = OriginRequest(conf_file=TEST_CONF).handler(event, context=None)
 
     assert "Handling listing request: %s" % req_uri in caplog.text
     # It should fail to find listing data.
@@ -380,7 +381,9 @@ def test_origin_request_absent_items(
     event = {"Records": [{"cf": {"request": {"uri": req_uri, "headers": {}}}}]}
 
     with caplog.at_level(logging.DEBUG):
-        request = OriginRequest().handler(event, context=None)
+        request = OriginRequest(
+            conf_file=TEST_CONF,
+        ).handler(event, context=None)
 
     assert "Item absent for '%s'" % real_uri in caplog.text
 
@@ -414,7 +417,7 @@ def test_origin_request_cookie_uri(
         ]
     }
 
-    request = OriginRequest().handler(event, context=None)
+    request = OriginRequest(conf_file=TEST_CONF).handler(event, context=None)
 
     assert "Handling cookie request: %s" % uri in caplog.text
     assert "Attempting to get secret %s" % arn in caplog.text
@@ -490,7 +493,7 @@ def test_origin_request_cookie_uri_without_secret(mocked_boto3_client, caplog):
     }
 
     with pytest.raises(ClientError):
-        OriginRequest().handler(event, context=None)
+        OriginRequest(conf_file=TEST_CONF).handler(event, context=None)
 
     assert "Handling cookie request: %s" % uri in caplog.text
     assert "Attempting to get secret %s" % arn in caplog.text
@@ -522,7 +525,7 @@ def test_origin_request_with_version_check(
             }
         ]
     }
-    request = OriginRequest().handler(event, context=None)
+    request = OriginRequest(conf_file=TEST_CONF).handler(event, context=None)
     assert request == {
         "status": "404",
         "statusDescription": "Not Found",

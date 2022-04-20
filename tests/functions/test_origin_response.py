@@ -4,11 +4,10 @@ import pytest
 
 from exodus_lambda.functions.origin_response import OriginResponse
 
+from ..test_utils.utils import generate_test_config
 
-@pytest.fixture(autouse=True)
-def autouse_configured_env(configured_env):
-    # make all these tests have a configured environment by default
-    pass
+TEST_CONF = generate_test_config()
+MAX_AGE = TEST_CONF["headers"]["max_age"]
 
 
 @pytest.mark.parametrize(
@@ -45,7 +44,9 @@ def test_origin_response_valid_headers(
     }
 
     expected_headers = {
-        "cache-control": [{"key": "Cache-Control", "value": "max-age=600"}]
+        "cache-control": [
+            {"key": "Cache-Control", "value": f"max-age={MAX_AGE}"}
+        ]
     }
 
     if want_digest:
@@ -71,7 +72,7 @@ def test_origin_response_valid_headers(
             }
         ]
 
-    response = OriginResponse().handler(event, context=None)
+    response = OriginResponse(conf_file=TEST_CONF).handler(event, context=None)
     assert response["headers"] == expected_headers
 
 
@@ -86,14 +87,14 @@ def test_origin_response_empty_headers(test_input):
         ]
     }
 
-    response = OriginResponse().handler(event, context=None)
+    response = OriginResponse(conf_file=TEST_CONF).handler(event, context=None)
     assert response["headers"] == {}
 
 
 def test_origin_response_missing_headers():
     event = {"Records": [{"cf": {"request": {}, "response": {}}}]}
 
-    response = OriginResponse().handler(event, context=None)
+    response = OriginResponse(conf_file=TEST_CONF).handler(event, context=None)
     assert response == {}
 
 
@@ -121,7 +122,7 @@ def test_origin_response_logger(caplog):
     }
 
     with caplog.at_level(logging.DEBUG):
-        OriginResponse().handler(event, context=None)
+        OriginResponse(conf_file=TEST_CONF).handler(event, context=None)
 
     assert (
         "Cache-Control header added for '/some/repo/repodata/repomd.xml'"
