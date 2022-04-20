@@ -3,13 +3,17 @@ from collections import namedtuple
 
 from exodus_lambda.functions.origin_request import OriginRequest
 
+from ..test_utils.utils import generate_test_config
+
+TEST_CONF = generate_test_config()
+
 Alias = namedtuple("Alias", ["src", "dest"])
 
 
 def test_alias_single():
     """Each alias is only applied a single time."""
 
-    req = OriginRequest()
+    req = OriginRequest(conf_file=TEST_CONF)
 
     aliases = [
         {"src": "/foo/bar", "dest": ""},
@@ -26,7 +30,7 @@ def test_alias_single():
 def test_alias_boundary():
     """Aliases are only resolved at path boundaries."""
 
-    req = OriginRequest()
+    req = OriginRequest(conf_file=TEST_CONF)
 
     aliases = [{"src": "/foo/bar", "dest": "/"}]
 
@@ -37,7 +41,7 @@ def test_alias_boundary():
 def test_alias_equal():
     """Paths exactly matching an alias can be resolved."""
 
-    req = OriginRequest()
+    req = OriginRequest(conf_file=TEST_CONF)
 
     aliases = [{"src": "/foo/bar", "dest": "/quux"}]
 

@@ -21,13 +21,15 @@ ENDPOINT_URL = os.environ.get("EXODUS_AWS_ENDPOINT_URL") or None
 
 
 class OriginRequest(LambdaBase):
-    def __init__(self, conf_file=None):
+    def __init__(self, conf_file=CONF_FILE):
         super().__init__("origin-request", conf_file)
         self._db_client = None
         self._sm_client = None
         self._cache = cachetools.TTLCache(
             maxsize=1,
-            ttl=timedelta(minutes=self.conf.config_cache_ttl).total_seconds(),
+            ttl=timedelta(
+                minutes=self.conf.get("config_cache_ttl", 2)
+            ).total_seconds(),
             timer=time.monotonic,
         )
         self.handler = self.__wrap_version_check(self.handler)
@@ -58,7 +60,7 @@ class OriginRequest(LambdaBase):
     def definitions(self):
         out = self._cache.get("exodus-config")
         if out is None:
-            table = self.conf.config_table
+            table = self.conf["config_table"]["name"]
 
             query_result = self.db_client.query(
                 TableName=table,
@@ -88,7 +90,7 @@ class OriginRequest(LambdaBase):
         out = self._cache.get("secret")
         if out is None:
             try:
-                arn = self.conf.secret_arn
+                arn = self.conf["secret_arn"]
                 self.logger.info("Attempting to get secret %s", arn)
 
                 response = self.sm_client.get_secret_value(SecretId=arn)
@@ -168,13 +170,13 @@ class OriginRequest(LambdaBase):
 
     def handle_cookie_request(self, event):
         now = datetime.utcnow()
-        ttl = timedelta(minutes=self.conf.cookie_ttl)
+        ttl = timedelta(minutes=self.conf.get("cookie_ttl", 720))
         domain = event["Records"][0]["cf"]["config"]["distributionDomainName"]
         uri = event["Records"][0]["cf"]["request"]["uri"]
 
         self.logger.info("Handling cookie request: %s", uri)
 
-        signer = Signer(self.cookie_key, self.conf.key_id)
+        signer = Signer(self.cookie_key, self.conf.get("key_id"))
         cookies_content = signer.cookies_for_policy(
             append="; Secure; Path=/content/; Max-Age=%s"
             % int(ttl.total_seconds()),
@@ -267,7 +269,7 @@ class OriginRequest(LambdaBase):
         self.logger.info(
             "The uri value for origin_request beginning is '%s'", uri
         )
-        table = self.conf.item_table
+        table = self.conf["table"]["name"]
 
         self.logger.info("Querying '%s' table for '%s'...", table, uri)
 
@@ -337,6 +339,4 @@ class OriginRequest(LambdaBase):
 
 
 # Make handler available at module level
-lambda_handler = OriginRequest(
-    conf_file=CONF_FILE
-).handler  # pylint: disable=invalid-name
+lambda_handler = OriginRequest().handler  # pylint: disable=invalid-name
