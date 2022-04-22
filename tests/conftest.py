@@ -135,7 +135,7 @@ class VersionCheckingAdapter(requests.adapters.HTTPAdapter):
         request.headers["X-Exodus-Query"] = "1"
         response = super().send(request, *args, **kwargs)
 
-        version = response.headers["X-Exodus-Version"]
+        version = response.headers.get("X-Exodus-Version", None)
         if self.expected_version not in version:
             raise AssertionError(
                 "Expected to run against version %s but server sent X-Exodus-Version: %s"
