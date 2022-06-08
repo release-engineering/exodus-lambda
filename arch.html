@@ -1,10 +1,10 @@
 
 <!DOCTYPE html>
 
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
     <title>Architecture &#8212; exodus-lambda  documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
@@ -13,6 +13,7 @@
     <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
+    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="_static/doctools.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -35,9 +36,9 @@
           <div class="body" role="main">
             
   <section id="architecture">
-<span id="arch-ref"></span><h1>Architecture<a class="headerlink" href="#architecture" title="Permalink to this headline">¶</a></h1>
+<span id="arch-ref"></span><h1>Architecture<a class="headerlink" href="#architecture" title="Permalink to this heading">¶</a></h1>
 <section id="overview">
-<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this heading">¶</a></h2>
 <p>This diagram shows the relationship between all major components used
 in the delivery of content via the CDN.</p>
 <div class="graphviz"><img src="_images/graphviz-80b25e9e891a7b52a17f6a68801f6dbe50edd089.png" alt="digraph {
@@ -210,7 +211,7 @@ expressed here.</p></li>
 </ul>
 </section>
 <section id="components">
-<h2>Components<a class="headerlink" href="#components" title="Permalink to this headline">¶</a></h2>
+<h2>Components<a class="headerlink" href="#components" title="Permalink to this heading">¶</a></h2>
 <dl>
 <dt>client</dt><dd><p>A client requesting data from the CDN.</p>
 <p>This could be <code class="docutils literal notranslate"><span class="pre">dnf</span></code>, <code class="docutils literal notranslate"><span class="pre">yum</span></code>, Satellite, <code class="docutils literal notranslate"><span class="pre">curl</span></code>, a web browser, etc.</p>
@@ -361,7 +362,7 @@ compared with tools using rsync.</p>
     </form>
     </div>
 </div>
-<script>$('#searchbox').show(0);</script>
+<script>document.getElementById('searchbox').style.display = "block"</script>
 
 
 
@@ -378,7 +379,7 @@ compared with tools using rsync.</p>
       &copy;2020, Red Hat.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.5.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

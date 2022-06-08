@@ -1,10 +1,10 @@
 
 <!DOCTYPE html>
 
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
     <title>origin_request Schemas &#8212; exodus-lambda  documentation</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
@@ -13,6 +13,7 @@
     <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
     <script src="../_static/jquery.js"></script>
     <script src="../_static/underscore.js"></script>
+    <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../_static/doctools.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -35,21 +36,21 @@
           <div class="body" role="main">
             
   <section id="origin-request-schemas">
-<h1>origin_request Schemas<a class="headerlink" href="#origin-request-schemas" title="Permalink to this headline">¶</a></h1>
+<h1>origin_request Schemas<a class="headerlink" href="#origin-request-schemas" title="Permalink to this heading">¶</a></h1>
 <p>The following schemas are required of AWS S3 bucket objects and DynamoDB table
 items for use with the origin_request AWS Lambda function.</p>
 <section id="s3-bucket-schema">
-<h2>S3 Bucket Schema<a class="headerlink" href="#s3-bucket-schema" title="Permalink to this headline">¶</a></h2>
+<h2>S3 Bucket Schema<a class="headerlink" href="#s3-bucket-schema" title="Permalink to this heading">¶</a></h2>
 <p>Objects should be stored in the origin S3 bucket using a sha256 checksum as
 their key.</p>
 </section>
 <section id="dynamodb-table-schema">
-<h2>DynamoDB Table Schema<a class="headerlink" href="#dynamodb-table-schema" title="Permalink to this headline">¶</a></h2>
+<h2>DynamoDB Table Schema<a class="headerlink" href="#dynamodb-table-schema" title="Permalink to this heading">¶</a></h2>
 <p>DynamoDB table items must possess the following keys and attributes.</p>
 <p>Additional attributes are supported by the no-SQL model and may be used as
 needed.</p>
 <section id="keys">
-<h3>Keys<a class="headerlink" href="#keys" title="Permalink to this headline">¶</a></h3>
+<h3>Keys<a class="headerlink" href="#keys" title="Permalink to this heading">¶</a></h3>
 <ul>
 <li><dl>
 <dt>web_uri</dt><dd><p>(Primary)</p>
@@ -70,7 +71,7 @@ time may be retrieved from the origin.</p>
 </ul>
 </section>
 <section id="attributes">
-<h3>Attributes<a class="headerlink" href="#attributes" title="Permalink to this headline">¶</a></h3>
+<h3>Attributes<a class="headerlink" href="#attributes" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><dl class="simple">
 <dt>object_key</dt><dd><p>The key of the file object stored in the origin S3 bucket.</p>
@@ -149,7 +150,7 @@ time may be retrieved from the origin.</p>
     </form>
     </div>
 </div>
-<script>$('#searchbox').show(0);</script>
+<script>document.getElementById('searchbox').style.display = "block"</script>
 
 
 
@@ -166,7 +167,7 @@ time may be retrieved from the origin.</p>
       &copy;2020, Red Hat.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.5.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |
