@@ -1,3 +1,4 @@
+import logging
 import os
 from typing import Any, Callable, Dict, Iterable, List, Tuple
 
@@ -7,6 +8,8 @@ from exodus_lambda.functions.origin_request import OriginRequest
 from exodus_lambda.functions.origin_response import OriginResponse
 
 from .lambdaio import LambdaInput, LambdaOutput
+
+LOG = logging.getLogger("fakefront")
 
 BUCKET_URL = os.environ["EXODUS_FAKEFRONT_BUCKET_URL"]
 
@@ -92,6 +95,8 @@ class Wsgi:
 
         # These should be the only allowed methods
         assert origin_request_out.method in ("GET", "HEAD")
+
+        LOG.info("S3 request: %s", url)
 
         return self.s3_session.request(
             origin_request_out.method, url, stream=True

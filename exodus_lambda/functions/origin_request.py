@@ -4,6 +4,7 @@ import os
 import time
 import urllib
 from datetime import datetime, timedelta, timezone
+from typing import Optional
 
 import boto3
 import cachetools
@@ -18,6 +19,8 @@ CONF_FILE = os.environ.get("EXODUS_LAMBDA_CONF_FILE") or "lambda_config.json"
 # You might want to try e.g. "https://localhost:3377" if you want to test
 # this code against localstack.
 ENDPOINT_URL = os.environ.get("EXODUS_AWS_ENDPOINT_URL") or None
+
+INDEX_FILENAME = "__exodus_autoindex__"
 
 
 class OriginRequest(LambdaBase):
@@ -247,6 +250,72 @@ class OriginRequest(LambdaBase):
 
         return new_handler
 
+    def response_from_db(
+        self, request: dict, table: str, uri: str
+    ) -> Optional[dict]:
+        self.logger.info("Querying '%s' table for '%s'...", table, uri)
+
+        query_result = self.db_client.query(
+            TableName=table,
+            Limit=1,
+            ScanIndexForward=False,
+            KeyConditionExpression="web_uri = :u and from_date <= :d",
+            ExpressionAttributeValues={
+                ":u": {"S": uri},
+                ":d": {
+                    "S": str(
+                        datetime.now(timezone.utc).isoformat(
+                            timespec="milliseconds"
+                        )
+                    )
+                },
+            },
+        )
+
+        if not query_result["Items"]:
+            return
+
+        self.logger.info("Item found for '%s'", uri)
+
+        try:
+            # Validate If the item's "object_key" is "absent"
+            object_key = query_result["Items"][0]["object_key"]["S"]
+            if object_key == "absent":
+                self.logger.info("Item absent for '%s'", uri)
+                return {"status": "404", "statusDescription": "Not Found"}
+
+            # Add custom header containing the original request uri
+            request["headers"]["exodus-original-uri"] = [
+                {"key": "exodus-original-uri", "value": request["uri"]}
+            ]
+
+            # Update request uri to point to S3 object key
+            request["uri"] = "/" + object_key
+            content_type = (
+                query_result["Items"][0].get("content_type", {}).get("S")
+            )
+            if not content_type:
+                # return "application/octet-stream" when content_type is empty
+                content_type = "application/octet-stream"
+
+            request["querystring"] = urllib.parse.urlencode(
+                {"response-content-type": content_type}
+            )
+
+            self.logger.info(
+                "The request value for origin_request end is '%s'",
+                json.dumps(request, indent=4, sort_keys=True),
+            )
+
+            return request
+        except Exception as err:
+            self.logger.exception(
+                "Exception occurred while processing %s",
+                json.dumps(query_result["Items"][0]),
+            )
+
+            raise err
+
     def handler(self, event, context):
         # pylint: disable=unused-argument
 
@@ -271,71 +340,16 @@ class OriginRequest(LambdaBase):
         )
         table = self.conf["table"]["name"]
 
-        self.logger.info("Querying '%s' table for '%s'...", table, uri)
+        index_uri = uri
+        while index_uri.endswith("/"):
+            index_uri = index_uri[:-1]
+        index_uri = index_uri + f"/{INDEX_FILENAME}"
 
-        query_result = self.db_client.query(
-            TableName=table,
-            Limit=1,
-            ScanIndexForward=False,
-            KeyConditionExpression="web_uri = :u and from_date <= :d",
-            ExpressionAttributeValues={
-                ":u": {"S": uri},
-                ":d": {
-                    "S": str(
-                        datetime.now(timezone.utc).isoformat(
-                            timespec="milliseconds"
-                        )
-                    )
-                },
-            },
-        )
+        for query_uri in (uri, index_uri):
+            if out := self.response_from_db(request, table, query_uri):
+                return out
 
-        if query_result["Items"]:
-            self.logger.info("Item found for '%s'", uri)
-
-            try:
-                # Validate If the item's "object_key" is "absent"
-                object_key = query_result["Items"][0]["object_key"]["S"]
-                if object_key == "absent":
-                    self.logger.info("Item absent for '%s'", uri)
-                    return {"status": "404", "statusDescription": "Not Found"}
-
-                # Add custom header containing the original request uri
-                request["headers"]["exodus-original-uri"] = [
-                    {"key": "exodus-original-uri", "value": request["uri"]}
-                ]
-
-                # Update request uri to point to S3 object key
-                request["uri"] = "/" + object_key
-                content_type = (
-                    query_result["Items"][0].get("content_type", {}).get("S")
-                )
-                if not content_type:
-                    # return "application/octet-stream" when content_type is empty
-                    content_type = "application/octet-stream"
-
-                request["querystring"] = urllib.parse.urlencode(
-                    {"response-content-type": content_type}
-                )
-
-                self.logger.info(
-                    "The request value for origin_request end is '%s'",
-                    json.dumps(request, indent=4, sort_keys=True),
-                )
-
-                return request
-            except Exception as err:
-                self.logger.exception(
-                    "Exception occurred while processing %s",
-                    json.dumps(query_result["Items"][0]),
-                )
-
-                raise err
-        else:
-            self.logger.info("No item found for '%s'", uri)
-
-            # Report 404 to prevent attempts on S3
-            return {"status": "404", "statusDescription": "Not Found"}
+        return {"status": "404", "statusDescription": "Not Found"}
 
 
 # Make handler available at module level
