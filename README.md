@@ -1,5 +1,5 @@
-exodus-lambda
-=============
+exodus-lambda (Test)
+====================
 
 AWS Lambda functions for Red Hat's Content Delivery Network
 
