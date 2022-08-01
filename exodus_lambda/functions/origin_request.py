@@ -4,7 +4,6 @@ import os
 import time
 import urllib
 from datetime import datetime, timedelta, timezone
-from typing import Optional
 
 import boto3
 import cachetools
@@ -19,8 +18,6 @@ CONF_FILE = os.environ.get("EXODUS_LAMBDA_CONF_FILE") or "lambda_config.json"
 # You might want to try e.g. "https://localhost:3377" if you want to test
 # this code against localstack.
 ENDPOINT_URL = os.environ.get("EXODUS_AWS_ENDPOINT_URL") or None
-
-INDEX_FILENAME = "__exodus_autoindex__"
 
 
 class OriginRequest(LambdaBase):
@@ -250,9 +247,7 @@ class OriginRequest(LambdaBase):
 
         return new_handler
 
-    def response_from_db(
-        self, request: dict, table: str, uri: str
-    ) -> Optional[dict]:
+    def response_from_db(self, request, table, uri):
         self.logger.info("Querying '%s' table for '%s'...", table, uri)
 
         query_result = self.db_client.query(
@@ -340,15 +335,16 @@ class OriginRequest(LambdaBase):
         )
         table = self.conf["table"]["name"]
 
-        index_uri = uri
-        while index_uri.endswith("/"):
-            index_uri = index_uri[:-1]
-        index_uri = index_uri + f"/{INDEX_FILENAME}"
-
-        for query_uri in (uri, index_uri):
-            if out := self.response_from_db(request, table, query_uri):
-                return out
-
+        # Do not permit clients to explicitly request an index file
+        if not uri.endswith("/" + self.index):
+            index_uri = uri
+            while index_uri.endswith("/"):
+                index_uri = index_uri[:-1]
+            index_uri = index_uri + "/" + self.index
+            for query_uri in (uri, index_uri):
+                if out := self.response_from_db(request, table, query_uri):
+                    return out
+        self.logger.info("No item found for '%s'", uri)
         return {"status": "404", "statusDescription": "Not Found"}
 
 
