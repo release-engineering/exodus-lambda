@@ -16,4 +16,4 @@ EXPOSE 8080
 
 WORKDIR /usr/local/src/exodus-lambda
 
-ENTRYPOINT ["gunicorn", "-b :8080", "support.fakefront"]
+ENTRYPOINT ["gunicorn", "-b", ":8080", "support.fakefront"]
