@@ -53,6 +53,10 @@ class LambdaBase(object):
     def lambda_version(self):
         return self.conf["lambda_version"]
 
+    @property
+    def index(self):
+        return self.conf["index_filename"]
+
     def set_lambda_version(self, response):
         response.setdefault("headers", {})["x-exodus-version"] = [
             {"key": "X-Exodus-Version", "value": self.lambda_version}
