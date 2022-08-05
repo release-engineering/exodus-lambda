@@ -81,7 +81,16 @@ class OriginRequest(LambdaBase):
             if query_result["Items"]:
                 item = query_result["Items"][0]
                 out = json.loads(item["config"]["S"])
-                self._cache["exodus-config"] = out
+            else:
+                # Provide dict with expected keys when no config is found.
+                out = {
+                    "origin_alias": [],
+                    "rhui_alias": [],
+                    "releasever_alias": [],
+                    "listing": {},
+                }
+
+            self._cache["exodus-config"] = out
 
         return out
 

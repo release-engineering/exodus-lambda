@@ -194,7 +194,20 @@ def test_origin_request_definitions(mocked_boto3_client):
         ]
     }
 
-    assert mocked_defs == OriginRequest(conf_file=TEST_CONF).definitions
+    assert OriginRequest(conf_file=TEST_CONF).definitions == mocked_defs
+
+
+@mock.patch("boto3.client")
+def test_origin_request_definitions_not_found(mocked_boto3_client):
+    expected_defs = {
+        "origin_alias": [],
+        "rhui_alias": [],
+        "releasever_alias": [],
+        "listing": {},
+    }
+    mocked_boto3_client().query.return_value = {"Items": []}
+
+    assert OriginRequest(conf_file=TEST_CONF).definitions == expected_defs
 
 
 @pytest.mark.parametrize(
