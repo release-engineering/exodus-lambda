@@ -589,15 +589,17 @@ def test_origin_request_directly_request_autoindex_uri(
 
 
 @pytest.mark.parametrize(
-    "req_uri, index_uri",
+    "req_uri, index_uri, expected_redirect",
     [
         (
             "/content/dist/rhel/repo/x86_64/Packages/",
             "/content/dist/rhel/repo/x86_64/Packages/.__exodus_autoindex",
+            None,
         ),
         (
             "/content/dist/rhel/repo/x86_64/Packages",
             "/content/dist/rhel/repo/x86_64/Packages/.__exodus_autoindex",
+            "/content/dist/rhel/repo/x86_64/Packages/",
         ),
     ],
 )
@@ -610,37 +612,58 @@ def test_origin_request_autoindex(
     mocked_boto3_client,
     req_uri,
     index_uri,
+    expected_redirect,
     caplog,
 ):
     mocked_datetime.now().isoformat.return_value = MOCKED_DT
     mocked_cache.TTLCache.return_value = {"exodus-config": mock_definitions()}
-    mocked_boto3_client().query.return_value = {
-        "Items": [
-            {
-                "web_uri": {"S": index_uri},
-                "from_date": {"S": "2020-02-17T00:00:00.000+00:00"},
-                "object_key": {"S": "e4a3f2b1sum"},
-            },
-        ]
-    }
+
+    mock_query = mocked_boto3_client().query
+
+    # The query function is expected to be called twice:
+    mock_query.side_effect = [
+        # First it's called with the original requested URI,
+        # which should find nothing
+        {"Items": []},
+        # Then it's called with the autoindex URI, which should return a valid item
+        {
+            "Items": [
+                {
+                    "web_uri": {"S": index_uri},
+                    "from_date": {"S": "2020-02-17T00:00:00.000+00:00"},
+                    "object_key": {"S": "e4a3f2b1sum"},
+                },
+            ]
+        },
+    ]
 
     event = {"Records": [{"cf": {"request": {"uri": req_uri, "headers": {}}}}]}
 
     with caplog.at_level(logging.DEBUG):
-        request = OriginRequest(
+        response = OriginRequest(
             conf_file=TEST_CONF,
         ).handler(event, context=None)
 
-    assert "Item found for '%s'" % req_uri in caplog.text
+    assert "Item found for '%s'" % index_uri in caplog.text
 
-    assert request == {
-        "uri": "/e4a3f2b1sum",
-        "querystring": urllib.parse.urlencode(
-            {"response-content-type": "application/octet-stream"}
-        ),
-        "headers": {
-            "exodus-original-uri": [
-                {"key": "exodus-original-uri", "value": req_uri}
-            ]
-        },
-    }
+    if expected_redirect:
+        # We found an index but we're expecting a redirect to another URI.
+        expected_response = {
+            "headers": {"location": [{"value": expected_redirect}]},
+            "status": "302",
+        }
+    else:
+        # We found an index and we're serving it normally.
+        expected_response = {
+            "uri": "/e4a3f2b1sum",
+            "querystring": urllib.parse.urlencode(
+                {"response-content-type": "application/octet-stream"}
+            ),
+            "headers": {
+                "exodus-original-uri": [
+                    {"key": "exodus-original-uri", "value": req_uri}
+                ]
+            },
+        }
+
+    assert response == expected_response
