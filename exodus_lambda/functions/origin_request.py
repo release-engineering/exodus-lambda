@@ -352,6 +352,34 @@ class OriginRequest(LambdaBase):
             index_uri = index_uri + "/" + self.index
             for query_uri in (uri, index_uri):
                 if out := self.response_from_db(request, table, query_uri):
+                    if query_uri == index_uri and not uri.endswith("/"):
+                        # If we got an index response but the user's requested uri doesn't
+                        # end in '/', then we can't directly serve the index.
+                        # We need to instead serve a redirect back to the same path with
+                        # '/' appended.
+                        #
+                        # This is due to the way HTML links are resolved, for example:
+                        #
+                        #   current URL  |  link href  |  resolved URL
+                        # ---------------+-------------+---------------------------
+                        #   /some/repo   |  Packages/  | /some/Packages (bad)
+                        #   /some/repo/  |  Packages/  | /some/repo/Packages (good)
+                        #
+                        # This is conceptually similar to:
+                        # https://httpd.apache.org/docs/2.4/mod/mod_dir.html#directoryslash
+                        self.logger.debug(
+                            "Sending '/' redirect for index at %s", uri
+                        )
+
+                        return {
+                            "status": "302",
+                            "headers": {
+                                "location": [
+                                    {"value": uri + "/"},
+                                ],
+                            },
+                        }
+
                     return out
         self.logger.info("No item found for '%s'", uri)
         return {"status": "404", "statusDescription": "Not Found"}
