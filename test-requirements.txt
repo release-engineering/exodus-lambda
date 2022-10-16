@@ -4,9 +4,9 @@
 #
 #    pip-compile --generate-hashes --output-file=test-requirements.txt requirements-fakefront.in requirements.in test-requirements.in
 #
-astroid==2.12.10 \
-    --hash=sha256:81f870105d892e73bf535da77a8261aa5bde838fa4ed12bb2f435291a098c581 \
-    --hash=sha256:997e0c735df60d4a4caff27080a3afc51f9bdd693d3572a4a0b7090b645c36c5
+astroid==2.12.11 \
+    --hash=sha256:2df4f9980c4511474687895cbfdb8558293c1a826d9118bb09233d7c2bff1c83 \
+    --hash=sha256:867a756bbf35b7bc07b35bfa6522acd01f91ad9919df675e8428072869792dce
     # via pylint
 attrs==22.1.0 \
     --hash=sha256:29adc2665447e5191d0e7c568fde78b21f9672d344281d0c6e1ab085429b22b6 \
@@ -35,13 +35,13 @@ black==22.10.0 \
     --hash=sha256:f513588da599943e0cde4e32cc9879e825d58720d6557062d1098c5ad80080e1 \
     --hash=sha256:fba8a281e570adafb79f7755ac8721b6cf1bbf691186a287e990c7929c7692ff
     # via -r test-requirements.in
-boto3==1.24.89 \
-    --hash=sha256:346f8f0d101a4261dac146a959df18d024feda6431e1d9d84f94efd24d086cae \
-    --hash=sha256:d0d8ffcdc10821c4562bc7f935cdd840033bbc342ac0e14b6bdd348b3adf4c04
+boto3==1.24.91 \
+    --hash=sha256:3225366014949039e6687387242e73f237f0fee0a9b7c20461894f1ee40686b8 \
+    --hash=sha256:b295640bc1be637f8f7c8c8fca70781048d6397196109e59f20541824fab4b67
     # via -r requirements.in
-botocore==1.27.89 \
-    --hash=sha256:238f1dfdb8d8d017c2aea082609a3764f3161d32745900f41bcdcf290d95a048 \
-    --hash=sha256:621f5413be8f97712b7e36c1b075a8791d1d1b9971a7ee060cdcdf5e2debf6c1
+botocore==1.27.91 \
+    --hash=sha256:1d6e97bd8653f732c7078b34aa2bb438e750898957e5a0a74b6c72918bc1d0f7 \
+    --hash=sha256:c8fac203a391cc2e4b682877bfce70e723e33c529b35b399a1d574605fbeb1af
     # via
     #   -r requirements.in
     #   boto3
@@ -386,9 +386,9 @@ pycparser==2.21 \
     --hash=sha256:8ee45429555515e1f6b185e78100aea234072576aa43ab53aefcae078162fca9 \
     --hash=sha256:e644fdec12f7872f86c58ff790da456218b10f863970249516d60a5eaca77206
     # via cffi
-pylint==2.15.3 \
-    --hash=sha256:5fdfd44af182866999e6123139d265334267339f29961f00c89783155eacc60b \
-    --hash=sha256:7f6aad1d8d50807f7bc64f89ac75256a9baf8e6ed491cc9bc65592bc3f462cf1
+pylint==2.15.4 \
+    --hash=sha256:5441e9294335d354b7bad57c1044e5bd7cce25c433475d76b440e53452fa5cb8 \
+    --hash=sha256:629cf1dbdfb6609d7e7a45815a8bb59300e34aa35783b5ac563acaca2c4022e9
     # via -r test-requirements.in
 pyparsing==3.0.9 \
     --hash=sha256:2b020ecf7d21b687f219b71ecad3631f644a47f01403fa1d1036b0c6416d70fb \
