@@ -4,9 +4,9 @@
 #
 #    pip-compile --generate-hashes --output-file=test-requirements.txt requirements-fakefront.in requirements.in test-requirements.in
 #
-astroid==2.12.11 \
-    --hash=sha256:2df4f9980c4511474687895cbfdb8558293c1a826d9118bb09233d7c2bff1c83 \
-    --hash=sha256:867a756bbf35b7bc07b35bfa6522acd01f91ad9919df675e8428072869792dce
+astroid==2.12.12 \
+    --hash=sha256:1c00a14f5a3ed0339d38d2e2e5b74ea2591df5861c0936bb292b84ccf3a78d83 \
+    --hash=sha256:72702205200b2a638358369d90c222d74ebc376787af8fb2f7f2a86f7b5cc85f
     # via pylint
 attrs==22.1.0 \
     --hash=sha256:29adc2665447e5191d0e7c568fde78b21f9672d344281d0c6e1ab085429b22b6 \
@@ -35,13 +35,13 @@ black==22.10.0 \
     --hash=sha256:f513588da599943e0cde4e32cc9879e825d58720d6557062d1098c5ad80080e1 \
     --hash=sha256:fba8a281e570adafb79f7755ac8721b6cf1bbf691186a287e990c7929c7692ff
     # via -r test-requirements.in
-boto3==1.24.91 \
-    --hash=sha256:3225366014949039e6687387242e73f237f0fee0a9b7c20461894f1ee40686b8 \
-    --hash=sha256:b295640bc1be637f8f7c8c8fca70781048d6397196109e59f20541824fab4b67
+boto3==1.24.96 \
+    --hash=sha256:6b8899542cff82becceb3498a2240bf77c96def0515b0a31f7f6a9d5b92e7a3d \
+    --hash=sha256:748c055214c629744c34c7f94bfa888733dfac0b92e1daef9c243e1391ea4f53
     # via -r requirements.in
-botocore==1.27.91 \
-    --hash=sha256:1d6e97bd8653f732c7078b34aa2bb438e750898957e5a0a74b6c72918bc1d0f7 \
-    --hash=sha256:c8fac203a391cc2e4b682877bfce70e723e33c529b35b399a1d574605fbeb1af
+botocore==1.27.96 \
+    --hash=sha256:e41a81a18511f2f9181b2a9ab302a55c0effecccbef846c55aad0c47bfdbefb9 \
+    --hash=sha256:fc0a13ef6042e890e361cf408759230f8574409bb51f81740d2e5d8ad5d1fbea
     # via
     #   -r requirements.in
     #   boto3
@@ -324,9 +324,9 @@ mock==4.0.3 \
     --hash=sha256:122fcb64ee37cfad5b3f48d7a7d51875d7031aaf3d8be7c42e2bee25044eee62 \
     --hash=sha256:7d3fbbde18228f4ff2f1f119a45cdffa458b4c0dee32eb4d2bb2f82554bac7bc
     # via -r test-requirements.in
-more-itertools==8.14.0 \
-    --hash=sha256:1bc4f91ee5b1b31ac7ceacc17c09befe6a40a503907baf9c839c229b5095cfd2 \
-    --hash=sha256:c09443cd3d5438b8dafccd867a6bc1cb0894389e90cb53d227456b0b0bccb750
+more-itertools==9.0.0 \
+    --hash=sha256:250e83d7e81d0c87ca6bd942e6aeab8cc9daa6096d12c5308f3f92fa5e5c1f41 \
+    --hash=sha256:5a6257e40878ef0520b1803990e3e22303a41b5714006c32a3fd8304b26ea1ab
     # via -r test-requirements.in
 mypy==0.982 \
     --hash=sha256:1021c241e8b6e1ca5a47e4d52601274ac078a89845cfde66c6d5f769819ffa1d \
@@ -386,9 +386,9 @@ pycparser==2.21 \
     --hash=sha256:8ee45429555515e1f6b185e78100aea234072576aa43ab53aefcae078162fca9 \
     --hash=sha256:e644fdec12f7872f86c58ff790da456218b10f863970249516d60a5eaca77206
     # via cffi
-pylint==2.15.4 \
-    --hash=sha256:5441e9294335d354b7bad57c1044e5bd7cce25c433475d76b440e53452fa5cb8 \
-    --hash=sha256:629cf1dbdfb6609d7e7a45815a8bb59300e34aa35783b5ac563acaca2c4022e9
+pylint==2.15.5 \
+    --hash=sha256:3b120505e5af1d06a5ad76b55d8660d44bf0f2fc3c59c2bdd94e39188ee3a4df \
+    --hash=sha256:c2108037eb074334d9e874dc3c783752cc03d0796c88c9a9af282d0f161a1004
     # via -r test-requirements.in
 pyparsing==3.0.9 \
     --hash=sha256:2b020ecf7d21b687f219b71ecad3631f644a47f01403fa1d1036b0c6416d70fb \
