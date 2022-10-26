@@ -44,7 +44,7 @@ jobs:
 
      # Immediately approve it if we can so it can be merged later
      - name: Approve Pull Request
-       uses: juliangruber/approve-pull-request-action@v1
+       uses: juliangruber/approve-pull-request-action@v2
        with:
          github-token: ${{ secrets.APPROVAL_TOKEN }}
          number: ${{ steps.find-pull-request.outputs.number }}
