@@ -8,3 +8,4 @@ pylint
 pytest-cov
 mypy
 importlib-metadata
+bandit
