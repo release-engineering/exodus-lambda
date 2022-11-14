@@ -85,15 +85,11 @@ def mock_conf_file():
     test_env["EXODUS_LAMBDA_VERSION"] = "fake version"
     test_env["EXODUS_INDEX_FILENAME"] = ".__exodus_autoindex"
 
-    cmd = "envsubst < ./configuration/lambda_config.template > {temp_path}"
-    cmd = cmd.format(temp_path=temp_file.name)
-
     subprocess.run(
-        cmd,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
+        ["envsubst"],
+        stdin=open("./configuration/lambda_config.template", "r"),
+        stdout=temp_file,
         check=True,
-        shell=True,
         env=test_env,
     )
 

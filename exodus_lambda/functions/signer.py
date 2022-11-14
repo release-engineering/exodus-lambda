@@ -27,7 +27,7 @@ class Signer:
 
     def rsa_sign(self, message):
         return self.private_key.sign(
-            message, padding.PKCS1v15(), hashes.SHA1()
+            message, padding.PKCS1v15(), hashes.SHA1()  # nosec
         )
 
     def cookies_for_policy(self, append, **kwargs):
