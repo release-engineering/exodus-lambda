@@ -25,7 +25,10 @@ jobs:
         pip install tox
 
     - name: Run bandit test
-      run: tox -e bandit-test
+      run: tox -e bandit
+
+    - name: Run safety dependency scan
+      run: tox -e safety
 
     - name: Run auto-tests
       run: tox -e cov-ci
