@@ -1,9 +1,12 @@
 import base64
+import logging
 
 from botocore.signers import CloudFrontSigner
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import padding
+
+LOG = logging.getLogger(__name__)
 
 
 def cf_b64(data: bytes):
@@ -31,7 +34,11 @@ class Signer:
         )
 
     def cookies_for_policy(self, append, **kwargs):
-        policy = self.cf_signer.build_policy(**kwargs).encode("utf-8")
+        policy = self.cf_signer.build_policy(**kwargs)
+
+        LOG.debug("Signing policy: %s", policy)
+
+        policy = policy.encode("utf-8")
         signature = self.cf_signer.rsa_signer(policy)
 
         policy_b64 = cf_b64(policy).decode("utf-8")
