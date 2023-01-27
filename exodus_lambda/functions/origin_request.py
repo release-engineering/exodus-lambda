@@ -320,10 +320,30 @@ class OriginRequest(LambdaBase):
 
             raise err
 
+    def validate_request(self, request):
+        # Validate URI and query string lengths, as those are only elements provided by users.
+        #
+        # For request structure example, see
+        # https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/lambda-event-structure.html#example-origin-request
+
+        valid = True
+
+        for key in ["uri", "querystring"]:
+            if key in request and not 1 < len(request[key]) < 2000:
+                self.logger.error(
+                    "%s exceeds length limits: %s", key, request[key]
+                )
+                valid = False
+
+        return valid
+
     def handler(self, event, context):
         # pylint: disable=unused-argument
 
         request = event["Records"][0]["cf"]["request"]
+
+        if not self.validate_request(request):
+            return {"status": "400", "statusDescription": "Bad Request"}
 
         if request["uri"].startswith("/_/cookie/"):
             return self.handle_cookie_request(event)

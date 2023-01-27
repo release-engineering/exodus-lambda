@@ -126,6 +126,21 @@ def test_origin_request(
         }
 
 
+def test_origin_request_fail_validation(caplog):
+    # Validation fails for too lengthy URIs.
+    event = {
+        "Records": [{"cf": {"request": {"uri": "o" * 2001, "headers": {}}}}]
+    }
+
+    with caplog.at_level(logging.DEBUG):
+        request = OriginRequest(conf_file=TEST_CONF).handler(
+            event, context=None
+        )
+
+    assert request == {"status": "400", "statusDescription": "Bad Request"}
+    assert "uri exceeds length limits" in caplog.text
+
+
 @mock.patch("boto3.client")
 @mock.patch("exodus_lambda.functions.origin_request.cachetools")
 @mock.patch("exodus_lambda.functions.origin_request.datetime")
