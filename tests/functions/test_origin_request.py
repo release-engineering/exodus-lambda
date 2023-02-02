@@ -126,10 +126,12 @@ def test_origin_request(
         }
 
 
-def test_origin_request_fail_validation(caplog):
+def test_origin_request_fail_uri_validation(caplog):
     # Validation fails for too lengthy URIs.
     event = {
-        "Records": [{"cf": {"request": {"uri": "o" * 2001, "headers": {}}}}]
+        "Records": [
+            {"cf": {"request": {"uri": "o" * 2001, "querystring": ""}}}
+        ]
     }
 
     with caplog.at_level(logging.DEBUG):
@@ -137,8 +139,34 @@ def test_origin_request_fail_validation(caplog):
             event, context=None
         )
 
+    # It should return 400 status code.
     assert request == {"status": "400", "statusDescription": "Bad Request"}
-    assert "uri exceeds length limits" in caplog.text
+    # Log should only contain URI error message.
+    assert caplog.text == "[ERROR] - uri exceeds length limits: %s\n\n" % (
+        "o" * 2001
+    )
+
+
+def test_origin_request_fail_querystring_validation(caplog):
+    # Validation fails for too lengthy URIs.
+    event = {
+        "Records": [
+            {"cf": {"request": {"uri": "/", "querystring": "o" * 2001}}}
+        ]
+    }
+
+    with caplog.at_level(logging.DEBUG):
+        request = OriginRequest(conf_file=TEST_CONF).handler(
+            event, context=None
+        )
+
+    # It should return 400 status code.
+    assert request == {"status": "400", "statusDescription": "Bad Request"}
+    # Log should only contain querystring error message.
+    assert (
+        caplog.text
+        == "[ERROR] - querystring exceeds length limits: %s\n\n" % ("o" * 2001)
+    )
 
 
 @mock.patch("boto3.client")

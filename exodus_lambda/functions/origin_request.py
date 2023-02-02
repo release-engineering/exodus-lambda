@@ -328,13 +328,14 @@ class OriginRequest(LambdaBase):
 
         valid = True
 
-        for key in ["uri", "querystring"]:
-            if key in request and not 1 < len(request[key]) < 2000:
-                self.logger.error(
-                    "%s exceeds length limits: %s", key, request[key]
-                )
-                valid = False
-
+        if not 0 < len(request["uri"]) < 2000:
+            self.logger.error("uri exceeds length limits: %s", request["uri"])
+            valid = False
+        if "querystring" in request and not len(request["querystring"]) < 2000:
+            self.logger.error(
+                "querystring exceeds length limits: %s", request["querystring"]
+            )
+            valid = False
         return valid
 
     def handler(self, event, context):
