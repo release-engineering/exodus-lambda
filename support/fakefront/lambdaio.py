@@ -31,7 +31,7 @@ class LambdaInput:
 
     def _new_request(self):
         headers = {}
-        for (key, value) in self._wsgi_environ.items():
+        for key, value in self._wsgi_environ.items():
             # e.g. HTTP_USER_AGENT => user-agent
             if key.startswith("HTTP_"):
                 key = key[len("HTTP_") :].lower()
@@ -58,7 +58,7 @@ class LambdaInput:
         assert self._response
 
         headers = {}
-        for (key, val) in self._response.headers.items():
+        for key, val in self._response.headers.items():
             # TODO: should we actually copy all of the headers from
             # origin or should it be filtered somehow? Should investigate
             # and copy what cloudfront does.
