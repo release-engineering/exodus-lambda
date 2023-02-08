@@ -186,15 +186,16 @@ class OriginRequest(LambdaBase):
         self.logger.info("Handling cookie request: %s", uri)
 
         signer = Signer(self.cookie_key, self.conf.get("key_id"))
+
         cookies_content = signer.cookies_for_policy(
-            append="; Secure; Path=/content/; Max-Age=%s"
-            % int(ttl.total_seconds()),
+            append="; Secure; HttpOnly; SameSite=lax; Domain=%s; Path=/content/; Max-Age=%s"
+            % (domain, int(ttl.total_seconds())),
             resource="https://%s/content/*" % domain,
             date_less_than=now + ttl,
         )
         cookies_origin = signer.cookies_for_policy(
-            append="; Secure; Path=/origin/; Max-Age=%s"
-            % int(ttl.total_seconds()),
+            append="; Secure; HttpOnly; SameSite=lax; Domain=%s; Path=/origin/; Max-Age=%s"
+            % (domain, int(ttl.total_seconds())),
             resource="https://%s/origin/*" % domain,
             date_less_than=now + ttl,
         )
