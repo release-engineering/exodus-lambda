@@ -486,35 +486,41 @@ def test_origin_request_cookie_uri(
     assert request["headers"]["set-cookie"] == [
         {
             "value": "CloudFront-Key-Pair-Id=K1MOU91G3N7WPY; Secure; "
+            "HttpOnly; SameSite=lax; Domain=ex.cloudfront.net; "
             "Path=/content/; Max-Age=43200"
         },
         {
             "value": "CloudFront-Policy=eyJTdGF0ZW1lbnQiOlt7IlJlc291cmNlIjoiaH"
             "R0cHM6Ly9leC5jbG91ZGZyb250Lm5ldC9jb250ZW50LyoiLCJDb25kaXRpb24iOns"
             "iRGF0ZUxlc3NUaGFuIjp7IkFXUzpFcG9jaFRpbWUiOjF9fX1dfQ__; Secure; "
+            "HttpOnly; SameSite=lax; Domain=ex.cloudfront.net; "
             "Path=/content/; Max-Age=43200"
         },
         {
             "value": "CloudFront-Signature=G8t5tL4HD1KjlT-qvmw0JIXQESaij7N-Qd-"
             "12DONOWocj9Vo6sFRR1Gxcm4VyxYD2WbsyYPr0DiwkEIVCevp7ET4lakVFrhhpz~l"
             "SR616CqocVzRxOqMiHcoHkQKAhPLU3tbGs1XnSqcl6R6TB4Q1PPvRv2NUHm3T8ujK"
-            "1TmKAM_; Secure; Path=/content/; Max-Age=43200"
+            "1TmKAM_; Secure; HttpOnly; SameSite=lax; "
+            "Domain=ex.cloudfront.net; Path=/content/; Max-Age=43200"
         },
         {
             "value": "CloudFront-Key-Pair-Id=K1MOU91G3N7WPY; Secure; "
-            "Path=/origin/; Max-Age=43200"
+            "HttpOnly; SameSite=lax; Domain=ex.cloudfront.net; Path=/origin/; "
+            "Max-Age=43200"
         },
         {
             "value": "CloudFront-Policy=eyJTdGF0ZW1lbnQiOlt7IlJlc291cmNlIjoiaH"
             "R0cHM6Ly9leC5jbG91ZGZyb250Lm5ldC9vcmlnaW4vKiIsIkNvbmRpdGlvbiI6eyJ"
             "EYXRlTGVzc1RoYW4iOnsiQVdTOkVwb2NoVGltZSI6MX19fV19; Secure; "
-            "Path=/origin/; Max-Age=43200"
+            "HttpOnly; SameSite=lax; Domain=ex.cloudfront.net; Path=/origin/; "
+            "Max-Age=43200"
         },
         {
             "value": "CloudFront-Signature=K2Dor2IYm9WViaawbNs-jfsdMuLebxp4LBz"
             "LgnhX8qKZ~NTQYg-x9kIy0DzXCybKJ3bYUomwWJoXWVJxTUjghRBXjBgQtb7GYrk9"
             "yRD6TXJ46uhE9~zSWQInCnwyIAQRgZCuS~BR41C8dPRP56DWSPs0kHWiVGOrP2JI6"
-            "YiP3rA_; Secure; Path=/origin/; Max-Age=43200"
+            "YiP3rA_; Secure; HttpOnly; SameSite=lax; Domain=ex.cloudfront.net; "
+            "Path=/origin/; Max-Age=43200"
         },
     ]
 
