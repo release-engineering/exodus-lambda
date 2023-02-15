@@ -142,9 +142,12 @@ def test_origin_request_fail_uri_validation(caplog):
     # It should return 400 status code.
     assert request == {"status": "400", "statusDescription": "Bad Request"}
     # Log should only contain URI error message.
-    assert caplog.text == "[ERROR] - uri exceeds length limits: %s\n\n" % (
-        "o" * 2001
-    )
+    assert json.loads(caplog.text) == {
+        "time": mock.ANY,
+        "name": "origin-request",
+        "level": "ERROR",
+        "message": "uri exceeds length limits: %s" % ("o" * 2001),
+    }
 
 
 def test_origin_request_fail_querystring_validation(caplog):
@@ -163,10 +166,12 @@ def test_origin_request_fail_querystring_validation(caplog):
     # It should return 400 status code.
     assert request == {"status": "400", "statusDescription": "Bad Request"}
     # Log should only contain querystring error message.
-    assert (
-        caplog.text
-        == "[ERROR] - querystring exceeds length limits: %s\n\n" % ("o" * 2001)
-    )
+    assert json.loads(caplog.text) == {
+        "time": mock.ANY,
+        "name": "origin-request",
+        "level": "ERROR",
+        "message": "querystring exceeds length limits: %s" % ("o" * 2001),
+    }
 
 
 @mock.patch("boto3.client")

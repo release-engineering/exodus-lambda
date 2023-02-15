@@ -100,7 +100,7 @@ class OriginRequest(LambdaBase):
         if out is None:
             try:
                 arn = self.conf["secret_arn"]
-                self.logger.info("Attempting to get secret %s", arn)
+                self.logger.debug("Attempting to get secret %s", arn)
 
                 response = self.sm_client.get_secret_value(SecretId=arn)
                 # get_secret_value response syntax:
@@ -120,7 +120,7 @@ class OriginRequest(LambdaBase):
                 # containing cookie_key.
                 out = json.loads(response["SecretString"])
                 self._cache["secret"] = out
-                self.logger.info("Loaded and cached secret %s", arn)
+                self.logger.debug("Loaded and cached secret %s", arn)
             except Exception as exc_info:
                 self.logger.error(
                     "Couldn't load secret %s", arn, exc_info=exc_info
@@ -307,8 +307,8 @@ class OriginRequest(LambdaBase):
                 {"response-content-type": content_type}
             )
 
-            self.logger.info(
-                "The request value for origin_request end is '%s'",
+            self.logger.debug(
+                "Updated request value for origin_request: '%s'",
                 json.dumps(request, indent=4, sort_keys=True),
             )
 
@@ -357,13 +357,11 @@ class OriginRequest(LambdaBase):
             self.set_cache_control(uri, listing_response)
             return listing_response
 
-        self.logger.info(
-            "The request value for origin_request beginning is '%s'",
+        self.logger.debug(
+            "Original request value for origin_request: '%s'",
             json.dumps(request, indent=4, sort_keys=True),
         )
-        self.logger.info(
-            "The uri value for origin_request beginning is '%s'", uri
-        )
+        self.logger.debug("Original uri value for origin_request: '%s'", uri)
         table = self.conf["table"]["name"]
 
         # Do not permit clients to explicitly request an index file

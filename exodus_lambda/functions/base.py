@@ -39,6 +39,15 @@ class LambdaBase(object):
             root_logger = logging.getLogger()
             if log_conf and root_logger.handlers:
                 formatter_str = log_conf["formatters"]["default"]["format"]
+                if not formatter_str:
+                    formatter_str = json.dumps(
+                        {
+                            "time": "%(asctime)s",
+                            "name": "%(name)s",
+                            "level": "%(levelname)s",
+                            "message": "%(message)s",
+                        }
+                    )
                 formatter_date = log_conf["formatters"]["default"]["datefmt"]
                 formatter = logging.Formatter(formatter_str, formatter_date)
                 root_logger.handlers[0].setFormatter(formatter)
