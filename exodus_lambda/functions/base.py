@@ -4,6 +4,8 @@ import logging.config
 import os
 import re
 
+from .json_logging import JsonFormatter
+
 
 class LambdaBase(object):
     def __init__(self, logger_name="default", conf_file="lambda_config.json"):
@@ -38,9 +40,11 @@ class LambdaBase(object):
             logging.config.dictConfig(log_conf)
             root_logger = logging.getLogger()
             if log_conf and root_logger.handlers:
-                formatter_str = log_conf["formatters"]["default"]["format"]
-                formatter_date = log_conf["formatters"]["default"]["datefmt"]
-                formatter = logging.Formatter(formatter_str, formatter_date)
+                fmt = log_conf["formatters"]["default"]["format"]
+                datefmt = log_conf["formatters"]["default"]["datefmt"]
+                formatter = JsonFormatter(fmt, datefmt)
+                if not isinstance(formatter.fmt, dict):
+                    formatter = logging.Formatter(fmt, datefmt)
                 root_logger.handlers[0].setFormatter(formatter)
             self._logger = logging.getLogger(self._logger_name)
         return self._logger

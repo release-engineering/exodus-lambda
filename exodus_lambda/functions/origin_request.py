@@ -100,7 +100,7 @@ class OriginRequest(LambdaBase):
         if out is None:
             try:
                 arn = self.conf["secret_arn"]
-                self.logger.info("Attempting to get secret %s", arn)
+                self.logger.debug("Attempting to get secret from ARN: %s", arn)
 
                 response = self.sm_client.get_secret_value(SecretId=arn)
                 # get_secret_value response syntax:
@@ -120,7 +120,7 @@ class OriginRequest(LambdaBase):
                 # containing cookie_key.
                 out = json.loads(response["SecretString"])
                 self._cache["secret"] = out
-                self.logger.info("Loaded and cached secret %s", arn)
+                self.logger.debug("Loaded and cached secret from ARN: %s", arn)
             except Exception as exc_info:
                 self.logger.error(
                     "Couldn't load secret %s", arn, exc_info=exc_info
@@ -233,7 +233,7 @@ class OriginRequest(LambdaBase):
                             ]
                         },
                     }
-                self.logger.info("No listing found for '%s'", uri)
+                self.logger.info("No listing found for URI: %s", uri)
             else:
                 self.logger.info("No listing data defined")
 
@@ -280,13 +280,13 @@ class OriginRequest(LambdaBase):
         if not query_result["Items"]:
             return
 
-        self.logger.info("Item found for '%s'", uri)
+        self.logger.info("Item found for URI: %s", uri)
 
         try:
             # Validate If the item's "object_key" is "absent"
             object_key = query_result["Items"][0]["object_key"]["S"]
             if object_key == "absent":
-                self.logger.info("Item absent for '%s'", uri)
+                self.logger.info("Item absent for URI: %s", uri)
                 return {"status": "404", "statusDescription": "Not Found"}
 
             # Add custom header containing the original request uri
@@ -307,16 +307,15 @@ class OriginRequest(LambdaBase):
                 {"response-content-type": content_type}
             )
 
-            self.logger.info(
-                "The request value for origin_request end is '%s'",
-                json.dumps(request, indent=4, sort_keys=True),
+            self.logger.debug(
+                "Updated request value for origin_request: %s", request
             )
 
             return request
         except Exception as err:
             self.logger.exception(
-                "Exception occurred while processing %s",
-                json.dumps(query_result["Items"][0]),
+                "Exception occurred while processing item: %s",
+                query_result["Items"][0],
             )
 
             raise err
@@ -357,13 +356,10 @@ class OriginRequest(LambdaBase):
             self.set_cache_control(uri, listing_response)
             return listing_response
 
-        self.logger.info(
-            "The request value for origin_request beginning is '%s'",
-            json.dumps(request, indent=4, sort_keys=True),
+        self.logger.debug(
+            "Original request value for origin_request: %s", request
         )
-        self.logger.info(
-            "The uri value for origin_request beginning is '%s'", uri
-        )
+        self.logger.debug("Original uri value for origin_request: %s", uri)
         table = self.conf["table"]["name"]
 
         # Do not permit clients to explicitly request an index file
@@ -403,7 +399,7 @@ class OriginRequest(LambdaBase):
                         }
 
                     return out
-        self.logger.info("No item found for '%s'", uri)
+        self.logger.info("No item found for URI: %s", uri)
         return {"status": "404", "statusDescription": "Not Found"}
 
 
