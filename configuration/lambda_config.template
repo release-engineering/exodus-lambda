@@ -26,7 +26,6 @@
     "disable_existing_loggers": "False",
     "formatters": {
       "default": {
-        "format": "$EXODUS_LOG_FORMAT",
         "datefmt": "%Y-%m-%d %H:%M:%S"
       }
     },
