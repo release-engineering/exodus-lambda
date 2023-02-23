@@ -1,3 +1,4 @@
+import json
 import logging
 import os
 
@@ -55,12 +56,44 @@ def test_logger_config(caplog):
 
 
 def test_root_logger_without_handlers(caplog):
-    """
-    A root logger without handlers should not cause the program to crash.
-    """
+    """A root logger without handlers should not cause the program to crash."""
+
     root_logger = logging.getLogger()
     root_logger.handlers = []
     base_obj = LambdaBase(conf_file=TEST_CONF)
     base_obj.logger.warning("warning message")
     assert root_logger.handlers == []
     assert "warning message" not in caplog.text
+
+
+def test_json_handler_stack_info(caplog):
+    base_obj = LambdaBase(conf_file=TEST_CONF)
+    base_obj.logger.exception("oops", stack_info=True)
+    assert '"stack_info": "Stack (most recent call last)' in caplog.text
+
+
+def test_json_handler_fallback(caplog):
+    """Ensure string formatting remains supported."""
+
+    base_obj = LambdaBase(conf_file=TEST_CONF)
+    base_obj.conf["logging"]["formatters"]["default"][
+        "format"
+    ] = "%(levelname)s - %(message)s"
+    base_obj.logger.info("testing 123")
+    assert caplog.text == "INFO - testing 123\n"
+
+
+def test_json_handler_invalid_json_string(caplog):
+    base_obj = LambdaBase(conf_file=TEST_CONF)
+    base_obj.conf["logging"]["formatters"]["default"][
+        "format"
+    ] = "{'level':'levelname','message':'message'}"
+
+    with pytest.raises(json.JSONDecodeError):
+        base_obj.logger.info("testing 123")
+
+    # Formatting should remain logging default.
+    assert (
+        "Unable to load JSON format: {'level':'levelname','message':'message'}"
+        in caplog.text
+    )

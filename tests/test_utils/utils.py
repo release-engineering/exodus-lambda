@@ -33,9 +33,6 @@ def generate_test_config(conf=CONF_FILE):
     conf["config_table"]["name"] = "test-config-table"
 
     # logging
-    conf["logging"]["formatters"]["default"][
-        "format"
-    ] = "[%(levelname)s] - %(message)s\n"
     conf["logging"]["loggers"]["origin-response"]["level"] = "DEBUG"
     conf["logging"]["loggers"]["origin-request"]["level"] = "DEBUG"
     conf["logging"]["loggers"]["default"]["level"] = "DEBUG"

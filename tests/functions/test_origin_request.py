@@ -112,7 +112,12 @@ def test_origin_request(
         assert "Handling listing request" in caplog.text
         assert request["body"]
     else:
-        assert "Item found for '%s'" % real_uri in caplog.text
+        assert (
+            "Original request value for origin_request: {'uri': '%s', 'headers': {}}"
+            % req_uri
+            in caplog.text
+        )
+        assert "Item found for URI: %s" % real_uri in caplog.text
         assert request == {
             "uri": "/e4a3f2sum",
             "querystring": urllib.parse.urlencode(
@@ -142,9 +147,12 @@ def test_origin_request_fail_uri_validation(caplog):
     # It should return 400 status code.
     assert request == {"status": "400", "statusDescription": "Bad Request"}
     # Log should only contain URI error message.
-    assert caplog.text == "[ERROR] - uri exceeds length limits: %s\n\n" % (
-        "o" * 2001
-    )
+    assert json.loads(caplog.text) == {
+        "level": "ERROR",
+        "time": mock.ANY,
+        "name": "origin-request",
+        "message": "uri exceeds length limits: %s" % ("o" * 2001),
+    }
 
 
 def test_origin_request_fail_querystring_validation(caplog):
@@ -163,10 +171,12 @@ def test_origin_request_fail_querystring_validation(caplog):
     # It should return 400 status code.
     assert request == {"status": "400", "statusDescription": "Bad Request"}
     # Log should only contain querystring error message.
-    assert (
-        caplog.text
-        == "[ERROR] - querystring exceeds length limits: %s\n\n" % ("o" * 2001)
-    )
+    assert json.loads(caplog.text) == {
+        "level": "ERROR",
+        "time": mock.ANY,
+        "name": "origin-request",
+        "message": "querystring exceeds length limits: %s" % ("o" * 2001),
+    }
 
 
 @mock.patch("boto3.client")
@@ -187,7 +197,7 @@ def test_origin_request_no_item(
         )
 
     assert request == {"status": "404", "statusDescription": "Not Found"}
-    assert "No item found for '%s'" % TEST_PATH in caplog.text
+    assert "No item found for URI: %s" % TEST_PATH in caplog.text
 
 
 @mock.patch("boto3.client")
@@ -213,13 +223,11 @@ def test_origin_request_invalid_item(
         OriginRequest(conf_file=TEST_CONF).handler(event, context=None)
 
     assert (
-        "Exception occurred while processing %s"
-        % json.dumps(
-            {
-                "web_uri": {"S": TEST_PATH},
-                "from_date": {"S": "2020-02-17T00:00:00.000+00:00"},
-            }
-        )
+        "Exception occurred while processing item: %s"
+        % {
+            "web_uri": {"S": "/origin/rpms/repo/ver/dir/filename.ext"},
+            "from_date": {"S": "2020-02-17T00:00:00.000+00:00"},
+        }
         in caplog.text
     )
 
@@ -324,7 +332,7 @@ def test_origin_request_no_content_type(
             conf_file=TEST_CONF,
         ).handler(event, context=None)
 
-    assert "Item found for '%s'" % real_uri in caplog.text
+    assert "Item found for URI: %s" % real_uri in caplog.text
 
     assert request == {
         "uri": "/e4a3f2sum",
@@ -380,9 +388,9 @@ def test_origin_request_listing_not_found(
 
     assert "Handling listing request: %s" % req_uri in caplog.text
     # It should fail to generate listing.
-    assert "No listing found for '/some/invalid/uri/listing'" in caplog.text
+    assert "No listing found for URI: /some/invalid/uri/listing" in caplog.text
     # It should fail to find file-object.
-    assert "No item found for '%s'", req_uri in caplog.text
+    assert "No item found for URI: %s", req_uri in caplog.text
     # It should return 404.
     assert request == {"status": "404", "statusDescription": "Not Found"}
 
@@ -406,7 +414,7 @@ def test_origin_request_listing_data_not_found(
     # It should fail to find listing data.
     assert "No listing data defined" in caplog.text
     # It should fail to find file-object.
-    assert "No item found for '%s'", req_uri in caplog.text
+    assert "No item found for URI: %s", req_uri in caplog.text
     # It should return 404.
     assert request == {"status": "404", "statusDescription": "Not Found"}
 
@@ -441,7 +449,7 @@ def test_origin_request_absent_items(
             conf_file=TEST_CONF,
         ).handler(event, context=None)
 
-    assert "Item absent for '%s'" % real_uri in caplog.text
+    assert "Item absent for URI: %s" % real_uri in caplog.text
 
     assert request == {"status": "404", "statusDescription": "Not Found"}
 
@@ -476,8 +484,6 @@ def test_origin_request_cookie_uri(
     request = OriginRequest(conf_file=TEST_CONF).handler(event, context=None)
 
     assert "Handling cookie request: %s" % uri in caplog.text
-    assert "Attempting to get secret %s" % arn in caplog.text
-    assert "Loaded and cached secret %s" % arn in caplog.text
     assert request["status"] == "302"
     assert request["headers"]["cache-control"] == [{"value": "no-store"}]
     assert request["headers"]["location"] == [
@@ -558,7 +564,6 @@ def test_origin_request_cookie_uri_without_secret(mocked_boto3_client, caplog):
         OriginRequest(conf_file=TEST_CONF).handler(event, context=None)
 
     assert "Handling cookie request: %s" % uri in caplog.text
-    assert "Attempting to get secret %s" % arn in caplog.text
     assert "Couldn't load secret %s" % arn in caplog.text
     assert "botocore.exceptions.ClientError: An error occurred" in caplog.text
 
@@ -693,7 +698,7 @@ def test_origin_request_autoindex(
             conf_file=TEST_CONF,
         ).handler(event, context=None)
 
-    assert "Item found for '%s'" % index_uri in caplog.text
+    assert "Item found for URI: %s" % index_uri in caplog.text
 
     if expected_redirect:
         # We found an index but we're expecting a redirect to another URI.
