@@ -17,12 +17,12 @@ class OriginResponse(LambdaBase):
         request = event["Records"][0]["cf"]["request"]
         response = event["Records"][0]["cf"]["response"]
 
-        self.logger.info(
-            "The request value for origin_response beginning is '%s'",
+        self.logger.debug(
+            "Original request value for origin_response: %s",
             json.dumps(request, indent=4, sort_keys=True),
         )
-        self.logger.info(
-            "The response value for origin_response beginning is '%s'",
+        self.logger.debug(
+            "Original response value for origin_response: %s",
             json.dumps(response, indent=4, sort_keys=True),
         )
 
