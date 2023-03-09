@@ -263,6 +263,7 @@ class OriginRequest(LambdaBase):
         query_result = self.db_client.query(
             TableName=table,
             Limit=1,
+            ConsistentRead=True,
             ScanIndexForward=False,
             KeyConditionExpression="web_uri = :u and from_date <= :d",
             ExpressionAttributeValues={
