@@ -77,3 +77,9 @@ test_data:
 - path: /content/dist/rhel8/8.2/x86_64/baseos/iso/rhel-8.2-x86_64-boot.iso
 - path: /content/dist/rhel8/8.2/x86_64/baseos/iso/does-not-exist.iso
   state: absent
+
+# origin content failover
+- path: /_exodus-replica-dummy-object.txt
+  sha256: 6353b79d56cdd1f17fb7aaf58d8bfec41aa57945d176cdac3eba6e3c3f234c79
+  content-type: text/plain
+  deploy: false
