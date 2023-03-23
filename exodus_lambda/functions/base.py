@@ -79,7 +79,6 @@ class LambdaBase(object):
                         "value": f"max-age={self.max_age}",
                     }
                 ]
-                self.logger.info("Cache-Control header added for '%s'", uri)
 
     def handler(self, event, context):
         raise NotImplementedError

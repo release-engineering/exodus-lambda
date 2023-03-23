@@ -126,21 +126,45 @@ def test_origin_response_logger(caplog):
     for count, item in enumerate(caplog.text.splitlines()):
         dict_log[count] = json.loads(item)
 
+    assert dict_log[0] == {
+        "level": "DEBUG",
+        "time": mock.ANY,
+        "aws-request-id": None,
+        "message": "Incoming event for origin_response",
+        "request": {
+            "headers": {
+                "exodus-original-uri": [
+                    {
+                        "key": "exodus-original-uri",
+                        "value": "/some/repo/repodata/repomd.xml",
+                    }
+                ]
+            },
+            "uri": "/be7f3007df3e51fb48fff57da9c01c52e6b8e60eceacab7aaf0e05b57578493a",
+        },
+        "response": {"headers": {}},
+    }
     assert dict_log[1] == {
         "level": "DEBUG",
         "time": mock.ANY,
         "aws-request-id": None,
-        "message": "Original response value for origin_response: {'headers': {}}",
-    }
-    assert dict_log[2] == {
-        "level": "INFO",
-        "time": mock.ANY,
-        "aws-request-id": None,
-        "message": "Cache-Control header added for '/some/repo/repodata/repomd.xml'",
-    }
-    assert dict_log[4] == {
-        "level": "DEBUG",
-        "time": mock.ANY,
-        "aws-request-id": None,
-        "message": "Updated response value for origin_response: {'headers': {'cache-control': [{'key': 'Cache-Control', 'value': 'max-age=600'}]}}",
+        "message": "Completed response processing",
+        "request": {
+            "headers": {
+                "exodus-original-uri": [
+                    {
+                        "key": "exodus-original-uri",
+                        "value": "/some/repo/repodata/repomd.xml",
+                    }
+                ]
+            },
+            "uri": "/be7f3007df3e51fb48fff57da9c01c52e6b8e60eceacab7aaf0e05b57578493a",
+        },
+        "response": {
+            "headers": {
+                "cache-control": [
+                    {"key": "Cache-Control", "value": "max-age=600"}
+                ]
+            }
+        },
     }

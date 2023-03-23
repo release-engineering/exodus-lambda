@@ -108,15 +108,13 @@ def test_origin_request(
             conf_file=TEST_CONF,
         ).handler(event, context=None)
 
+    assert "Incoming request value for origin_request" in caplog.text
+
     if req_uri.endswith("/listing"):
         assert "Handling listing request" in caplog.text
+        assert "Generated listing request response" in caplog.text
         assert request["body"]
     else:
-        assert (
-            "Original request value for origin_request: {'uri': '%s', 'headers': {}}"
-            % req_uri
-            in caplog.text
-        )
         assert "Item found for URI: %s" % real_uri in caplog.text
         assert request == {
             "uri": "/e4a3f2sum",
@@ -152,6 +150,8 @@ def test_origin_request_fail_uri_validation(caplog):
         "time": mock.ANY,
         "aws-request-id": None,
         "message": "uri exceeds length limits: %s" % ("o" * 2001),
+        "request": None,
+        "response": None,
     }
 
 
@@ -176,6 +176,8 @@ def test_origin_request_fail_querystring_validation(caplog):
         "time": mock.ANY,
         "aws-request-id": None,
         "message": "querystring exceeds length limits: %s" % ("o" * 2001),
+        "request": None,
+        "response": None,
     }
 
 

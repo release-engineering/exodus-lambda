@@ -175,6 +175,8 @@ class OriginRequest(LambdaBase):
         # aliases relating to releasever; e.g. /content/dist/rhel8/8 <=> /content/dist/rhel8/8.5
         uri = self.uri_alias(uri, self.definitions.get("releasever_alias"))
 
+        self.logger.debug("Resolved request URI: %s", uri)
+
         return uri
 
     def handle_cookie_request(self, event):
@@ -200,7 +202,7 @@ class OriginRequest(LambdaBase):
             date_less_than=now + ttl,
         )
 
-        return {
+        response = {
             "status": "302",
             "headers": {
                 "location": [
@@ -214,6 +216,10 @@ class OriginRequest(LambdaBase):
                 ],
             },
         }
+        self.logger.debug(
+            "Generated cookie request response", extra={"response": response}
+        )
+        return response
 
     def handle_listing_request(self, uri):
         if uri.endswith("/listing"):
@@ -223,7 +229,7 @@ class OriginRequest(LambdaBase):
                 target = uri[: -len("/listing")]
                 listing = listing_data.get(target)
                 if listing:
-                    return {
+                    response = {
                         "body": "\n".join(listing["values"]) + "\n",
                         "status": "200",
                         "statusDescription": "OK",
@@ -233,6 +239,11 @@ class OriginRequest(LambdaBase):
                             ]
                         },
                     }
+                    self.logger.debug(
+                        "Generated listing request response",
+                        extra={"response": response},
+                    )
+                    return response
                 self.logger.info("No listing found for URI: %s", uri)
             else:
                 self.logger.info("No listing data defined")
@@ -309,7 +320,8 @@ class OriginRequest(LambdaBase):
             )
 
             self.logger.debug(
-                "Updated request value for origin_request: %s", request
+                "Updated request value for origin_request",
+                extra={"request": request},
             )
 
             return request
@@ -347,6 +359,11 @@ class OriginRequest(LambdaBase):
         if not self.validate_request(request):
             return {"status": "400", "statusDescription": "Bad Request"}
 
+        self.logger.debug(
+            "Incoming request value for origin_request",
+            extra={"request": request},
+        )
+
         if request["uri"].startswith("/_/cookie/"):
             return self.handle_cookie_request(event)
 
@@ -357,10 +374,6 @@ class OriginRequest(LambdaBase):
             self.set_cache_control(uri, listing_response)
             return listing_response
 
-        self.logger.debug(
-            "Original request value for origin_request: %s", request
-        )
-        self.logger.debug("Original uri value for origin_request: %s", uri)
         table = self.conf["table"]["name"]
 
         # Do not permit clients to explicitly request an index file
@@ -390,7 +403,7 @@ class OriginRequest(LambdaBase):
                             "Sending '/' redirect for index at %s", uri
                         )
 
-                        return {
+                        response = {
                             "status": "302",
                             "headers": {
                                 "location": [
@@ -398,6 +411,11 @@ class OriginRequest(LambdaBase):
                                 ],
                             },
                         }
+                        self.logger.debug(
+                            "Generated redirect response",
+                            extra={"response": response},
+                        )
+                        return response
 
                     return out
         self.logger.info("No item found for URI: %s", uri)
