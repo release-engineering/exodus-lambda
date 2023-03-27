@@ -1,5 +1,7 @@
+import json
 import logging
 
+import mock
 import pytest
 
 from exodus_lambda.functions.origin_response import OriginResponse
@@ -76,11 +78,7 @@ def test_origin_response_valid_headers(
     assert response["headers"] == expected_headers
 
 
-@pytest.mark.parametrize(
-    "test_input",
-    ["/some/repo/some-rpm.rpm", "/some/repo/ostree/repo/refs/heads/nope"],
-)
-def test_origin_response_empty_headers(test_input):
+def test_origin_response_empty_headers():
     event = {
         "Records": [
             {"cf": {"request": {"headers": {}}, "response": {"headers": {}}}}
@@ -124,7 +122,49 @@ def test_origin_response_logger(caplog):
     with caplog.at_level(logging.DEBUG):
         OriginResponse(conf_file=TEST_CONF).handler(event, context=None)
 
-    assert (
-        "Cache-Control header added for '/some/repo/repodata/repomd.xml'"
-        in caplog.text
-    )
+    dict_log = {}
+    for count, item in enumerate(caplog.text.splitlines()):
+        dict_log[count] = json.loads(item)
+
+    assert dict_log[0] == {
+        "level": "DEBUG",
+        "time": mock.ANY,
+        "aws-request-id": None,
+        "message": "Incoming event for origin_response",
+        "request": {
+            "headers": {
+                "exodus-original-uri": [
+                    {
+                        "key": "exodus-original-uri",
+                        "value": "/some/repo/repodata/repomd.xml",
+                    }
+                ]
+            },
+            "uri": "/be7f3007df3e51fb48fff57da9c01c52e6b8e60eceacab7aaf0e05b57578493a",
+        },
+        "response": {"headers": {}},
+    }
+    assert dict_log[1] == {
+        "level": "DEBUG",
+        "time": mock.ANY,
+        "aws-request-id": None,
+        "message": "Completed response processing",
+        "request": {
+            "headers": {
+                "exodus-original-uri": [
+                    {
+                        "key": "exodus-original-uri",
+                        "value": "/some/repo/repodata/repomd.xml",
+                    }
+                ]
+            },
+            "uri": "/be7f3007df3e51fb48fff57da9c01c52e6b8e60eceacab7aaf0e05b57578493a",
+        },
+        "response": {
+            "headers": {
+                "cache-control": [
+                    {"key": "Cache-Control", "value": "max-age=600"}
+                ]
+            }
+        },
+    }

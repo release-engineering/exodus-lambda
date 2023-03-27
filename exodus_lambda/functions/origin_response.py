@@ -1,4 +1,3 @@
-import json
 import os
 from base64 import b64encode
 
@@ -18,12 +17,8 @@ class OriginResponse(LambdaBase):
         response = event["Records"][0]["cf"]["response"]
 
         self.logger.debug(
-            "Original request value for origin_response: %s",
-            json.dumps(request, indent=4, sort_keys=True),
-        )
-        self.logger.debug(
-            "Original response value for origin_response: %s",
-            json.dumps(response, indent=4, sort_keys=True),
+            "Incoming event for origin_response",
+            extra={"request": request, "response": response},
         )
 
         if "headers" in request and "want-digest" in request["headers"]:
@@ -51,6 +46,10 @@ class OriginResponse(LambdaBase):
         if original_uri:
             self.set_cache_control(original_uri, response)
 
+        self.logger.debug(
+            "Completed response processing",
+            extra={"request": request, "response": response},
+        )
         return response
 
 

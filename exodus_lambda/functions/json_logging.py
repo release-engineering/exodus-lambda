@@ -10,20 +10,14 @@ class JsonFormatter(logging.Formatter):
             "time": "asctime",
             "aws-request-id": "aws_request_id",
             "message": "message",
+            "request": "request",
+            "response": "response",
         }
         self.datefmt = datefmt or "%Y-%m-%d %H:%M:%S"
         self.dictfmt = None
 
     def formatMessage(self, record):
-        d = {}
-        for k, v in self.fmt.items():
-            # Allow omission of AWS values when not running in AWS.
-            if "aws" in k.lower():
-                d[k] = record.__dict__.get(v)
-            # Assume all other expected values are present.
-            else:
-                d[k] = record.__dict__[v]
-        return d
+        return {k: record.__dict__.get(v) for k, v in self.fmt.items()}
 
     def format(self, record):
         record.message = record.getMessage()
