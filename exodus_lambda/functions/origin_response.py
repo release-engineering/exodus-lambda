@@ -21,11 +21,11 @@ class OriginResponse(LambdaBase):
             extra={"request": request, "response": response},
         )
 
-        if "headers" in request and "want-digest" in request["headers"]:
+        if "headers" in request and "want-repr-digest" in request["headers"]:
             sum_hex = request["uri"].replace("/", "", 1)
             sum_b64 = b64encode(bytes.fromhex(sum_hex)).decode()
-            response["headers"]["digest"] = [
-                {"key": "Digest", "value": f"id-sha-256={sum_b64}"}
+            response["headers"]["repr-digest"] = [
+                {"key": "Repr-Digest", "value": f"sha-256=:{sum_b64}:"}
             ]
 
         if "headers" in request and "x-exodus-query" in request["headers"]:
