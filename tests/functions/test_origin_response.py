@@ -13,7 +13,7 @@ MAX_AGE = TEST_CONF["headers"]["max_age"]
 
 
 @pytest.mark.parametrize(
-    "original_uri, want_digest, x_exodus_query",
+    "original_uri, want_repr_digest, x_exodus_query",
     [
         ("/some/repo/listing", True, False),
         ("/some/repo/repodata/repomd.xml", True, False),
@@ -21,7 +21,7 @@ MAX_AGE = TEST_CONF["headers"]["max_age"]
     ],
 )
 def test_origin_response_valid_headers(
-    original_uri, want_digest, x_exodus_query
+    original_uri, want_repr_digest, x_exodus_query
 ):
     event = {
         "Records": [
@@ -51,15 +51,14 @@ def test_origin_response_valid_headers(
         ]
     }
 
-    if want_digest:
-        event["Records"][0]["cf"]["request"]["headers"]["want-digest"] = [
-            {"key": "Want-Digest", "value": "sha-256"}
+    if want_repr_digest:
+        event["Records"][0]["cf"]["request"]["headers"]["want-repr-digest"] = [
+            {"key": "Want-Repr-Digest", "value": "sha-256"}
         ]
-        expected_headers["digest"] = [
+        expected_headers["repr-digest"] = [
             {
-                "key": "Digest",
-                "value": "id-sha-256=vn8wB98+UftI//V9qcAcUua45g7OrKt6rw"
-                "4FtXV4STo=",
+                "key": "Repr-Digest",
+                "value": "sha-256=:vn8wB98+UftI//V9qcAcUua45g7OrKt6rw4FtXV4STo=:",
             }
         ]
 

@@ -50,8 +50,8 @@ def test_header_cache_control(cdn_test_url, requests_session, testdata_path):
     assert re.match("^max-age=[0-9]+$", r.headers["cache-control"])
 
 
-def test_header_want_digest_GET(cdn_test_url, requests_session):
-    headers = {"want-digest": "id-sha-256"}
+def test_header_want_repr_digest_GET(cdn_test_url, requests_session):
+    headers = {"want-repr-digest": "sha-256"}
     url = (
         cdn_test_url
         + "/content/dist/rhel/server/7/7.2/x86_64/rhev-mgmt-agent/3/os/repodata/repomd.xml"
@@ -62,13 +62,13 @@ def test_header_want_digest_GET(cdn_test_url, requests_session):
     print(json.dumps(dict(r.headers), indent=2))
     assert r.status_code == 200
     assert (
-        r.headers["digest"]
-        == "id-sha-256=hYGantfjJjDl4O5HesjPpwtIG2V5vWIuIOfuki9ThDk="
+        r.headers["repr-digest"]
+        == "sha-256=:hYGantfjJjDl4O5HesjPpwtIG2V5vWIuIOfuki9ThDk=:"
     )
 
 
-def test_header_want_digest_HEAD(cdn_test_url, requests_session):
-    headers = {"want-digest": "id-sha-256"}
+def test_header_want_repr_digest_HEAD(cdn_test_url, requests_session):
+    headers = {"want-digest": "sha-256"}
     url = (
         cdn_test_url
         + "/content/dist/rhel/server/7/7.2/x86_64/rhev-mgmt-agent/3/os/repodata/repomd.xml"
@@ -79,8 +79,8 @@ def test_header_want_digest_HEAD(cdn_test_url, requests_session):
     print(json.dumps(dict(r.headers), indent=2))
     assert r.status_code == 200
     assert (
-        r.headers["digest"]
-        == "id-sha-256=hYGantfjJjDl4O5HesjPpwtIG2V5vWIuIOfuki9ThDk="
+        r.headers["repr-digest"]
+        == "sha-256=:hYGantfjJjDl4O5HesjPpwtIG2V5vWIuIOfuki9ThDk=:"
     )
 
 
@@ -134,10 +134,10 @@ testdata_origin_alias_path = [
 ]
 
 
-# use Want-Digest/Digest to check if alias take effect
+# use Want-Repr-Digest/Repr-Digest to check if alias take effect
 @pytest.mark.parametrize("testdata_path", testdata_origin_alias_path)
 def test_origin_path_alias(cdn_test_url, requests_session, testdata_path):
-    headers = {"want-digest": "id-sha-256"}
+    headers = {"want-repr-digest": "sha-256"}
     url = cdn_test_url + testdata_path
     r = requests_session.head(
         url, headers=headers, cookies=TEST_COOKIES, timeout=TEST_TIMEOUT
@@ -145,8 +145,8 @@ def test_origin_path_alias(cdn_test_url, requests_session, testdata_path):
     print(json.dumps(dict(r.headers), indent=2))
     assert r.status_code == 200
     assert (
-        r.headers["digest"]
-        == "id-sha-256=QWT/LAEW1mZXi6XkVqsDuIeI37QvuT/JGywdpwnYZoY="
+        r.headers["repr-digest"]
+        == "sha-256=:QWT/LAEW1mZXi6XkVqsDuIeI37QvuT/JGywdpwnYZoY=:"
     )
 
 
@@ -158,7 +158,7 @@ testdata_rhui_alias_path_aus = [
 
 @pytest.mark.parametrize("testdata_path", testdata_rhui_alias_path_aus)
 def test_rhui_path_alias_aus(cdn_test_url, requests_session, testdata_path):
-    headers = {"want-digest": "id-sha-256"}
+    headers = {"want-repr-digest": "sha-256"}
     url = cdn_test_url + testdata_path
     r = requests_session.head(
         url, headers=headers, cookies=TEST_COOKIES, timeout=TEST_TIMEOUT
@@ -166,8 +166,8 @@ def test_rhui_path_alias_aus(cdn_test_url, requests_session, testdata_path):
     print(json.dumps(dict(r.headers), indent=2))
     assert r.status_code == 200
     assert (
-        r.headers["digest"]
-        == "id-sha-256=BjFlOLkNOqsg9HhxMjB/bTMNqaSLqxGhPgphb89iLOU="
+        r.headers["repr-digest"]
+        == "sha-256=:BjFlOLkNOqsg9HhxMjB/bTMNqaSLqxGhPgphb89iLOU=:"
     )
 
 
@@ -179,7 +179,7 @@ testdata_rhui_alias_path_rhel8 = [
 
 @pytest.mark.parametrize("testdata_path", testdata_rhui_alias_path_rhel8)
 def test_rhui_path_alias_rhel8(cdn_test_url, requests_session, testdata_path):
-    headers = {"want-digest": "id-sha-256"}
+    headers = {"want-repr-digest": "sha-256"}
     url = cdn_test_url + testdata_path
     r = requests_session.head(
         url, headers=headers, cookies=TEST_COOKIES, timeout=TEST_TIMEOUT
@@ -187,8 +187,8 @@ def test_rhui_path_alias_rhel8(cdn_test_url, requests_session, testdata_path):
     print(json.dumps(dict(r.headers), indent=2))
     assert r.status_code == 200
     assert (
-        r.headers["digest"]
-        == "id-sha-256=WA2MMEwPzpikfPAoOEnl6ffo9ce9p2aSEkl2UEaUfkA="
+        r.headers["repr-digest"]
+        == "sha-256=:WA2MMEwPzpikfPAoOEnl6ffo9ce9p2aSEkl2UEaUfkA=:"
     )
 
 
@@ -200,7 +200,7 @@ testdata_releasever_alias_rhel6 = [
 
 @pytest.mark.parametrize("testdata_path", testdata_releasever_alias_rhel6)
 def test_releasever_alias_rhel6(cdn_test_url, requests_session, testdata_path):
-    headers = {"want-digest": "id-sha-256"}
+    headers = {"want-repr-digest": "sha-256"}
     url = cdn_test_url + testdata_path
     r = requests_session.head(
         url, headers=headers, cookies=TEST_COOKIES, timeout=TEST_TIMEOUT
@@ -208,8 +208,8 @@ def test_releasever_alias_rhel6(cdn_test_url, requests_session, testdata_path):
     print(json.dumps(dict(r.headers), indent=2))
     assert r.status_code == 200
     assert (
-        r.headers["digest"]
-        == "id-sha-256=BjFlOLkNOqsg9HhxMjB/bTMNqaSLqxGhPgphb89iLOU="
+        r.headers["repr-digest"]
+        == "sha-256=:BjFlOLkNOqsg9HhxMjB/bTMNqaSLqxGhPgphb89iLOU=:"
     )
 
 
