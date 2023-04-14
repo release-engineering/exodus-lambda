@@ -134,7 +134,7 @@ testdata_origin_alias_path = [
 ]
 
 
-# use Want-Repr-Digest/Repar-Digest to check if alias take effect
+# use Want-Repr-Digest/Repr-Digest to check if alias take effect
 @pytest.mark.parametrize("testdata_path", testdata_origin_alias_path)
 def test_origin_path_alias(cdn_test_url, requests_session, testdata_path):
     headers = {"want-repr-digest": "sha-256"}
