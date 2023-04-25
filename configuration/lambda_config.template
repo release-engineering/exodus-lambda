@@ -25,9 +25,7 @@
     "incremental": "True",
     "disable_existing_loggers": "False",
     "formatters": {
-      "default": {
-        "datefmt": "%Y-%m-%d %H:%M:%S"
-      }
+      "default": {}
     },
     "loggers": {
       "origin-response": {
