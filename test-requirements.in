@@ -9,3 +9,4 @@ mypy
 importlib-metadata
 bandit
 safety
+freezegun
