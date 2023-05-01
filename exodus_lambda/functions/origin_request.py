@@ -165,11 +165,12 @@ class OriginRequest(LambdaBase):
 
     def resolve_aliases(self, uri):
         # aliases relating to origin, e.g. content/origin <=> origin
-        uri = self.uri_alias(uri, self.definitions.get("origin_alias"))
+        if "origin" in uri:
+            uri = self.uri_alias(uri, self.definitions.get("origin_alias"))
 
         # aliases relating to rhui; listing files are a special exemption
         # because they must be allowed to differ for rhui vs non-rhui.
-        if not uri.endswith("/listing"):
+        if not uri.endswith("/listing") and "rhui" in uri:
             uri = self.uri_alias(uri, self.definitions.get("rhui_alias"))
 
         # aliases relating to releasever; e.g. /content/dist/rhel8/8 <=> /content/dist/rhel8/8.5
