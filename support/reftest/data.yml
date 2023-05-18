@@ -78,6 +78,11 @@ test_data:
 - path: /content/dist/rhel8/8.2/x86_64/baseos/iso/does-not-exist.iso
   state: absent
 
+# .jar
+- path: /content/origin/files/sha256/e1/e185950a32504809c24495ab68267477542caebf6398be16e2a2abd941a85984/rhb-thorntail-2.7.0-microprofile-hollow-thorntail.jar
+  sha256: e185950a32504809c24495ab68267477542caebf6398be16e2a2abd941a85984
+  content-type: application/zip
+
 # origin content failover
 - path: /_exodus-replica-dummy-object.txt
   sha256: 6353b79d56cdd1f17fb7aaf58d8bfec41aa57945d176cdac3eba6e3c3f234c79
