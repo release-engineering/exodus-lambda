@@ -10,6 +10,7 @@ import argparse
 import hashlib
 import json
 import os
+import pprint
 import sys
 import tempfile
 import time
@@ -31,6 +32,26 @@ ENDPOINT_URL = os.environ.get("EXODUS_AWS_ENDPOINT_URL") or None
 def die(message: str):
     print(message, file=sys.stderr)
     sys.exit(4)
+
+
+def check_response(response: requests.Response):
+    # like response.raise_for_status(), but ensures response body is output.
+    if response.status_code >= 200 and response.status_code < 400:
+        return
+
+    response_body = response.content
+
+    try:
+        # if it's JSON, try to get it pretty-printed instead.
+        response_body = pprint.pformat(response.json(), indent=2)
+    except:
+        # whatever, guess it wasn't JSON then...
+        pass
+
+    die(
+        f"{response.status_code} {response.reason} for {response.url}\n\n"
+        + response_body
+    )
 
 
 class DBHandler:
@@ -246,7 +267,7 @@ class GWPublishBackend(PublishBackend):
         create_url = f"{self.url}/{self.env}/publish"
 
         response = self.session.post(create_url)
-        response.raise_for_status()
+        check_response(response)
 
         body = response.json()
         self.publish_url = self.url + body["links"]["self"]
@@ -258,7 +279,7 @@ class GWPublishBackend(PublishBackend):
         print("Committing:", self.publish_url)
 
         response = self.session.post(self.commit_url)
-        response.raise_for_status()
+        check_response(response)
 
         body = response.json()
         task_url = self.url + body["links"]["self"]
@@ -269,7 +290,7 @@ class GWPublishBackend(PublishBackend):
 
         while True:
             response = self.session.get(task_url)
-            response.raise_for_status()
+            check_response(response)
 
             state = response.json()["state"]
             print("   ", state)
@@ -302,17 +323,14 @@ class GWPublishBackend(PublishBackend):
                 raise
 
         # Next add it to the publish.
-        response = self.session.put(
-            self.publish_url,
-            json=[
-                dict(
-                    web_uri=remote_path,
-                    object_key=sha256sum,
-                    content_type=content_type,
-                )
-            ],
+        item = dict(
+            web_uri=remote_path,
+            object_key=sha256sum,
         )
-        response.raise_for_status()
+        if content_type:
+            item["content_type"] = content_type
+        response = self.session.put(self.publish_url, json=[item])
+        check_response(response)
 
         print(f"Added to publish: {remote_path} => {sha256sum}")
 
@@ -321,7 +339,7 @@ class GWPublishBackend(PublishBackend):
 
         print("Deploying config:", config)
         response = self.session.post(deploy_config_url, json=config)
-        response.raise_for_status()
+        check_response(response)
 
         task_url = self.url + response.json()["links"]["self"]
         self.await_task(task_url)
@@ -495,7 +513,7 @@ def download_to_local(url, key_path, cert_path, cacert_path):
         stream=True,
         timeout=(30, 30),
     ) as req:
-        req.raise_for_status()
+        check_response(req)
         total_size = int(req.headers.get("content-length", 0))
         tbar = tqdm(desc=url, total=total_size, unit="iB", unit_scale=True)
 
@@ -546,7 +564,7 @@ def prepare(publisher: PublishBackend, config, opt):
             local_path=temp_file.name,
             remote_path=item["path"],
             sha256sum=cdn_data_checksum,
-            content_type=item["content-type"],
+            content_type=item.get("content-type"),
         )
 
         # delete the NamedTemporaryFile
