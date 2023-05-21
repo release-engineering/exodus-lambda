@@ -75,6 +75,7 @@ test_data:
 - path: /content/dist/rhel/atomic/7/7Server/x86_64/ostree/repo/refs/heads/rhel-atomic-host/7/x86_64/standard
   content-type: text/plain
 - path: /content/dist/rhel8/8.2/x86_64/baseos/iso/rhel-8.2-x86_64-boot.iso
+  sha256: 6346884b4d42e40451f7fa5d2eb52b63b67a590bbed5317cf74b4a2e35bcf809
 - path: /content/dist/rhel8/8.2/x86_64/baseos/iso/does-not-exist.iso
   state: absent
 
