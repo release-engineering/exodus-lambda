@@ -11,6 +11,7 @@ import hashlib
 import json
 import os
 import pprint
+import shutil
 import sys
 import tempfile
 import time
@@ -375,6 +376,57 @@ def get_publish_backend(opts: argparse.Namespace) -> PublishBackend:
     )
 
 
+class Cache:
+    """Cache used for avoiding repeated download of files.
+
+    The base class is a no-op (cache is always empty).
+    """
+
+    def put(self, local_path: str):
+        """Add a local file into the cache, making it available for later
+        runs of this script.
+        """
+        pass
+
+    def get(self, sha256sum: str) -> Optional[str]:
+        """Get a local file from the cache, if available.
+
+        sha256sum -- checksum of the desired file
+
+        Returns:
+            Path to local file if file is in cache, or...
+
+            None, if file is not in cache
+        """
+        return None
+
+
+class DirCache(Cache):
+    """Cache implementation storing files in a directory by checksum."""
+
+    def __init__(self, dir: str):
+        self.dir = dir
+        os.makedirs(self.dir, exist_ok=True)
+
+    def put(self, local_path: str):
+        checksummer = hashlib.sha256()
+        with open(local_path, "rb") as f:
+            for chunk in iter(lambda: f.read(1024 * 1024), b""):
+                checksummer.update(chunk)
+
+        key = checksummer.hexdigest()
+        cached_path = os.path.join(self.dir, key)
+        shutil.copy(local_path, cached_path)
+        print(f"Content for {key} was added to cache.")
+
+    def get(self, sha256sum: str) -> Optional[str]:
+        cached_path = os.path.join(self.dir, sha256sum)
+        if os.path.exists(cached_path):
+            print(f"Content for {sha256sum} was found in cache.")
+            return cached_path
+        return None
+
+
 def parse_aws_session(parser):
     parser.add_argument(
         "--aws-access-id",
@@ -439,6 +491,16 @@ def parse_args():
         for integration test,
          e.g. $./reftest prepare --bucket exodus-bucket --table exodus-table --config-table exodus-config
         """,
+    )
+
+    parser_prepare.add_argument(
+        "--cache-dir",
+        help="Directory for caching downloaded files",
+        default=os.path.expandvars("$HOME/.cache/exodus-cdn-reftest"),
+    )
+
+    parser_prepare.add_argument(
+        "--no-cache", action="store_true", help="Disable usage of cache"
     )
 
     parser_prepare.add_argument(
@@ -532,7 +594,7 @@ def download_to_local(url, key_path, cert_path, cacert_path):
         return temp_file, sha256.hexdigest()
 
 
-def prepare(publisher: PublishBackend, config, opt):
+def prepare(publisher: PublishBackend, cache: Cache, config, opt):
     publisher.start_publish()
     for item in config.test_data:
         if not item.get("deploy", True):
@@ -543,32 +605,43 @@ def prepare(publisher: PublishBackend, config, opt):
             # Just don't put any item.
             continue
 
-        url = config.prod_cdn_url + item["path"]
-        # download test data to local with a name "NamedTemporaryFile"
-        temp_file, cdn_data_checksum = download_to_local(
-            url, opt.key, opt.cert, opt.cacert
-        )
+        expected_checksum = item.get("sha256")
+        if expected_checksum and (local_path := cache.get(expected_checksum)):
+            # We already have this file, don't need to download it.
+            temp_file = None
+            cdn_data_checksum = expected_checksum
+        else:
+            # We need to download the file.
+            url = config.prod_cdn_url + item["path"]
+            temp_file, cdn_data_checksum = download_to_local(
+                url, opt.key, opt.cert, opt.cacert
+            )
+            local_path = temp_file.name
+
+            # Cache it for next time.
+            cache.put(local_path)
 
         # For unstable content which did not provide sha256, it will skip the
         # checksum verify
-        if item.get("sha256") and cdn_data_checksum != item["sha256"]:
+        if expected_checksum and cdn_data_checksum != expected_checksum:
             print(
                 "{} verify checksum failed, cdn_data_checksum is {}, ".format(
                     item["path"], cdn_data_checksum
                 )
-                + "but test_data_checksum is {}".format(item["sha256"])
+                + "but test_data_checksum is {}".format(expected_checksum)
             )
             return False
 
         publisher.add_item(
-            local_path=temp_file.name,
+            local_path=local_path,
             remote_path=item["path"],
             sha256sum=cdn_data_checksum,
             content_type=item.get("content-type"),
         )
 
-        # delete the NamedTemporaryFile
-        temp_file.close()
+        if temp_file:
+            # delete the NamedTemporaryFile
+            temp_file.close()
 
     publisher.commit()
 
@@ -582,11 +655,17 @@ def prepare(publisher: PublishBackend, config, opt):
 def main():
     config = load_config()
     opt = parse_args()
+
+    if opt.no_cache:
+        cache = Cache()
+    else:
+        cache = DirCache(opt.cache_dir)
+
     publisher = get_publish_backend(opt)
 
     res = False
     if opt.command == "prepare":
-        res = prepare(publisher, config, opt)
+        res = prepare(publisher, cache, config, opt)
 
     if res:
         print("{} operation has finished successfully!".format(opt.command))
