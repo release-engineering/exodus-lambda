@@ -8,6 +8,7 @@ class JsonFormatter(logging.Formatter):
         super().__init__()
         self.fmt = {
             "level": "levelname",
+            "logger": "name",
             "time": "asctime",
             "aws-request-id": "aws_request_id",
             "message": "message",

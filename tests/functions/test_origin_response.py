@@ -130,6 +130,7 @@ def test_origin_response_logger(caplog):
         "time": mock.ANY,
         "aws-request-id": None,
         "message": "Incoming event for origin_response",
+        "logger": "origin-response",
         "request": {
             "headers": {
                 "exodus-original-uri": [
@@ -148,6 +149,7 @@ def test_origin_response_logger(caplog):
         "time": mock.ANY,
         "aws-request-id": None,
         "message": "Completed response processing",
+        "logger": "origin-response",
         "request": {
             "headers": {
                 "exodus-original-uri": [

@@ -85,6 +85,7 @@ def test_json_logger_timestamp(caplog):
         "time": "2023-04-26 14:43:13.570",
         "aws-request-id": None,
         "message": "Works!",
+        "logger": "default",
         "request": None,
         "response": None,
     }
@@ -107,6 +108,7 @@ def test_json_logger_configurable_datefmt(caplog):
         "time": "14:43 on Wednesday, April 26, 2023",
         "aws-request-id": None,
         "message": "Works!",
+        "logger": "default",
         "request": None,
         "response": None,
     }
