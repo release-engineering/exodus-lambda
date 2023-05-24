@@ -22,8 +22,7 @@
   "index_filename": "$EXODUS_INDEX_FILENAME",
   "logging": {
     "version": 1,
-    "incremental": "True",
-    "disable_existing_loggers": "False",
+    "incremental": true,
     "formatters": {
       "default": {}
     },
