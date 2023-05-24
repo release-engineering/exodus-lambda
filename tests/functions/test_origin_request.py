@@ -150,6 +150,7 @@ def test_origin_request_fail_uri_validation(caplog):
         "time": mock.ANY,
         "aws-request-id": None,
         "message": "uri exceeds length limits: %s" % ("o" * 2001),
+        "logger": "origin-request",
         "request": None,
         "response": None,
     }
@@ -176,6 +177,7 @@ def test_origin_request_fail_querystring_validation(caplog):
         "time": mock.ANY,
         "aws-request-id": None,
         "message": "querystring exceeds length limits: %s" % ("o" * 2001),
+        "logger": "origin-request",
         "request": None,
         "response": None,
     }
