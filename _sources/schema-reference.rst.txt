@@ -8,3 +8,4 @@ Schema Reference
    :caption: Contents:
 
    schemas/origin_request-schema
+   schemas/config-schema
