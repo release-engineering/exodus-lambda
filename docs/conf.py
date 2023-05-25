@@ -106,6 +106,10 @@ html_theme_options = {
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ["_static"]
 
+# This dir contains machine-readable schemas, they should be published alongside
+# the docs.
+html_extra_path = ["schemas/raw"]
+
 # Custom sidebar templates, must be a dictionary that maps document names
 # to template names.
 #
