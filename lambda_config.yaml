@@ -75,9 +75,14 @@ properties:
     maxLength: 500
     minLength: 1
 
+  secret_region:
+    type: string
+    description: Region used for connections to Secrets Manager
+    $ref: '#/definitions/aws_region'
+
 required:
-# In practice, we provide all properties in the config file all the time,
-# so we list everything as required.
+# In practice, we provide most properties in the config file all the time,
+# so we list them as required.
 #
 # It is possible that the code applies some defaults and so some of
 # these aren't truly required. This was not investigated when the schema
