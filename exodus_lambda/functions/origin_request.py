@@ -9,6 +9,7 @@ import boto3
 import cachetools
 
 from .base import LambdaBase
+from .db import QueryHelper
 from .signer import Signer
 
 CONF_FILE = os.environ.get("EXODUS_LAMBDA_CONF_FILE") or "lambda_config.json"
@@ -23,7 +24,6 @@ ENDPOINT_URL = os.environ.get("EXODUS_AWS_ENDPOINT_URL") or None
 class OriginRequest(LambdaBase):
     def __init__(self, conf_file=CONF_FILE):
         super().__init__("origin-request", conf_file)
-        self._db_client = None
         self._sm_client = None
         self._cache = cachetools.TTLCache(
             maxsize=1,
@@ -32,25 +32,15 @@ class OriginRequest(LambdaBase):
             ).total_seconds(),
             timer=time.monotonic,
         )
+        self._db = QueryHelper(self.conf, ENDPOINT_URL)
         self.handler = self.__wrap_version_check(self.handler)
-
-    @property
-    def db_client(self):
-        if not self._db_client:
-            self._db_client = boto3.client(
-                "dynamodb",
-                region_name=self.region,
-                endpoint_url=ENDPOINT_URL,
-            )
-
-        return self._db_client
 
     @property
     def sm_client(self):
         if not self._sm_client:
             self._sm_client = boto3.client(
                 "secretsmanager",
-                region_name=self.region,
+                region_name=self.conf.get("secret_region") or "us-east-1",
                 endpoint_url=ENDPOINT_URL,
             )
 
@@ -62,7 +52,7 @@ class OriginRequest(LambdaBase):
         if out is None:
             table = self.conf["config_table"]["name"]
 
-            query_result = self.db_client.query(
+            query_result = self._db.query(
                 TableName=table,
                 Limit=1,
                 ScanIndexForward=False,
@@ -271,7 +261,7 @@ class OriginRequest(LambdaBase):
     def response_from_db(self, request, table, uri):
         self.logger.info("Querying '%s' table for '%s'...", table, uri)
 
-        query_result = self.db_client.query(
+        query_result = self._db.query(
             TableName=table,
             Limit=1,
             ConsistentRead=True,

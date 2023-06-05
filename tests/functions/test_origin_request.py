@@ -129,6 +129,72 @@ def test_origin_request(
         }
 
 
+@mock.patch("boto3.client")
+@mock.patch("exodus_lambda.functions.origin_request.cachetools")
+def test_origin_request_db_failover(
+    mocked_cache,
+    mocked_boto3_client,
+    caplog,
+):
+    """Table queries can failover to secondary regions on error."""
+    mocked_cache.TTLCache.return_value = {"exodus-config": mock_definitions()}
+
+    # Simulate dynamodb raising errors in some regions.
+    bad_client1 = mock.Mock(spec=["query"])
+    bad_client1.query.side_effect = RuntimeError("simulated error 1")
+    bad_client2 = mock.Mock(spec=["query"])
+    bad_client2.query.side_effect = RuntimeError("simulated error 2")
+    good_client = mock.Mock(spec=["query"])
+    good_client.query.return_value = {
+        "Items": [
+            {
+                "web_uri": {"S": "/some/uri"},
+                "from_date": {"S": "2020-02-17T00:00:00.000+00:00"},
+                "object_key": {"S": "e4a3f2sum"},
+                "content_type": {"S": "text/plain"},
+            }
+        ]
+    }
+
+    # Make it so that the first two constructed clients (i.e. first two regions)
+    # raise an error and the third will succeed
+    mocked_boto3_client.side_effect = [
+        bad_client1,
+        bad_client2,
+        good_client,
+    ]
+
+    event = {
+        "Records": [{"cf": {"request": {"uri": "/some/uri", "headers": {}}}}]
+    }
+
+    request = OriginRequest(
+        conf_file=TEST_CONF,
+    ).handler(event, context=None)
+
+    # It should ultimately succeed and rewrite the request to use
+    # object key as normal
+    assert request["uri"] == "/e4a3f2sum"
+
+    # But logs should mention that errors and failover occurred
+    assert (
+        "Error querying table test-table in region us-east-1"
+        in caplog.messages
+    )
+    assert (
+        "Error querying table test-table in region us-east-2"
+        in caplog.messages
+    )
+    assert (
+        "Failover: query for table test-table succeeded in region us-west-1 after prior errors"
+        in caplog.messages
+    )
+
+    # With exception details logged also
+    assert "simulated error 1" in caplog.text
+    assert "simulated error 2" in caplog.text
+
+
 def test_origin_request_fail_uri_validation(caplog):
     # Validation fails for too lengthy URIs.
     event = {
