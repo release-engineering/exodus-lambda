@@ -80,15 +80,26 @@ def test_json_logger_timestamp(caplog):
     LambdaBase(conf_file=TEST_CONF).logger.info("Works!")
 
     # Logged timestamp should show milliseconds by default
-    assert json.loads(caplog.text) == {
-        "level": "INFO",
-        "time": "2023-04-26 14:43:13.570",
-        "aws-request-id": None,
-        "message": "Works!",
-        "logger": "default",
-        "request": None,
-        "response": None,
-    }
+    assert [json.loads(log) for log in caplog.text.splitlines()] == [
+        {
+            "level": "INFO",
+            "time": "2023-04-26 14:43:13.570",
+            "aws-request-id": None,
+            "message": "Initializing logger...",
+            "logger": "default",
+            "request": None,
+            "response": None,
+        },
+        {
+            "level": "INFO",
+            "time": "2023-04-26 14:43:13.570",
+            "aws-request-id": None,
+            "message": "Works!",
+            "logger": "default",
+            "request": None,
+            "response": None,
+        }
+    ]
 
 
 @freeze_time(MOCKED_DT)
@@ -101,14 +112,24 @@ def test_json_logger_configurable_datefmt(caplog):
     conf["logging"]["formatters"]["default"]["datefmt"] = new_datefmt
 
     LambdaBase(conf_file=conf).logger.info("Works!")
-
     # Logged timestamp should be formatted as new_datefmt
-    assert json.loads(caplog.text) == {
-        "level": "INFO",
-        "time": "14:43 on Wednesday, April 26, 2023",
-        "aws-request-id": None,
-        "message": "Works!",
-        "logger": "default",
-        "request": None,
-        "response": None,
-    }
+    assert [json.loads(log) for log in caplog.text.splitlines()] == [
+        {
+            "level": "INFO",
+            "time": "14:43 on Wednesday, April 26, 2023",
+            "aws-request-id": None,
+            "message": "Initializing logger...",
+            "logger": "default",
+            "request": None,
+            "response": None,
+        },
+        {
+            "level": "INFO",
+            "time": "14:43 on Wednesday, April 26, 2023",
+            "aws-request-id": None,
+            "message": "Works!",
+            "logger": "default",
+            "request": None,
+            "response": None,
+        }
+    ]

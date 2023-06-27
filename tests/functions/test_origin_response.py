@@ -126,6 +126,15 @@ def test_origin_response_logger(caplog):
         dict_log[count] = json.loads(item)
 
     assert dict_log[0] == {
+        "level": "INFO",
+        "time": mock.ANY,
+        "aws-request-id": None,
+        "message": "Initializing logger...",
+        "logger": "origin-response",
+        "request": None,
+        "response": None,
+    }
+    assert dict_log[1] == {
         "level": "DEBUG",
         "time": mock.ANY,
         "aws-request-id": None,
@@ -144,7 +153,7 @@ def test_origin_response_logger(caplog):
         },
         "response": {"headers": {}},
     }
-    assert dict_log[1] == {
+    assert dict_log[2] == {
         "level": "DEBUG",
         "time": mock.ANY,
         "aws-request-id": None,
