@@ -44,6 +44,7 @@ class LambdaBase(object):
                 formatter = JsonFormatter(datefmt=datefmt)
                 root_logger.handlers[0].setFormatter(formatter)
             self._logger = logging.getLogger(self._logger_name)
+            self._logger.info("Initializing logger...")
         return self._logger
 
     @property

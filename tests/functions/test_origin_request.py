@@ -210,16 +210,27 @@ def test_origin_request_fail_uri_validation(caplog):
 
     # It should return 400 status code.
     assert request == {"status": "400", "statusDescription": "Bad Request"}
-    # Log should only contain URI error message.
-    assert json.loads(caplog.text) == {
-        "level": "ERROR",
-        "time": mock.ANY,
-        "aws-request-id": None,
-        "message": "uri exceeds length limits: %s" % ("o" * 2001),
-        "logger": "origin-request",
-        "request": None,
-        "response": None,
-    }
+    # Log should only contain URI error message (and the init logger message).
+    assert [json.loads(log) for log in caplog.text.splitlines()] == [
+        {
+            "level": "INFO",
+            "time": mock.ANY,
+            "aws-request-id": None,
+            "message": "Initializing logger...",
+            "logger": "origin-request",
+            "request": None,
+            "response": None,
+        },
+        {
+            "level": "ERROR",
+            "time": mock.ANY,
+            "aws-request-id": None,
+            "message": "uri exceeds length limits: %s" % ("o" * 2001),
+            "logger": "origin-request",
+            "request": None,
+            "response": None,
+        },
+    ]
 
 
 def test_origin_request_fail_querystring_validation(caplog):
@@ -237,16 +248,27 @@ def test_origin_request_fail_querystring_validation(caplog):
 
     # It should return 400 status code.
     assert request == {"status": "400", "statusDescription": "Bad Request"}
-    # Log should only contain querystring error message.
-    assert json.loads(caplog.text) == {
-        "level": "ERROR",
-        "time": mock.ANY,
-        "aws-request-id": None,
-        "message": "querystring exceeds length limits: %s" % ("o" * 2001),
-        "logger": "origin-request",
-        "request": None,
-        "response": None,
-    }
+    # Log should only contain querystring error message (and the init logger message).
+    assert [json.loads(log) for log in caplog.text.splitlines()] == [
+        {
+            "level": "INFO",
+            "time": mock.ANY,
+            "aws-request-id": None,
+            "message": "Initializing logger...",
+            "logger": "origin-request",
+            "request": None,
+            "response": None,
+        },
+        {
+            "level": "ERROR",
+            "time": mock.ANY,
+            "aws-request-id": None,
+            "message": "querystring exceeds length limits: %s" % ("o" * 2001),
+            "logger": "origin-request",
+            "request": None,
+            "response": None,
+        },
+    ]
 
 
 @mock.patch("boto3.client")
