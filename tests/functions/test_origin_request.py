@@ -229,8 +229,9 @@ def test_origin_request_fail_uri_validation(caplog):
             "logger": "origin-request",
             "request": None,
             "response": None,
-        }
+        },
     ]
+
 
 def test_origin_request_fail_querystring_validation(caplog):
     # Validation fails for too lengthy URIs.
@@ -266,7 +267,7 @@ def test_origin_request_fail_querystring_validation(caplog):
             "logger": "origin-request",
             "request": None,
             "response": None,
-        }
+        },
     ]
 
 

@@ -98,7 +98,7 @@ def test_json_logger_timestamp(caplog):
             "logger": "default",
             "request": None,
             "response": None,
-        }
+        },
     ]
 
 
@@ -131,5 +131,5 @@ def test_json_logger_configurable_datefmt(caplog):
             "logger": "default",
             "request": None,
             "response": None,
-        }
+        },
     ]
