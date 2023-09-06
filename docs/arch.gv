@@ -12,8 +12,14 @@ digraph {
         xlabel=< <table bgcolor="white" border="0" cellborder="0" cellpadding="0" style="rounded"><tr><td>2</td></tr></table> >
     ]
 
-    origin_request -> db [
+    origin_request -> dbcontent [
         xlabel=< <table bgcolor="white" border="0" cellborder="0" cellpadding="0" style="rounded"><tr><td>3</td></tr></table> >,
+        dir=both
+    ]
+
+    origin_request -> dbconfig [
+        # This connection doesn't get a number since the reading of config is not
+        # directly tied to the lifecycle of a request.
         dir=both
     ]
 
@@ -40,7 +46,8 @@ digraph {
     # Connection order here is reversed to force the publishing tools to the bottom
     # of the graph, which makes them stand out a bit more.
     S3:s -> exodus_gw:ne [dir="back"]
-    db:s -> exodus_gw:nw [dir="back"]
+    dbcontent:s -> exodus_gw:nw [dir="back"]
+    dbconfig -> exodus_gw [dir="both"]
 
     exodus_gw -> exodus_rsync:n [dir="back"];
     exodus_gw -> native_tools:n [dir="back"];
@@ -52,16 +59,16 @@ digraph {
     legacy_tools [label="publishing tools (rsync)", style="dashed"];
     native_tools [label="publishing tools (exodus)", style="dashed"];
 
-    db [
+    dbcontent [
         shape=plaintext
         fontsize=9
         label=<
 
             <table border='1' cellborder='1' cellspacing='0'>
-                <tr><td colspan='4'><font point-size="14"><b>☁ DynamoDB</b></font></td></tr>
+                <tr><td colspan='4'><font point-size="14"><b>☁ DynamoDB (content)</b></font></td></tr>
                 <tr>
-                    <td><b>web_uri (partition key)</b></td>
-                    <td><b>from_date (sort key)</b></td>
+                    <td><b>web_uri</b></td>
+                    <td><b>from_date</b></td>
                     <td><b>object_key</b></td>
                     <td><b>content_type</b></td>
                 </tr>
@@ -88,6 +95,32 @@ digraph {
                     <td>2020-01-22T02:07:20+00:00</td>
                     <td>5d70f436aa013...</td>
                     <td>application/xml</td>
+                </tr>
+                <tr><td colspan='4'>...</td></tr>
+            </table>
+        >
+    ];
+
+    dbconfig [
+        shape=plaintext
+        fontsize=9
+        label=<
+            <table border='1' cellborder='1' cellspacing='0'>
+                <tr><td colspan='4'><font point-size="14"><b>☁ DynamoDB (config)</b></font></td></tr>
+                <tr>
+                    <td><b>config_id</b></td>
+                    <td><b>from_date</b></td>
+                    <td><b>config</b></td>
+                </tr>
+                <tr>
+                    <td>exodus-config</td>
+                    <td>2023-08-04 21:05:40</td>
+                    <td>{"listing": {"/content/dist/rhel8": {...</td>
+                </tr>
+                <tr>
+                    <td>exodus-config</td>
+                    <td>2023-08-07 21:20:31</td>
+                    <td>{"listing": {"/content/dist/rhel8": {...</td>
                 </tr>
                 <tr><td colspan='4'>...</td></tr>
             </table>
@@ -156,4 +189,9 @@ digraph {
             native_tools;
         }
     }
+
+    # both DynamoDB and S3 would normally be on the same rank, which makes
+    # the diagram way too wide. This ought to help by shifting the config
+    # table downwards.
+    { rank=same; exodus_gw; dbconfig; }
 }
