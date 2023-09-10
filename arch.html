@@ -38,7 +38,7 @@
 <h2>Overview<a class="headerlink" href="#overview" title="Link to this heading">¶</a></h2>
 <p>This diagram shows the relationship between all major components used
 in the delivery of content via the CDN.</p>
-<div class="graphviz"><img src="_images/graphviz-80b25e9e891a7b52a17f6a68801f6dbe50edd089.png" alt="digraph {
+<div class="graphviz"><img src="_images/graphviz-50b989859db264b9edff1ae259589159cc937929.png" alt="digraph {
     ranksep=&quot;1.4&quot;;
 
     # These are arranged and labelled to communicate the
@@ -52,8 +52,14 @@ in the delivery of content via the CDN.</p>
         xlabel=&lt; &lt;table bgcolor=&quot;white&quot; border=&quot;0&quot; cellborder=&quot;0&quot; cellpadding=&quot;0&quot; style=&quot;rounded&quot;&gt;&lt;tr&gt;&lt;td&gt;2&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt; &gt;
     ]
 
-    origin_request -&gt; db [
+    origin_request -&gt; dbcontent [
         xlabel=&lt; &lt;table bgcolor=&quot;white&quot; border=&quot;0&quot; cellborder=&quot;0&quot; cellpadding=&quot;0&quot; style=&quot;rounded&quot;&gt;&lt;tr&gt;&lt;td&gt;3&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt; &gt;,
+        dir=both
+    ]
+
+    origin_request -&gt; dbconfig [
+        # This connection doesn't get a number since the reading of config is not
+        # directly tied to the lifecycle of a request.
         dir=both
     ]
 
@@ -80,7 +86,8 @@ in the delivery of content via the CDN.</p>
     # Connection order here is reversed to force the publishing tools to the bottom
     # of the graph, which makes them stand out a bit more.
     S3:s -&gt; exodus_gw:ne [dir=&quot;back&quot;]
-    db:s -&gt; exodus_gw:nw [dir=&quot;back&quot;]
+    dbcontent:s -&gt; exodus_gw:nw [dir=&quot;back&quot;]
+    dbconfig -&gt; exodus_gw [dir=&quot;both&quot;]
 
     exodus_gw -&gt; exodus_rsync:n [dir=&quot;back&quot;];
     exodus_gw -&gt; native_tools:n [dir=&quot;back&quot;];
@@ -92,16 +99,16 @@ in the delivery of content via the CDN.</p>
     legacy_tools [label=&quot;publishing tools (rsync)&quot;, style=&quot;dashed&quot;];
     native_tools [label=&quot;publishing tools (exodus)&quot;, style=&quot;dashed&quot;];
 
-    db [
+    dbcontent [
         shape=plaintext
         fontsize=9
         label=&lt;
 
             &lt;table border='1' cellborder='1' cellspacing='0'&gt;
-                &lt;tr&gt;&lt;td colspan='4'&gt;&lt;font point-size=&quot;14&quot;&gt;&lt;b&gt;☁ DynamoDB&lt;/b&gt;&lt;/font&gt;&lt;/td&gt;&lt;/tr&gt;
+                &lt;tr&gt;&lt;td colspan='4'&gt;&lt;font point-size=&quot;14&quot;&gt;&lt;b&gt;☁ DynamoDB (content)&lt;/b&gt;&lt;/font&gt;&lt;/td&gt;&lt;/tr&gt;
                 &lt;tr&gt;
-                    &lt;td&gt;&lt;b&gt;web_uri (partition key)&lt;/b&gt;&lt;/td&gt;
-                    &lt;td&gt;&lt;b&gt;from_date (sort key)&lt;/b&gt;&lt;/td&gt;
+                    &lt;td&gt;&lt;b&gt;web_uri&lt;/b&gt;&lt;/td&gt;
+                    &lt;td&gt;&lt;b&gt;from_date&lt;/b&gt;&lt;/td&gt;
                     &lt;td&gt;&lt;b&gt;object_key&lt;/b&gt;&lt;/td&gt;
                     &lt;td&gt;&lt;b&gt;content_type&lt;/b&gt;&lt;/td&gt;
                 &lt;/tr&gt;
@@ -128,6 +135,32 @@ in the delivery of content via the CDN.</p>
                     &lt;td&gt;2020-01-22T02:07:20+00:00&lt;/td&gt;
                     &lt;td&gt;5d70f436aa013...&lt;/td&gt;
                     &lt;td&gt;application/xml&lt;/td&gt;
+                &lt;/tr&gt;
+                &lt;tr&gt;&lt;td colspan='4'&gt;...&lt;/td&gt;&lt;/tr&gt;
+            &lt;/table&gt;
+        &gt;
+    ];
+
+    dbconfig [
+        shape=plaintext
+        fontsize=9
+        label=&lt;
+            &lt;table border='1' cellborder='1' cellspacing='0'&gt;
+                &lt;tr&gt;&lt;td colspan='4'&gt;&lt;font point-size=&quot;14&quot;&gt;&lt;b&gt;☁ DynamoDB (config)&lt;/b&gt;&lt;/font&gt;&lt;/td&gt;&lt;/tr&gt;
+                &lt;tr&gt;
+                    &lt;td&gt;&lt;b&gt;config_id&lt;/b&gt;&lt;/td&gt;
+                    &lt;td&gt;&lt;b&gt;from_date&lt;/b&gt;&lt;/td&gt;
+                    &lt;td&gt;&lt;b&gt;config&lt;/b&gt;&lt;/td&gt;
+                &lt;/tr&gt;
+                &lt;tr&gt;
+                    &lt;td&gt;exodus-config&lt;/td&gt;
+                    &lt;td&gt;2023-08-04 21:05:40&lt;/td&gt;
+                    &lt;td&gt;{&quot;listing&quot;: {&quot;/content/dist/rhel8&quot;: {...&lt;/td&gt;
+                &lt;/tr&gt;
+                &lt;tr&gt;
+                    &lt;td&gt;exodus-config&lt;/td&gt;
+                    &lt;td&gt;2023-08-07 21:20:31&lt;/td&gt;
+                    &lt;td&gt;{&quot;listing&quot;: {&quot;/content/dist/rhel8&quot;: {...&lt;/td&gt;
                 &lt;/tr&gt;
                 &lt;tr&gt;&lt;td colspan='4'&gt;...&lt;/td&gt;&lt;/tr&gt;
             &lt;/table&gt;
@@ -196,6 +229,11 @@ in the delivery of content via the CDN.</p>
             native_tools;
         }
     }
+
+    # both DynamoDB and S3 would normally be on the same rank, which makes
+    # the diagram way too wide. This ought to help by shifting the config
+    # table downwards.
+    { rank=same; exodus_gw; dbconfig; }
 }" class="graphviz" /></div>
 <ul class="simple">
 <li><p>Numbered connections represent the sequence of events when the CDN processes
@@ -226,9 +264,16 @@ such as:</p>
 <p>…and so on.</p>
 </dd>
 <dt>DynamoDB</dt><dd><p><a class="reference external" href="https://aws.amazon.com/dynamodb/">Amazon DynamoDB</a> NoSQL database service.</p>
-<p>The CDN uses a single DynamoDB table which primarily contains mappings
-between URIs and S3 object keys.</p>
+</dd>
+<dt>DynamoDB (content)</dt><dd><p>A DynamoDB table which primarily contains mappings between URIs and S3 object
+keys. Used to look up content. Where multiple matches exist for the same URI,
+the latest item is used.</p>
 <p>For more information about the data contained here, see <a class="reference internal" href="schema-reference.html#schema-ref"><span class="std std-ref">Schema Reference</span></a>.</p>
+</dd>
+<dt>DynamoDB (config)</dt><dd><p>A DynamoDB table which holds configuration influencing the behavior of the CDN.
+Examples of configuration include the variables needed to respond to <cite>/listing</cite>
+requests, and information on aliases between paths (emulating symlinks between
+directories).</p>
 </dd>
 <dt>S3</dt><dd><p><a class="reference external" href="https://aws.amazon.com/s3/">Amazon S3</a>, Simple Storage Service.</p>
 <p>The CDN uses S3 to store the binary objects retrievable by clients.

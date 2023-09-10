@@ -46,10 +46,18 @@ controller
 DynamoDB
     `Amazon DynamoDB`_ NoSQL database service.
 
-    The CDN uses a single DynamoDB table which primarily contains mappings
-    between URIs and S3 object keys.
+DynamoDB (content)
+    A DynamoDB table which primarily contains mappings between URIs and S3 object
+    keys. Used to look up content. Where multiple matches exist for the same URI,
+    the latest item is used.
 
     For more information about the data contained here, see :ref:`schema_ref`.
+
+DynamoDB (config)
+    A DynamoDB table which holds configuration influencing the behavior of the CDN.
+    Examples of configuration include the variables needed to respond to `/listing`
+    requests, and information on aliases between paths (emulating symlinks between
+    directories).
 
 S3
     `Amazon S3`_, Simple Storage Service.
