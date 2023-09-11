@@ -22,8 +22,15 @@ class LambdaInput:
 
     def config(self, event_type: str):
         """Returns the config element of a cloudfront event."""
+
+        # Extract the client's idea of the hostname for use as the CF
+        # distribution name.
+        #
+        # In case of a host:port combination, only the host part should
+        # be used.
+        host = self._wsgi_environ["HTTP_HOST"].split(":")[0]
         return {
-            "distributionDomainName": self._wsgi_environ["SERVER_NAME"],
+            "distributionDomainName": host,
             "distributionId": "FAKEFRONT",
             "eventType": event_type,
             "requestId": self._request_id,
