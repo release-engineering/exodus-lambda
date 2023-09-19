@@ -33,10 +33,9 @@ setup(
         "Development Status :: 4 - Beta",
         "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.11",
     ],
     install_requires=get_requirements(),
-    python_requires=">=3.11",
+    python_requires=">=3.9",
     project_urls={
         "Documentation": "https://release-engineering.github.io/exodus-lambda"
     },
