@@ -3,6 +3,7 @@ import json
 import os
 import time
 import urllib
+import urllib.parse
 from datetime import datetime, timedelta, timezone
 
 import boto3
@@ -353,6 +354,8 @@ class OriginRequest(LambdaBase):
             "Incoming request value for origin_request",
             extra={"request": request},
         )
+
+        request["uri"] = urllib.parse.unquote(request["uri"])
 
         if request["uri"].startswith("/_/cookie/"):
             return self.handle_cookie_request(event)
