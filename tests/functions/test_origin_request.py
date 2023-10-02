@@ -1,6 +1,7 @@
 import json
 import logging
 import urllib
+import urllib.parse
 
 import mock
 import pytest
@@ -63,6 +64,26 @@ TEST_CONF = generate_test_config()
             "/content/dist/rhel/server/7/7.9/file.ext",
             "text/plain",
         ),
+        (
+            # encoded URI should be decoded
+            "/content/dist/rhel/rhui/server/7/7Server/some%5Efile",
+            "/content/dist/rhel/server/7/7.9/some^file",
+            "text/plain",
+        ),
+        (
+            # but it is also OK to not encode that character
+            "/content/dist/rhel/rhui/server/7/7Server/some^file",
+            "/content/dist/rhel/server/7/7.9/some^file",
+            "text/plain",
+        ),
+        (
+            # this tricky case is trying to ensure that, even for "special"
+            # paths like /listing, if the client encodes parts of the URI it
+            # still all works normally.
+            "/content/dist/rhel/rhui/server/7/li%73ting",
+            "/content/dist/rhel/rhui/server/7/listing",
+            "text/plain",
+        ),
     ],
     ids=[
         "/origin/rpm/",
@@ -74,6 +95,9 @@ TEST_CONF = generate_test_config()
         "no alias keywords",
         "releasever alias",
         "layered rhui, releasever alias",
+        "encoded URI",
+        "reserved char no encoding",
+        "encoded listing",
     ],
 )
 @mock.patch("boto3.client")
@@ -110,7 +134,9 @@ def test_origin_request(
 
     assert "Incoming request value for origin_request" in caplog.text
 
-    if req_uri.endswith("/listing"):
+    req_uri_decoded = urllib.parse.unquote(req_uri)
+
+    if req_uri_decoded.endswith("/listing"):
         assert "Handling listing request" in caplog.text
         assert "Generated listing request response" in caplog.text
         assert request["body"]
@@ -123,7 +149,7 @@ def test_origin_request(
             ),
             "headers": {
                 "exodus-original-uri": [
-                    {"key": "exodus-original-uri", "value": req_uri}
+                    {"key": "exodus-original-uri", "value": req_uri_decoded}
                 ]
             },
         }
