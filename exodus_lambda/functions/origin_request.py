@@ -4,6 +4,7 @@ import os
 import time
 import urllib
 from datetime import datetime, timedelta, timezone
+from urllib.parse import parse_qs
 
 import boto3
 import cachetools
@@ -172,23 +173,41 @@ class OriginRequest(LambdaBase):
     def handle_cookie_request(self, event):
         now = datetime.utcnow()
         ttl = timedelta(minutes=self.conf.get("cookie_ttl", 720))
-        domain = event["Records"][0]["cf"]["config"]["distributionDomainName"]
-        uri = event["Records"][0]["cf"]["request"]["uri"]
+        record = event["Records"][0]["cf"]
+        domain = record["config"]["distributionDomainName"]
+        uri = record["request"]["uri"]
+        querystring_dict = parse_qs(record["request"]["querystring"])
+        policy = querystring_dict.get("Policy", [None])[0]
+        signature = querystring_dict.get("Signature", [None])[0]
 
         self.logger.info("Handling cookie request: %s", uri)
 
-        signer = Signer(self.cookie_key, self.conf.get("key_id"))
+        # Only load the cookie key if we need to generate a signature.
+        cookie_key = None
+        if not all([policy, signature]):
+            # A signature alone is insufficient.
+            # Without a policy we will have to build one from scratch
+            # and we should sign that policy rather than assume it will
+            # match the one in the signature.
+            self.logger.debug(
+                "Policy and/or signature not included with cookie request\n"
+                "Loading cookie key to generate new signature"
+            )
+            cookie_key = self.cookie_key
 
-        cookies_content = signer.cookies_for_policy(
-            append="; Secure; HttpOnly; SameSite=lax; Domain=%s; Path=/content/; Max-Age=%s"
-            % (domain, int(ttl.total_seconds())),
-            resource="https://%s/content/*" % domain,
-            date_less_than=now + ttl,
-        )
-        cookies_origin = signer.cookies_for_policy(
-            append="; Secure; HttpOnly; SameSite=lax; Domain=%s; Path=/origin/; Max-Age=%s"
-            % (domain, int(ttl.total_seconds())),
-            resource="https://%s/origin/*" % domain,
+        signer = Signer(cookie_key, self.conf.get("key_id"))
+
+        if "content" in uri:
+            path = "content"
+        if "origin" in uri:
+            path = "origin"
+
+        cookies = signer.cookies_for_policy(
+            policy=policy,
+            signature=signature,
+            append="; Secure; HttpOnly; SameSite=lax; Domain=%s; Path=/%s/; Max-Age=%s"
+            % (domain, path, int(ttl.total_seconds())),
+            resource="https://%s/%s/*" % (domain, path),
             date_less_than=now + ttl,
         )
 
@@ -201,9 +220,7 @@ class OriginRequest(LambdaBase):
                 "cache-control": [
                     {"value": "no-store"},
                 ],
-                "set-cookie": [
-                    {"value": x} for x in (cookies_content + cookies_origin)
-                ],
+                "set-cookie": [{"value": x} for x in cookies],
             },
         }
         self.logger.debug(

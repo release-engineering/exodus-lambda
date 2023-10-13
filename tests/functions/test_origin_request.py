@@ -526,10 +526,10 @@ def test_origin_request_absent_items(
 
 @mock.patch("boto3.client")
 @mock.patch("exodus_lambda.functions.origin_request.datetime")
-def test_origin_request_cookie_uri(
+def test_origin_request_cookie_uri_content(
     mocked_datetime, mocked_boto3_client, dummy_private_key, caplog
 ):
-    uri = "/_/cookie/origin/repo/ver/dir/filename.ext"
+    uri = "/_/cookie/content/repo/ver/dir/filename.ext"
     arn = "arn:aws:secretsmanager:example"
 
     mocked_datetime.now().isoformat.return_value = MOCKED_DT
@@ -544,7 +544,7 @@ def test_origin_request_cookie_uri(
         "Records": [
             {
                 "cf": {
-                    "request": {"uri": uri, "headers": {}},
+                    "request": {"uri": uri, "headers": {}, "querystring": ""},
                     "config": {"distributionDomainName": "ex.cloudfront.net"},
                 }
             }
@@ -557,7 +557,7 @@ def test_origin_request_cookie_uri(
     assert request["status"] == "302"
     assert request["headers"]["cache-control"] == [{"value": "no-store"}]
     assert request["headers"]["location"] == [
-        {"value": "/origin/repo/ver/dir/filename.ext"}
+        {"value": "/content/repo/ver/dir/filename.ext"}
     ]
     assert request["headers"]["set-cookie"] == [
         {
@@ -576,26 +576,118 @@ def test_origin_request_cookie_uri(
             "value": "CloudFront-Signature=G8t5tL4HD1KjlT-qvmw0JIXQESaij7N-Qd-"
             "12DONOWocj9Vo6sFRR1Gxcm4VyxYD2WbsyYPr0DiwkEIVCevp7ET4lakVFrhhpz~l"
             "SR616CqocVzRxOqMiHcoHkQKAhPLU3tbGs1XnSqcl6R6TB4Q1PPvRv2NUHm3T8ujK"
-            "1TmKAM_; Secure; HttpOnly; SameSite=lax; "
-            "Domain=ex.cloudfront.net; Path=/content/; Max-Age=43200"
+            "1TmKAM_; Secure; HttpOnly; SameSite=lax; Domain=ex.cloudfront.net; "
+            "Path=/content/; Max-Age=43200"
         },
+    ]
+
+
+@mock.patch("boto3.client")
+@mock.patch("exodus_lambda.functions.origin_request.datetime")
+def test_origin_request_cookie_uri_origin(
+    mocked_datetime, mocked_boto3_client, dummy_private_key, caplog
+):
+    uri = "/_/cookie/origin/repo/ver/dir/filename.ext"
+    arn = "arn:aws:secretsmanager:example"
+
+    mocked_datetime.now().isoformat.return_value = MOCKED_DT
+    mocked_boto3_client().get_secret_value.return_value = {
+        "ARN": arn,
+        "Name": "example_secret",
+        "VersionId": "d6acfecc-9c2d-4141-97ad-70b4149424d2",
+        "SecretString": json.dumps({"cookie_key": dummy_private_key}),
+    }
+
+    event = {
+        "Records": [
+            {
+                "cf": {
+                    "request": {"uri": uri, "headers": {}, "querystring": ""},
+                    "config": {"distributionDomainName": "ex.cloudfront.net"},
+                }
+            }
+        ]
+    }
+
+    request = OriginRequest(conf_file=TEST_CONF).handler(event, context=None)
+
+    assert "Handling cookie request: %s" % uri in caplog.text
+    assert request["status"] == "302"
+    assert request["headers"]["cache-control"] == [{"value": "no-store"}]
+    assert request["headers"]["location"] == [
+        {"value": "/origin/repo/ver/dir/filename.ext"}
+    ]
+    assert request["headers"]["set-cookie"] == [
         {
             "value": "CloudFront-Key-Pair-Id=K1MOU91G3N7WPY; Secure; "
-            "HttpOnly; SameSite=lax; Domain=ex.cloudfront.net; Path=/origin/; "
-            "Max-Age=43200"
+            "HttpOnly; SameSite=lax; Domain=ex.cloudfront.net; "
+            "Path=/origin/; Max-Age=43200"
         },
         {
             "value": "CloudFront-Policy=eyJTdGF0ZW1lbnQiOlt7IlJlc291cmNlIjoiaH"
             "R0cHM6Ly9leC5jbG91ZGZyb250Lm5ldC9vcmlnaW4vKiIsIkNvbmRpdGlvbiI6eyJ"
             "EYXRlTGVzc1RoYW4iOnsiQVdTOkVwb2NoVGltZSI6MX19fV19; Secure; "
-            "HttpOnly; SameSite=lax; Domain=ex.cloudfront.net; Path=/origin/; "
-            "Max-Age=43200"
+            "HttpOnly; SameSite=lax; Domain=ex.cloudfront.net; "
+            "Path=/origin/; Max-Age=43200"
         },
         {
             "value": "CloudFront-Signature=K2Dor2IYm9WViaawbNs-jfsdMuLebxp4LBz"
             "LgnhX8qKZ~NTQYg-x9kIy0DzXCybKJ3bYUomwWJoXWVJxTUjghRBXjBgQtb7GYrk9"
             "yRD6TXJ46uhE9~zSWQInCnwyIAQRgZCuS~BR41C8dPRP56DWSPs0kHWiVGOrP2JI6"
             "YiP3rA_; Secure; HttpOnly; SameSite=lax; Domain=ex.cloudfront.net; "
+            "Path=/origin/; Max-Age=43200"
+        },
+    ]
+
+
+@mock.patch("boto3.client")
+@mock.patch("exodus_lambda.functions.origin_request.datetime")
+def test_origin_request_cookie_with_policy_signature(
+    mocked_datetime, mocked_boto3_client, caplog
+):
+    uri = "/_/cookie/origin/repo/ver/dir/filename.ext"
+    mocked_datetime.now().isoformat.return_value = MOCKED_DT
+
+    event = {
+        "Records": [
+            {
+                "cf": {
+                    "request": {
+                        "uri": uri,
+                        "headers": {},
+                        "querystring": "Policy=policy-from-querystring&Signature=sig-from-querystring",
+                    },
+                    "config": {"distributionDomainName": "ex.cloudfront.net"},
+                }
+            }
+        ]
+    }
+
+    request = OriginRequest(conf_file=TEST_CONF).handler(event, context=None)
+
+    # It shouldn't have looked up the cookie key
+    mocked_boto3_client.get_secret_value.assert_not_called()
+
+    assert "Handling cookie request: %s" % uri in caplog.text
+    assert request["status"] == "302"
+    assert request["headers"]["cache-control"] == [{"value": "no-store"}]
+    assert request["headers"]["location"] == [
+        {"value": "/origin/repo/ver/dir/filename.ext"}
+    ]
+    assert request["headers"]["set-cookie"] == [
+        {
+            "value": "CloudFront-Key-Pair-Id=K1MOU91G3N7WPY; Secure; "
+            "HttpOnly; SameSite=lax; Domain=ex.cloudfront.net; "
+            "Path=/origin/; Max-Age=43200"
+        },
+        {
+            "value": "CloudFront-Policy=policy-from-querystring; Secure; "
+            "HttpOnly; SameSite=lax; Domain=ex.cloudfront.net; "
+            "Path=/origin/; Max-Age=43200"
+        },
+        {
+            "value": "CloudFront-Signature=sig-from-querystring; Secure; "
+            "HttpOnly; SameSite=lax; Domain=ex.cloudfront.net; "
             "Path=/origin/; Max-Age=43200"
         },
     ]
@@ -621,6 +713,7 @@ def test_origin_request_cookie_uri_without_secret(mocked_boto3_client, caplog):
                     "request": {
                         "uri": uri,
                         "headers": {},
+                        "querystring": "",
                     },
                     "config": {
                         "distributionDomainName": "d149itc2w5r6.cloudfront.net"
