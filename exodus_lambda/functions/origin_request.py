@@ -335,7 +335,7 @@ class OriginRequest(LambdaBase):
         if not 0 < len(request["uri"]) < 2000:
             self.logger.error("uri exceeds length limits: %s", request["uri"])
             valid = False
-        if "querystring" in request and not len(request["querystring"]) < 2000:
+        if "querystring" in request and not len(request["querystring"]) < 3000:
             self.logger.error(
                 "querystring exceeds length limits: %s", request["querystring"]
             )
