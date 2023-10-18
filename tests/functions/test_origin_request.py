@@ -263,7 +263,7 @@ def test_origin_request_fail_querystring_validation(caplog):
     # Validation fails for too lengthy URIs.
     event = {
         "Records": [
-            {"cf": {"request": {"uri": "/", "querystring": "o" * 2001}}}
+            {"cf": {"request": {"uri": "/", "querystring": "o" * 3001}}}
         ]
     }
 
@@ -289,7 +289,7 @@ def test_origin_request_fail_querystring_validation(caplog):
             "level": "ERROR",
             "time": mock.ANY,
             "aws-request-id": None,
-            "message": "querystring exceeds length limits: %s" % ("o" * 2001),
+            "message": "querystring exceeds length limits: %s" % ("o" * 3001),
             "logger": "origin-request",
             "request": None,
             "response": None,
