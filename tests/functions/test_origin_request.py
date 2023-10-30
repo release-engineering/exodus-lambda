@@ -1,11 +1,9 @@
 import json
 import logging
-import urllib
-import urllib.parse
+from urllib.parse import unquote, urlencode
 
 import mock
 import pytest
-from botocore.exceptions import ClientError
 
 from exodus_lambda.functions.origin_request import OriginRequest
 
@@ -134,19 +132,17 @@ def test_origin_request(
 
     assert "Incoming request value for origin_request" in caplog.text
 
-    req_uri_decoded = urllib.parse.unquote(req_uri)
+    req_uri_decoded = unquote(req_uri)
 
     if req_uri_decoded.endswith("/listing"):
         assert "Handling listing request" in caplog.text
         assert "Generated listing request response" in caplog.text
         assert request["body"]
     else:
-        assert "Item found for URI: %s" % real_uri in caplog.text
+        assert f"Item found for URI: {real_uri}" in caplog.text
         assert request == {
             "uri": "/e4a3f2sum",
-            "querystring": urllib.parse.urlencode(
-                {"response-content-type": content_type}
-            ),
+            "querystring": urlencode({"response-content-type": content_type}),
             "headers": {
                 "exodus-original-uri": [
                     {"key": "exodus-original-uri", "value": req_uri_decoded}
@@ -251,7 +247,7 @@ def test_origin_request_fail_uri_validation(caplog):
             "level": "ERROR",
             "time": mock.ANY,
             "aws-request-id": None,
-            "message": "uri exceeds length limits: %s" % ("o" * 2001),
+            "message": f"uri exceeds length limits: {('o' * 2001)}",
             "logger": "origin-request",
             "request": None,
             "response": None,
@@ -289,7 +285,7 @@ def test_origin_request_fail_querystring_validation(caplog):
             "level": "ERROR",
             "time": mock.ANY,
             "aws-request-id": None,
-            "message": "querystring exceeds length limits: %s" % ("o" * 4001),
+            "message": f"querystring exceeds length limits: {('o' * 4001)}",
             "logger": "origin-request",
             "request": None,
             "response": None,
@@ -315,7 +311,7 @@ def test_origin_request_no_item(
         )
 
     assert request == {"status": "404", "statusDescription": "Not Found"}
-    assert "No item found for URI: %s" % TEST_PATH in caplog.text
+    assert f"No item found for URI: {TEST_PATH}" in caplog.text
 
 
 @mock.patch("boto3.client")
@@ -341,11 +337,7 @@ def test_origin_request_invalid_item(
         OriginRequest(conf_file=TEST_CONF).handler(event, context=None)
 
     assert (
-        "Exception occurred while processing item: %s"
-        % {
-            "web_uri": {"S": "/origin/rpms/repo/ver/dir/filename.ext"},
-            "from_date": {"S": "2020-02-17T00:00:00.000+00:00"},
-        }
+        f"Exception occurred while processing item: {mocked_boto3_client().query()['Items'][0]}"
         in caplog.text
     )
 
@@ -450,11 +442,11 @@ def test_origin_request_no_content_type(
             conf_file=TEST_CONF,
         ).handler(event, context=None)
 
-    assert "Item found for URI: %s" % real_uri in caplog.text
+    assert f"Item found for URI: {real_uri}" in caplog.text
 
     assert request == {
         "uri": "/e4a3f2sum",
-        "querystring": urllib.parse.urlencode(
+        "querystring": urlencode(
             {"response-content-type": "application/octet-stream"}
         ),
         "headers": {
@@ -474,7 +466,7 @@ def test_origin_request_listing_typical(mocked_cache, caplog):
     event = {"Records": [{"cf": {"request": {"uri": req_uri, "headers": {}}}}]}
     request = OriginRequest(conf_file=TEST_CONF).handler(event, context=None)
 
-    assert "Handling listing request: %s" % req_uri in caplog.text
+    assert f"Handling listing request: {req_uri}" in caplog.text
     # It should successfully generate appropriate listing response.
     assert request == {
         "body": "7.0\n7.1\n7.2\n7.3\n7.4\n7.5\n7.6\n7.7\n7.8\n7.9\n7Server\n",
@@ -504,11 +496,11 @@ def test_origin_request_listing_not_found(
     event = {"Records": [{"cf": {"request": {"uri": req_uri, "headers": {}}}}]}
     request = OriginRequest(conf_file=TEST_CONF).handler(event, context=None)
 
-    assert "Handling listing request: %s" % req_uri in caplog.text
+    assert f"Handling listing request: {req_uri}" in caplog.text
     # It should fail to generate listing.
     assert "No listing found for URI: /some/invalid/uri/listing" in caplog.text
     # It should fail to find file-object.
-    assert "No item found for URI: %s", req_uri in caplog.text
+    assert f"No item found for URI: {req_uri}" in caplog.text
     # It should return 404.
     assert request == {"status": "404", "statusDescription": "Not Found"}
 
@@ -528,11 +520,11 @@ def test_origin_request_listing_data_not_found(
     event = {"Records": [{"cf": {"request": {"uri": req_uri, "headers": {}}}}]}
     request = OriginRequest(conf_file=TEST_CONF).handler(event, context=None)
 
-    assert "Handling listing request: %s" % req_uri in caplog.text
+    assert f"Handling listing request: {req_uri}" in caplog.text
     # It should fail to find listing data.
     assert "No listing data defined" in caplog.text
     # It should fail to find file-object.
-    assert "No item found for URI: %s", req_uri in caplog.text
+    assert f"No item found for URI: {req_uri}" in caplog.text
     # It should return 404.
     assert request == {"status": "404", "statusDescription": "Not Found"}
 
@@ -567,101 +559,16 @@ def test_origin_request_absent_items(
             conf_file=TEST_CONF,
         ).handler(event, context=None)
 
-    assert "Item absent for URI: %s" % real_uri in caplog.text
+    assert f"Item absent for URI: {real_uri}" in caplog.text
 
     assert request == {"status": "404", "statusDescription": "Not Found"}
 
 
-@mock.patch("boto3.client")
 @mock.patch("exodus_lambda.functions.origin_request.datetime")
-def test_origin_request_cookie_uri(
-    mocked_datetime, mocked_boto3_client, dummy_private_key, caplog
-):
-    uri = "/_/cookie/origin/repo/ver/dir/filename.ext"
-    arn = "arn:aws:secretsmanager:example"
-
+def test_origin_request_cookie_uri(mocked_datetime, caplog):
     mocked_datetime.now().isoformat.return_value = MOCKED_DT
-    mocked_boto3_client().get_secret_value.return_value = {
-        "ARN": arn,
-        "Name": "example_secret",
-        "VersionId": "d6acfecc-9c2d-4141-97ad-70b4149424d2",
-        "SecretString": json.dumps({"cookie_key": dummy_private_key}),
-    }
 
-    event = {
-        "Records": [
-            {
-                "cf": {
-                    "request": {"uri": uri, "headers": {}},
-                    "config": {"distributionDomainName": "ex.cloudfront.net"},
-                }
-            }
-        ]
-    }
-
-    request = OriginRequest(conf_file=TEST_CONF).handler(event, context=None)
-
-    assert "Handling cookie request: %s" % uri in caplog.text
-    assert request["status"] == "302"
-    assert request["headers"]["cache-control"] == [{"value": "no-store"}]
-    assert request["headers"]["location"] == [
-        {"value": "/origin/repo/ver/dir/filename.ext"}
-    ]
-    assert request["headers"]["set-cookie"] == [
-        {
-            "value": "CloudFront-Key-Pair-Id=K1MOU91G3N7WPY; Secure; "
-            "HttpOnly; SameSite=lax; Domain=ex.cloudfront.net; "
-            "Path=/content/; Max-Age=43200"
-        },
-        {
-            "value": "CloudFront-Policy=eyJTdGF0ZW1lbnQiOlt7IlJlc291cmNlIjoiaH"
-            "R0cHM6Ly9leC5jbG91ZGZyb250Lm5ldC9jb250ZW50LyoiLCJDb25kaXRpb24iOns"
-            "iRGF0ZUxlc3NUaGFuIjp7IkFXUzpFcG9jaFRpbWUiOjF9fX1dfQ__; Secure; "
-            "HttpOnly; SameSite=lax; Domain=ex.cloudfront.net; "
-            "Path=/content/; Max-Age=43200"
-        },
-        {
-            "value": "CloudFront-Signature=G8t5tL4HD1KjlT-qvmw0JIXQESaij7N-Qd-"
-            "12DONOWocj9Vo6sFRR1Gxcm4VyxYD2WbsyYPr0DiwkEIVCevp7ET4lakVFrhhpz~l"
-            "SR616CqocVzRxOqMiHcoHkQKAhPLU3tbGs1XnSqcl6R6TB4Q1PPvRv2NUHm3T8ujK"
-            "1TmKAM_; Secure; HttpOnly; SameSite=lax; "
-            "Domain=ex.cloudfront.net; Path=/content/; Max-Age=43200"
-        },
-        {
-            "value": "CloudFront-Key-Pair-Id=K1MOU91G3N7WPY; Secure; "
-            "HttpOnly; SameSite=lax; Domain=ex.cloudfront.net; Path=/origin/; "
-            "Max-Age=43200"
-        },
-        {
-            "value": "CloudFront-Policy=eyJTdGF0ZW1lbnQiOlt7IlJlc291cmNlIjoiaH"
-            "R0cHM6Ly9leC5jbG91ZGZyb250Lm5ldC9vcmlnaW4vKiIsIkNvbmRpdGlvbiI6eyJ"
-            "EYXRlTGVzc1RoYW4iOnsiQVdTOkVwb2NoVGltZSI6MX19fV19; Secure; "
-            "HttpOnly; SameSite=lax; Domain=ex.cloudfront.net; Path=/origin/; "
-            "Max-Age=43200"
-        },
-        {
-            "value": "CloudFront-Signature=K2Dor2IYm9WViaawbNs-jfsdMuLebxp4LBz"
-            "LgnhX8qKZ~NTQYg-x9kIy0DzXCybKJ3bYUomwWJoXWVJxTUjghRBXjBgQtb7GYrk9"
-            "yRD6TXJ46uhE9~zSWQInCnwyIAQRgZCuS~BR41C8dPRP56DWSPs0kHWiVGOrP2JI6"
-            "YiP3rA_; Secure; HttpOnly; SameSite=lax; Domain=ex.cloudfront.net; "
-            "Path=/origin/; Max-Age=43200"
-        },
-    ]
-
-
-@mock.patch("boto3.client")
-def test_origin_request_cookie_uri_without_secret(mocked_boto3_client, caplog):
     uri = "/_/cookie/origin/repo/ver/dir/filename.ext"
-    arn = "arn:aws:secretsmanager:example"
-
-    mocked_boto3_client().get_secret_value.side_effect = ClientError(
-        error_response={
-            "Code": "ResourceNotFoundException",
-            "Message": "Requested resource not found",
-        },
-        operation_name="get_secret_value",
-    )
-
     event = {
         "Records": [
             {
@@ -669,21 +576,122 @@ def test_origin_request_cookie_uri_without_secret(mocked_boto3_client, caplog):
                     "request": {
                         "uri": uri,
                         "headers": {},
+                        "querystring": (
+                            "Expires=1644971400&"
+                            "Signature=DxQExeKUk0OJ~qafWOIow1OM8Nil9x4JBjpgtODY1AoIuH-FcW4nt~AcAQmJ1WHRqYIuC79INWk9RTyOokj-Ao6e6i5r6AcPKvhTTyOgRkg9Ywfzf~fUdBENi3k9q4sWgbvND5kiZRZwj3DBc4s0bX82rYYuuSGnjNyjshYhlVU_&"
+                            "CloudFront-Cookies=WyJDbG91ZEZyb250LUtleS1QYWlyLUlkPVhYWFhYWFhYWFhYWFhYOyBTZWN1cmU7IEh0dHBPbmx5OyBTYW1lU2l0ZT1sYXg7IERvbWFpbj1sb2NhbGhvc3Q6ODA0OTsgUGF0aD0vY29udGVudC87IE1heC1BZ2U9NDMyMDAiLCAiQ2xvdWRGcm9udC1Qb2xpY3k9ZXlKVGRHRjBaVzFsYm5RaU9sdDdJbEpsYzI5MWNtTmxJam9pYUhSMGNEb3ZMMnh2WTJGc2FHOXpkRG80TURRNUwyTnZiblJsYm5RdktpSXNJa052Ym1ScGRHbHZiaUk2ZXlKRVlYUmxUR1Z6YzFSb1lXNGlPbnNpUVZkVE9rVndiMk5vVkdsdFpTSTZNVFkwTlRBeE1qZ3dNSDE5ZlYxOTsgU2VjdXJlOyBIdHRwT25seTsgU2FtZVNpdGU9bGF4OyBEb21haW49bG9jYWxob3N0OjgwNDk7IFBhdGg9L2NvbnRlbnQvOyBNYXgtQWdlPTQzMjAwIiwgIkNsb3VkRnJvbnQtU2lnbmF0dXJlPU5XUGZnb3REdTJEa0g0ZjRkNjhlVWtMTk5hVmZKR2hpenp4UlJleGI1NVh0Y0o3Qzk2cEF4ekd3cX56UWJoNndyMHhhMlh4Zll3UjV5dEs1MmJXQ3JCTGJWVHI5WWd0M2Z3Z3FDZTl1cWl1dnJoU3V-WDd3Z0VPbkVvT053Sng2WGw1VkFERU4yYXBVblBMQ1hJVEQybXYtNnJDaFhmemdaMXg0UER5OGo4MF87IFNlY3VyZTsgSHR0cE9ubHk7IFNhbWVTaXRlPWxheDsgRG9tYWluPWxvY2FsaG9zdDo4MDQ5OyBQYXRoPS9jb250ZW50LzsgTWF4LUFnZT00MzIwMCIsICJDbG91ZEZyb250LUtleS1QYWlyLUlkPVhYWFhYWFhYWFhYWFhYOyBTZWN1cmU7IEh0dHBPbmx5OyBTYW1lU2l0ZT1sYXg7IERvbWFpbj1sb2NhbGhvc3Q6ODA0OTsgUGF0aD0vb3JpZ2luLzsgTWF4LUFnZT00MzIwMCIsICJDbG91ZEZyb250LVBvbGljeT1leUpUZEdGMFpXMWxiblFpT2x0N0lsSmxjMjkxY21ObElqb2lhSFIwY0RvdkwyeHZZMkZzYUc5emREbzRNRFE1TDI5eWFXZHBiaThxSWl3aVEyOXVaR2wwYVc5dUlqcDdJa1JoZEdWTVpYTnpWR2hoYmlJNmV5SkJWMU02UlhCdlkyaFVhVzFsSWpveE5qUTFNREV5T0RBd2ZYMTlYWDBfOyBTZWN1cmU7IEh0dHBPbmx5OyBTYW1lU2l0ZT1sYXg7IERvbWFpbj1sb2NhbGhvc3Q6ODA0OTsgUGF0aD0vb3JpZ2luLzsgTWF4LUFnZT00MzIwMCIsICJDbG91ZEZyb250LVNpZ25hdHVyZT1NaW8za2w5enpCZXE2WUtjREY0aFdHNGlIRFhnLWRwSnV-VmtkWklYZVhPM0lsZzE3OTZUWlFBZGpLLWN6Tm5aQzBUNWVmVzNEbGlKQWVMSmhYd351MVZoTkpSQ0lvUTZmTGJDVnV4MVRHMzAtUC1FVzR-a1JmU2dlWjV2RVcydTBNWXpsQ0pNZndZSUoxQ1ZlejlMdTJ3a2NIMjFQTkNjc2liS25tTmZjbk1fOyBTZWN1cmU7IEh0dHBPbmx5OyBTYW1lU2l0ZT1sYXg7IERvbWFpbj1sb2NhbGhvc3Q6ODA0OTsgUGF0aD0vb3JpZ2luLzsgTWF4LUFnZT00MzIwMCJd&"
+                            "Key-Pair-Id=XXXXXXXXXXXXXX"
+                        ),
                     },
                     "config": {
-                        "distributionDomainName": "d149itc2w5r6.cloudfront.net"
+                        "distributionDomainName": "http://localhost:8049"
                     },
                 }
             }
         ]
     }
 
-    with pytest.raises(ClientError):
-        OriginRequest(conf_file=TEST_CONF).handler(event, context=None)
+    request = OriginRequest(conf_file=TEST_CONF).handler(event, context=None)
 
-    assert "Handling cookie request: %s" % uri in caplog.text
-    assert "Couldn't load secret %s" % arn in caplog.text
-    assert "botocore.exceptions.ClientError: An error occurred" in caplog.text
+    assert f"Handling cookie request: {uri}" in caplog.text
+    assert request["status"] == "302"
+    assert request["headers"]["cache-control"] == [{"value": "no-store"}]
+    assert request["headers"]["location"] == [
+        {"value": "/origin/repo/ver/dir/filename.ext"}
+    ]
+    assert request["headers"]["set-cookie"] == [
+        {
+            "value": "CloudFront-Key-Pair-Id=XXXXXXXXXXXXXX; Secure; "
+            "HttpOnly; SameSite=lax; Domain=localhost:8049; Path=/content/; "
+            "Max-Age=43200"
+        },
+        {
+            "value": "CloudFront-Policy=eyJTdGF0ZW1lbnQiOlt7IlJlc291cmNlIjoiaH"
+            "R0cDovL2xvY2FsaG9zdDo4MDQ5L2NvbnRlbnQvKiIsIkNvbmRpdGlvbiI6eyJEYXR"
+            "lTGVzc1RoYW4iOnsiQVdTOkVwb2NoVGltZSI6MTY0NTAxMjgwMH19fV19; "
+            "Secure; HttpOnly; SameSite=lax; Domain=localhost:8049; "
+            "Path=/content/; Max-Age=43200"
+        },
+        {
+            "value": "CloudFront-Signature=NWPfgotDu2DkH4f4d68eUkLNNaVfJGhizzx"
+            "RRexb55XtcJ7C96pAxzGwq~zQbh6wr0xa2XxfYwR5ytK52bWCrBLbVTr9Ygt3fwgq"
+            "Ce9uqiuvrhSu~X7wgEOnEoONwJx6Xl5VADEN2apUnPLCXITD2mv-6rChXfzgZ1x4P"
+            "Dy8j80_; Secure; HttpOnly; SameSite=lax; Domain=localhost:8049; "
+            "Path=/content/; Max-Age=43200"
+        },
+        {
+            "value": "CloudFront-Key-Pair-Id=XXXXXXXXXXXXXX; Secure; "
+            "HttpOnly; SameSite=lax; Domain=localhost:8049; Path=/origin/; "
+            "Max-Age=43200"
+        },
+        {
+            "value": "CloudFront-Policy=eyJTdGF0ZW1lbnQiOlt7IlJlc291cmNlIjoiaH"
+            "R0cDovL2xvY2FsaG9zdDo4MDQ5L29yaWdpbi8qIiwiQ29uZGl0aW9uIjp7IkRhdGV"
+            "MZXNzVGhhbiI6eyJBV1M6RXBvY2hUaW1lIjoxNjQ1MDEyODAwfX19XX0_; "
+            "Secure; HttpOnly; SameSite=lax; Domain=localhost:8049; "
+            "Path=/origin/; Max-Age=43200"
+        },
+        {
+            "value": "CloudFront-Signature=Mio3kl9zzBeq6YKcDF4hWG4iHDXg-dpJu~V"
+            "kdZIXeXO3Ilg1796TZQAdjK-czNnZC0T5efW3DliJAeLJhXw~u1VhNJRCIoQ6fLbC"
+            "Vux1TG30-P-EW4~kRfSgeZ5vEW2u0MYzlCJMfwYIJ1CVez9Lu2wkcH21PNCcsibKn"
+            "mNfcnM_; Secure; HttpOnly; SameSite=lax; Domain=localhost:8049; "
+            "Path=/origin/; Max-Age=43200"
+        },
+    ]
+
+
+@pytest.mark.parametrize(
+    "cookie_param,error",
+    [
+        ("", "KeyError"),
+        ("CloudFront-Cookies=WyJDbG91ZEZyb250LUtleSs&", "binascii.Error"),
+        (
+            "CloudFront-Cookies=eyJ0ZXN0aW5nIjogWzEsMiwzXQ==&",
+            "JSONDecodeError",
+        ),
+        (
+            "CloudFront-Cookies=IkNsb3VkRnJvbnQtS2V5LVBhaXItSWQ9WFhYWFhYWFhYWFhYWFg7IFNlY3VyZTsgSHR0cE9ubHk7IFNhbWXaXRnWxheAaG9zdDo4MDQ5OyBQYXRoPS9jb250ZW50LzsgTWF4LUFnZT00MzIwMCI=&",
+            "UnicodeDecodeError",
+        ),
+    ],
+    ids=["absent", "binascii", "json", "unicode"],
+)
+@mock.patch("exodus_lambda.functions.origin_request.datetime")
+def test_origin_request_invalid_cookie(
+    mocked_datetime, cookie_param, error, caplog
+):
+    caplog.set_level(logging.DEBUG, "exodus-lambda")
+    mocked_datetime.now().isoformat.return_value = MOCKED_DT
+
+    uri = "/_/cookie/origin/repo/ver/dir/filename.ext"
+    event = {
+        "Records": [
+            {
+                "cf": {
+                    "request": {
+                        "uri": uri,
+                        "headers": {},
+                        "querystring": (
+                            f"{cookie_param}"
+                            "Expires=1644971400&"
+                            "Signature=DxQExeKUk0OJ~qafWOIow1OM8Nil9x4JBjpgtODY1AoIuH-FcW4nt~AcAQmJ1WHRqYIuC79INWk9RTyOokj-Ao6e6i5r6AcPKvhTTyOgRkg9Ywfzf~fUdBENi3k9q4sWgbvND5kiZRZwj3DBc4s0bX82rYYuuSGnjNyjshYhlVU_&"
+                            "Key-Pair-Id=XXXXXXXXXXXXXX"
+                        ),
+                    },
+                    "config": {
+                        "distributionDomainName": "http://localhost:8049"
+                    },
+                }
+            }
+        ]
+    }
+
+    request = OriginRequest(conf_file=TEST_CONF).handler(event, context=None)
+
+    assert request == {"status": "400", "statusDescription": "Bad Request"}
+    assert "Unable to load cookies from redirect request" in caplog.text
+    assert error in caplog.text
 
 
 @mock.patch("boto3.client")
@@ -816,7 +824,7 @@ def test_origin_request_autoindex(
             conf_file=TEST_CONF,
         ).handler(event, context=None)
 
-    assert "Item found for URI: %s" % index_uri in caplog.text
+    assert f"Item found for URI: {index_uri}" in caplog.text
 
     if expected_redirect:
         # We found an index but we're expecting a redirect to another URI.
@@ -828,7 +836,7 @@ def test_origin_request_autoindex(
         # We found an index and we're serving it normally.
         expected_response = {
             "uri": "/e4a3f2b1sum",
-            "querystring": urllib.parse.urlencode(
+            "querystring": urlencode(
                 {"response-content-type": "application/octet-stream"}
             ),
             "headers": {

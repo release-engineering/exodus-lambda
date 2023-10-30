@@ -1,17 +1,16 @@
+import binascii
 import functools
 import json
 import os
 import time
-import urllib
-import urllib.parse
+from base64 import b64decode
 from datetime import datetime, timedelta, timezone
+from urllib.parse import parse_qs, unquote, urlencode
 
-import boto3
 import cachetools
 
 from .base import LambdaBase
 from .db import QueryHelper
-from .signer import Signer
 
 CONF_FILE = os.environ.get("EXODUS_LAMBDA_CONF_FILE") or "lambda_config.json"
 
@@ -20,6 +19,12 @@ CONF_FILE = os.environ.get("EXODUS_LAMBDA_CONF_FILE") or "lambda_config.json"
 # You might want to try e.g. "https://localhost:3377" if you want to test
 # this code against localstack.
 ENDPOINT_URL = os.environ.get("EXODUS_AWS_ENDPOINT_URL") or None
+
+
+def cf_b64decode(data):
+    return b64decode(
+        data.replace("-", "+").replace("_", "=").replace("~", "/")
+    )
 
 
 class OriginRequest(LambdaBase):
@@ -35,17 +40,6 @@ class OriginRequest(LambdaBase):
         )
         self._db = QueryHelper(self.conf, ENDPOINT_URL)
         self.handler = self.__wrap_version_check(self.handler)
-
-    @property
-    def sm_client(self):
-        if not self._sm_client:
-            self._sm_client = boto3.client(
-                "secretsmanager",
-                region_name=self.conf.get("secret_region") or "us-east-1",
-                endpoint_url=ENDPOINT_URL,
-            )
-
-        return self._sm_client
 
     @property
     def definitions(self):
@@ -84,45 +78,6 @@ class OriginRequest(LambdaBase):
             self._cache["exodus-config"] = out
 
         return out
-
-    @property
-    def secret(self):
-        out = self._cache.get("secret")
-        if out is None:
-            try:
-                arn = self.conf["secret_arn"]
-                self.logger.debug("Attempting to get secret from ARN: %s", arn)
-
-                response = self.sm_client.get_secret_value(SecretId=arn)
-                # get_secret_value response syntax:
-                #  {
-                #    "ARN": "string",
-                #    "Name": "string",
-                #    "VersionId": "string",
-                #    "SecretBinary": b"bytes",
-                #    "SecretString": "string",
-                #    "VersionStages": [
-                #        "string",
-                #    ],
-                #    "CreatedDate": datetime(2015, 1, 1)
-                #  }
-                #
-                # We're interested in SecretString and expect it to be a JSON string
-                # containing cookie_key.
-                out = json.loads(response["SecretString"])
-                self._cache["secret"] = out
-                self.logger.debug("Loaded and cached secret from ARN: %s", arn)
-            except Exception as exc_info:
-                self.logger.error(
-                    "Couldn't load secret %s", arn, exc_info=exc_info
-                )
-                raise exc_info
-
-        return out
-
-    @property
-    def cookie_key(self):
-        return self.secret["cookie_key"]
 
     def uri_alias(self, uri, aliases):
         # Resolve every alias between paths within the uri (e.g.
@@ -171,27 +126,28 @@ class OriginRequest(LambdaBase):
         return uri
 
     def handle_cookie_request(self, event):
-        now = datetime.utcnow()
-        ttl = timedelta(minutes=self.conf.get("cookie_ttl", 720))
-        domain = event["Records"][0]["cf"]["config"]["distributionDomainName"]
-        uri = event["Records"][0]["cf"]["request"]["uri"]
+        request = event["Records"][0]["cf"]["request"]
+        uri = request["uri"]
+        params = {k: v[0] for k, v in parse_qs(request["querystring"]).items()}
+
+        try:
+            set_cookies = json.loads(
+                cf_b64decode(params["CloudFront-Cookies"])
+            )
+        except (
+            KeyError,
+            binascii.Error,
+            json.JSONDecodeError,
+            UnicodeDecodeError,
+        ) as exc:
+            self.logger.debug(
+                "Unable to load cookies from redirect request: %s",
+                request,
+                exc_info=exc,
+            )
+            return {"status": "400", "statusDescription": "Bad Request"}
 
         self.logger.info("Handling cookie request: %s", uri)
-
-        signer = Signer(self.cookie_key, self.conf.get("key_id"))
-
-        cookies_content = signer.cookies_for_policy(
-            append="; Secure; HttpOnly; SameSite=lax; Domain=%s; Path=/content/; Max-Age=%s"
-            % (domain, int(ttl.total_seconds())),
-            resource="https://%s/content/*" % domain,
-            date_less_than=now + ttl,
-        )
-        cookies_origin = signer.cookies_for_policy(
-            append="; Secure; HttpOnly; SameSite=lax; Domain=%s; Path=/origin/; Max-Age=%s"
-            % (domain, int(ttl.total_seconds())),
-            resource="https://%s/origin/*" % domain,
-            date_less_than=now + ttl,
-        )
 
         response = {
             "status": "302",
@@ -202,9 +158,7 @@ class OriginRequest(LambdaBase):
                 "cache-control": [
                     {"value": "no-store"},
                 ],
-                "set-cookie": [
-                    {"value": x} for x in (cookies_content + cookies_origin)
-                ],
+                "set-cookie": [{"value": x} for x in set_cookies],
             },
         }
         self.logger.debug(
@@ -306,7 +260,7 @@ class OriginRequest(LambdaBase):
                 # return "application/octet-stream" when content_type is empty
                 content_type = "application/octet-stream"
 
-            request["querystring"] = urllib.parse.urlencode(
+            request["querystring"] = urlencode(
                 {"response-content-type": content_type}
             )
 
@@ -355,7 +309,7 @@ class OriginRequest(LambdaBase):
             extra={"request": request},
         )
 
-        request["uri"] = urllib.parse.unquote(request["uri"])
+        request["uri"] = unquote(request["uri"])
 
         if request["uri"].startswith("/_/cookie/"):
             return self.handle_cookie_request(event)
