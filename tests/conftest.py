@@ -76,6 +76,8 @@ def mock_conf_file():
     test_env["PROJECT"] = "test"
     test_env["ENV_TYPE"] = "dev"
     test_env["EXODUS_CONFIG_CACHE_TTL"] = "2"
+    test_env["EXODUS_CONNECT_TIMEOUT"] = "4"
+    test_env["EXODUS_READ_TIMEOUT"] = "4"
     test_env["EXODUS_COOKIE_TTL"] = "720"
     test_env["EXODUS_HEADERS_MAX_AGE"] = "600"
     test_env["EXODUS_SECRET_ARN"] = "arn:aws:secretsmanager:example"

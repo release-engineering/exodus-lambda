@@ -13,15 +13,32 @@ properties:
   table:
     description: DynamoDB table used for content
     $ref: '#/definitions/table'
+
   config_table:
     description: DynamoDB table used for config
     $ref: '#/definitions/table'
+
   config_cache_ttl:
     type: integer
     description: >-
       How long, in minutes, to cache config loaded from the config_table
     maximum: 10000
     minimum: 0
+
+  connect_timeout:
+    type: integer
+    description: >-
+      The time, in seconds, before timeout when attempting to make a connection
+    maximum: 10000
+    minimum: 0
+
+  read_timeout:
+    type: integer
+    description: >-
+      The time, in seconds, before timeout when attempting to read from a connection
+    maximum: 10000
+    minimum: 0
+
   cookie_ttl:
     type: integer
     description: >-
@@ -93,6 +110,8 @@ required:
 - table
 - config_table
 - config_cache_ttl
+- connect_timeout
+- read_timeout
 - headers
 - lambda_version
 - index_filename

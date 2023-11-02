@@ -12,6 +12,8 @@
     ]
   },
   "config_cache_ttl": $EXODUS_CONFIG_CACHE_TTL,
+  "connect_timeout": $EXODUS_CONNECT_TIMEOUT,
+  "read_timeout": $EXODUS_READ_TIMEOUT,
   "cookie_ttl": $EXODUS_COOKIE_TTL,
   "headers": {
     "max_age": $EXODUS_HEADERS_MAX_AGE
