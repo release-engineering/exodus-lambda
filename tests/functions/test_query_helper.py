@@ -6,9 +6,9 @@ from exodus_lambda.functions.db import QueryHelper
 class DynamoDbBrokenClient:
     # A DynamoDb client for which all queries fail.
 
-    def __init__(self, service, region_name, *args, **kwargs):
+    def __init__(self, service, *args, **kwargs):
         assert service == "dynamodb"
-        self._region = region_name
+        self._region = kwargs["config"].region_name
 
     def query(self, *args, **kwargs):
         raise RuntimeError(f"error from {self._region}")

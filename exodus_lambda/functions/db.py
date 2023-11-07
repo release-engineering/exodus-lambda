@@ -2,6 +2,7 @@ import logging
 from typing import Any, Optional
 
 import boto3
+import botocore
 
 LOG = logging.getLogger("exodus_lambda")
 
@@ -15,12 +16,17 @@ class QueryHelper:
         self._clients: dict[str, Any] = {}
 
     def _client(self, region: str):
-        # Return lazy-constructed client for particular region
+        # Return client for particular region
         if region not in self._clients:
+            boto_config = botocore.config.Config(
+                region_name=region,
+                connect_timeout=self._conf.get("connect_timeout"),
+                read_timeout=self._conf.get("read_timeout"),
+            )
             self._clients[region] = boto3.client(
                 "dynamodb",
-                region_name=region,
                 endpoint_url=self._endpoint_url,
+                config=boto_config,
             )
 
         return self._clients[region]
