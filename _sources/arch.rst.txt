@@ -72,11 +72,6 @@ S3
     Each object's key is its own SHA256 checksum, ensuring that content
     accessible via many paths on the CDN need only be stored once.
 
-    S3 metadata is used in some cases to customize the response behavior of
-    each object; for example, metadata is used to adjust ``Content-Type``
-    headers in responses. Publishing tools are responsible for setting this
-    metadata accurately.
-
     For more information about the data contained here, see :ref:`schema_ref`.
 
 exodus-lambda

@@ -283,10 +283,6 @@ this includes files considered to be content (such as RPMs) and files
 considered to be metadata (such as yum repo metadata files).</p>
 <p>Each object’s key is its own SHA256 checksum, ensuring that content
 accessible via many paths on the CDN need only be stored once.</p>
-<p>S3 metadata is used in some cases to customize the response behavior of
-each object; for example, metadata is used to adjust <code class="docutils literal notranslate"><span class="pre">Content-Type</span></code>
-headers in responses. Publishing tools are responsible for setting this
-metadata accurately.</p>
 <p>For more information about the data contained here, see <a class="reference internal" href="schema-reference.html#schema-ref"><span class="std std-ref">Schema Reference</span></a>.</p>
 </dd>
 <dt>exodus-lambda</dt><dd><p>A project including Python-based implementations of <a class="reference external" href="https://aws.amazon.com/lambda/edge/">Lambda&#64;Edge</a>
