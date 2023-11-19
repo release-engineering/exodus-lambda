@@ -14,13 +14,9 @@
   "config_cache_ttl": $EXODUS_CONFIG_CACHE_TTL,
   "connect_timeout": $EXODUS_CONNECT_TIMEOUT,
   "read_timeout": $EXODUS_READ_TIMEOUT,
-  "cookie_ttl": $EXODUS_COOKIE_TTL,
   "headers": {
     "max_age": $EXODUS_HEADERS_MAX_AGE
   },
-  "secret_arn": "$EXODUS_SECRET_ARN",
-  "secret_region": "us-east-1",
-  "key_id": "$EXODUS_KEY_ID",
   "lambda_version": "$EXODUS_LAMBDA_VERSION",
   "index_filename": "$EXODUS_INDEX_FILENAME",
   "logging": {
