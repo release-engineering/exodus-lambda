@@ -781,6 +781,15 @@ def test_origin_request_directly_request_autoindex_uri(
             "/content/dist/rhel/repo/x86_64/Packages/.__exodus_autoindex",
             "/content/dist/rhel/repo/x86_64/Packages/",
         ),
+        (
+            # Case where an alias is involved.
+            # The user requests a path on the src side of a /rhui/ alias:
+            "/content/dist/rhel8/rhui/repo/x86_64/Packages",
+            # The actual index object is stored on the dest side:
+            "/content/dist/rhel8/repo/x86_64/Packages/.__exodus_autoindex",
+            # The redirect works but retains the src side:
+            "/content/dist/rhel8/rhui/repo/x86_64/Packages/",
+        ),
     ],
 )
 @mock.patch("boto3.client")

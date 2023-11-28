@@ -310,6 +310,7 @@ class OriginRequest(LambdaBase):
         )
 
         request["uri"] = unquote(request["uri"])
+        original_uri = request["uri"]
 
         if request["uri"].startswith("/_/cookie/"):
             return self.handle_cookie_request(event)
@@ -354,7 +355,7 @@ class OriginRequest(LambdaBase):
                             "status": "302",
                             "headers": {
                                 "location": [
-                                    {"value": uri + "/"},
+                                    {"value": original_uri + "/"},
                                 ],
                             },
                         }
