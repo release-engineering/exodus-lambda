@@ -12,13 +12,13 @@ bandit==1.7.6 \
     --hash=sha256:36da17c67fc87579a5d20c323c8d0b1643a890a2b93f00b3d1229966624694ff \
     --hash=sha256:72ce7bc9741374d96fb2f1c9a8960829885f1243ffde743de70a19cee353e8f3
     # via -r test-requirements.in
-boto3==1.34.7 \
-    --hash=sha256:04c1cc752946f20513ed70058d4b750b3591c82bb59cbbe26157dbe125e687cc \
-    --hash=sha256:76b62ca46a4632117b4cd31ae56164492e41afb9fec41973688293c536580561
+boto3==1.34.11 \
+    --hash=sha256:1af021e0c6e3040e8de66d403e963566476235bb70f9a8e3f6784813ac2d8026 \
+    --hash=sha256:31c130a40ec0631059b77d7e87f67ad03ff1685a5b37638ac0c4687026a3259d
     # via -r requirements.in
-botocore==1.34.7 \
-    --hash=sha256:85164e924965c850fb02b1edcbef03f61413aff5f0064e660992b8b76c996d0c \
-    --hash=sha256:b145a52b7d1fd4e072bcd692369d4cb77f971651bb0dc2bf38e2b4f9d62973e6
+botocore==1.34.11 \
+    --hash=sha256:1ff1398b6ea670e1c01ac67a33af3da854f8e700d3528289c04f319c330d8250 \
+    --hash=sha256:51905c3d623c60df5dc5794387de7caf886d350180a01a3dfa762e903edb45a9
     # via
     #   -r requirements.in
     #   boto3
@@ -453,9 +453,9 @@ pyparsing==3.1.1 \
     --hash=sha256:32c7c0b711493c72ff18a981d24f28aaf9c1fb7ed5e9667c9e84e3db623bdbfb \
     --hash=sha256:ede28a1a32462f5a9705e07aea48001a08f7cf81a021585011deba701581a0db
     # via packaging
-pytest==7.4.3 \
-    --hash=sha256:0d009c083ea859a71b76adf7c1d502e4bc170b80a8ef002da5806527b9591fac \
-    --hash=sha256:d989d136982de4e3b29dabcc838ad581c64e8ed52c11fbe86ddebd9da0818cd5
+pytest==7.4.4 \
+    --hash=sha256:2cf0005922c6ace4a3e2ec8b4080eb0d9753fdc93107415332f50ce9e7994280 \
+    --hash=sha256:b090cdf5ed60bf4c45261be03239c2c1c22df034fbffe691abe93cd80cea01d8
     # via
     #   -r test-requirements.in
     #   pytest-cov
