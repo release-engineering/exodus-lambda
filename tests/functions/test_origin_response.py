@@ -178,3 +178,52 @@ def test_origin_response_logger(caplog):
             }
         },
     }
+
+
+def test_origin_response_strips_headers():
+    event = {
+        "Records": [
+            {
+                "cf": {
+                    "request": {
+                        "uri": "/be7f3007df3e51fb48fff57da9c01c52e6b8e60eceacab"
+                        "7aaf0e05b57578493a",
+                        "headers": {
+                            "exodus-original-uri": [
+                                {
+                                    "key": "exodus-original-uri",
+                                    "value": "/whatever",
+                                }
+                            ]
+                        },
+                    },
+                    "response": {
+                        "headers": {
+                            "abc-header1": [{"key": "k1", "value": "v1"}],
+                            "abc-header2": [{"key": "k2", "value": "v2"}],
+                            "def-header1": [{"key": "k3", "value": "v3"}],
+                            "def-header2": [{"key": "k4", "value": "v4"}],
+                            "xyz-header1": [{"key": "k5", "value": "v5"}],
+                            "xyz-header2": [{"key": "k6", "value": "v6"}],
+                            "other": [{"key": "k7", "value": "v7"}],
+                        }
+                    },
+                }
+            }
+        ]
+    }
+
+    # Set up our own config to strip certain headers only.
+    conf = TEST_CONF.copy()
+    conf["strip_headers"] = [
+        "abc-",
+        "def-header",
+        "xyz-header1",
+    ]
+
+    response = OriginResponse(conf_file=conf).handler(event, context=None)
+    assert response["headers"] == {
+        # It should strip most of what was there, leaving only these
+        "xyz-header2": [{"key": "k6", "value": "v6"}],
+        "other": [{"key": "k7", "value": "v7"}],
+    }
