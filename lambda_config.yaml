@@ -53,6 +53,17 @@ properties:
     required:
     - max_age
 
+  strip_headers:
+    type: array
+    description: >-
+      List of header prefixes to strip from responses.
+      Any headers starting with any of these strings will be removed from
+      S3 responses in the origin_response lambda.
+    items:
+      type: string
+      maxLength: 100
+      minLength: 1
+
   index_filename:
     type: string
     description: >-
