@@ -8,6 +8,7 @@ should be set in the EXODUS_AWS_ENDPOINT_URL environment variable.
 While it's likely possible to run this against real AWS services also,
 your S3 bucket would have to be unsecured, which is not recommended.
 """
+
 from .config import ensure_config
 
 
