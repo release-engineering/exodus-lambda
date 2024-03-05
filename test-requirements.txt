@@ -15,17 +15,17 @@ authlib==1.3.0 \
 bandit==1.7.7 \
     --hash=sha256:17e60786a7ea3c9ec84569fd5aee09936d116cb0cb43151023258340dbffb7ed
     # via -r test-requirements.in
-boto3==1.34.49 \
-    --hash=sha256:ce8d1de03024f52a1810e8d71ad4dba3a5b9bb48b35567191500e3432a9130b4
+boto3==1.34.54 \
+    --hash=sha256:f201b6a416f809283d554c652211eecec9fe3a52ed4063dab3f3e7aea7571d9c
     # via -r requirements.in
-botocore==1.34.49 \
-    --hash=sha256:4ed9d7603a04b5bb5bd5de63b513bc2c8a7e8b1cd0088229c5ceb461161f43b6
+botocore==1.34.54 \
+    --hash=sha256:bf215d93e9d5544c593962780d194e74c6ee40b883d0b885e62ef35fc0ec01e5
     # via
     #   -r requirements.in
     #   boto3
     #   s3transfer
-cachetools==5.3.2 \
-    --hash=sha256:861f35a13a451f94e301ce2bec7cac63e881232ccce7ed67fab9b5df4d3beaa1
+cachetools==5.3.3 \
+    --hash=sha256:0abad1021d3f8325b2fc1d2e9c8b9c9d57b04c3932657a72465447332c24d945
     # via -r requirements.in
 cdn-definitions==3.1.0 \
     --hash=sha256:e38d54af8a38e832432273ef436a2e9ac824a9aea50179d6c1d3dc0a5215a7c5
@@ -412,8 +412,8 @@ markupsafe==2.1.5 \
     --hash=sha256:fce659a462a1be54d2ffcacea5e3ba2d74daa74f30f5f143fe0c58636e355fdd \
     --hash=sha256:ffee1f21e5ef0d712f9033568f8344d5da8cc2869dbd08d87c84656e6a2d2f68
     # via jinja2
-marshmallow==3.20.2 \
-    --hash=sha256:c21d4b98fee747c130e6bc8f45c4b3199ea66bc00c12ee1f639f0aeca034d5e9
+marshmallow==3.21.0 \
+    --hash=sha256:e7997f83571c7fd476042c2c188e4ee8a78900ca5e74bd9c8097afa56624e9bd
     # via safety
 mccabe==0.7.0 \
     --hash=sha256:6c2d30ab6be0e4a46919781807b4f0d834ebdd6c6e3dca0bda5a15f863427b6e
@@ -532,8 +532,8 @@ pytest==8.0.2 \
 pytest-cov==4.1.0 \
     --hash=sha256:6ba70b9e97e69fcc3fb45bfeab2d0a138fb65c4d0d6a41ef33983ad114be8c3a
     # via -r test-requirements.in
-python-dateutil==2.8.2 \
-    --hash=sha256:961d03dc3453ebbc59dbdea9e4e11c5651520a876d0f4db161e8674aae935da9
+python-dateutil==2.9.0.post0 \
+    --hash=sha256:a8b2bc7bffae282281c8140a97d3aa9c14da0b136dfe83f850eea9a5f7470427
     # via
     #   botocore
     #   freezegun
@@ -598,8 +598,8 @@ requests==2.31.0 \
     #   -r requirements.in
     #   cdn-definitions
     #   safety
-rich==13.7.0 \
-    --hash=sha256:6da14c108c4866ee9520bbffa71f6fe3962e193b7da68720583850cd4548e235
+rich==13.7.1 \
+    --hash=sha256:4edbae314f59eb482f54e9e30bf00d33350aaa94f4bfcd4e9e3110e64d0d7222
     # via
     #   bandit
     #   safety
@@ -674,14 +674,14 @@ six==1.16.0 \
 stevedore==5.2.0 \
     --hash=sha256:1c15d95766ca0569cad14cb6272d4d31dae66b011a929d7c18219c176ea1b5c9
     # via bandit
-tomlkit==0.12.3 \
-    --hash=sha256:b0a645a9156dc7cb5d3a1f0d4bab66db287fcb8e0430bdd4664a095ea16414ba
+tomlkit==0.12.4 \
+    --hash=sha256:5cd82d48a3dd89dee1f9d64420aa20ae65cfbd00668d6f094d7578a78efbb77b
     # via pylint
 typer==0.9.0 \
     --hash=sha256:5d96d986a21493606a358cae4461bd8cdf83cbf33a5aa950ae629ca3b51467ee
     # via safety
-typing-extensions==4.9.0 \
-    --hash=sha256:af72aea155e91adfc61c3ae9e0e342dbc0cba726d6cba4b6c72c1f34e47291cd
+typing-extensions==4.10.0 \
+    --hash=sha256:69b1a937c3a517342112fb4c6df7e72fc39a38e7891a5730ed4985b5214b5475
     # via
     #   mypy
     #   pydantic
