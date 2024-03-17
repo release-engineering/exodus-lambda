@@ -6,11 +6,11 @@
 #
 --only-binary :all:
 
-boto3==1.34.59 \
-    --hash=sha256:004e67b078be58d34469406f93cc8b95bc43becef4bbe44523a0b8e51f84c668
+boto3==1.34.64 \
+    --hash=sha256:8c6fbd3d45399a4e4685010117fb2dc52fc6afdab5a9460957d463ae0c2cc55d
     # via -r requirements.in
-botocore==1.34.59 \
-    --hash=sha256:4bc112dafb1679ab571117593f7656604726a3da0e5ae5bad00ea772fa40e75c
+botocore==1.34.64 \
+    --hash=sha256:0ab760908749fe82325698591c49755a5bb20307d85a419aca9cc74e783b9407
     # via
     #   -r requirements.in
     #   boto3
@@ -318,14 +318,14 @@ requests==2.31.0 \
     # via
     #   -r requirements.in
     #   cdn-definitions
-s3transfer==0.10.0 \
-    --hash=sha256:3cdb40f5cfa6966e812209d0994f2a4709b561c88e90cf00c2696d2df4e56b2e
+s3transfer==0.10.1 \
+    --hash=sha256:ceb252b11bcf87080fb7850a224fb6e05c8a776bab8f2b64b7f25b969464839d
     # via boto3
 six==1.16.0 \
     --hash=sha256:8abb2f1d86890a2dfb989f9a77cfcfd3e47c2a354b01111771326f8aa26e0254
     # via python-dateutil
-urllib3==2.0.7 \
-    --hash=sha256:fdb6d215c776278489906c2f8916e6e7d4f5a9b602ccbcfdf7f016fc8da0596e
+urllib3==2.2.1 \
+    --hash=sha256:450b20ec296a467077128bff42b73080516e71b56ff59a60a02bef2232c4fa9d
     # via
     #   botocore
     #   requests
