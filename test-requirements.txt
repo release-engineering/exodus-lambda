@@ -18,11 +18,11 @@ authlib==1.3.0 \
 bandit==1.7.8 \
     --hash=sha256:509f7af645bc0cd8fd4587abc1a038fc795636671ee8204d502b933aee44f381
     # via -r test-requirements.in
-boto3==1.34.74 \
-    --hash=sha256:71f551491fb12fe07727d371d5561c5919fdf33dbc1d4251c57940d267a53a9e
+boto3==1.34.79 \
+    --hash=sha256:265b0b4865e8c07e27abb32a31d2bd9129bb009b1d89ca0783776ec084886123
     # via -r requirements.in
-botocore==1.34.74 \
-    --hash=sha256:5d2015b5d91d6c402c122783729ce995ed7283a746b0380957026dc2b3b75969
+botocore==1.34.79 \
+    --hash=sha256:a42a014d3dbaa9ef123810592af69f9e55b456c5be3ac9efc037325685519e83
     # via
     #   -r requirements.in
     #   boto3
@@ -184,7 +184,7 @@ click==8.1.7 \
     --hash=sha256:ae74fb96c20a0277a1d615f1e4d73c8414f5a98db8b799a7931d1582f3390c28
     # via
     #   safety
-    #   typer-slim
+    #   typer
 coverage[toml]==7.4.4 \
     --hash=sha256:00838a35b882694afda09f85e469c96367daa3f3f2b097d846a7216993d37f4c \
     --hash=sha256:0513b9508b93da4e1716744ef6ebc507aff016ba115ffe8ecff744d1322a7b63 \
@@ -652,7 +652,7 @@ rich==13.7.1 \
     # via
     #   bandit
     #   safety
-    #   typer-slim
+    #   typer
 ruamel-yaml==0.18.6 \
     --hash=sha256:57b53ba33def16c4f3d807c0ccbc00f8a6081827e81ba2491691b76882d0c636
     # via
@@ -720,7 +720,7 @@ safety-schemas==0.0.2 \
     # via safety
 shellingham==1.5.4 \
     --hash=sha256:7ecfff8f2fd72616f7481040475a65b2bf8af90a56c89140852d1120324e8686
-    # via typer-slim
+    # via typer
 six==1.16.0 \
     --hash=sha256:8abb2f1d86890a2dfb989f9a77cfcfd3e47c2a354b01111771326f8aa26e0254
     # via python-dateutil
@@ -730,26 +730,18 @@ stevedore==5.2.0 \
 tomlkit==0.12.4 \
     --hash=sha256:5cd82d48a3dd89dee1f9d64420aa20ae65cfbd00668d6f094d7578a78efbb77b
     # via pylint
-typer==0.12.0 \
-    --hash=sha256:0441a0bb8962fb4383b8537ada9f7eb2d0deda0caa2cfe7387cc221290f617e4
+typer==0.12.1 \
+    --hash=sha256:43ebb23c8a358c3d623e31064359a65f50229d0bf73ae8dfd203f49d9126ae06
     # via safety
-typer-cli==0.12.0 \
-    --hash=sha256:7b7e2dd49f59974bb5a869747045d5444b17bffb851e006cd424f602d3578104
-    # via typer
-typer-slim[standard]==0.12.0 \
-    --hash=sha256:ddd7042b29a32140528caa415750bcae54113ba0c32270ca11a6f64069ddadf9
-    # via
-    #   typer
-    #   typer-cli
-typing-extensions==4.10.0 \
-    --hash=sha256:69b1a937c3a517342112fb4c6df7e72fc39a38e7891a5730ed4985b5214b5475
+typing-extensions==4.11.0 \
+    --hash=sha256:c1f94d72897edaf4ce775bb7558d5b79d8126906a14ea5ed1635921406c0387a
     # via
     #   mypy
     #   pydantic
     #   pydantic-core
     #   safety
     #   safety-schemas
-    #   typer-slim
+    #   typer
 urllib3==2.2.1 \
     --hash=sha256:450b20ec296a467077128bff42b73080516e71b56ff59a60a02bef2232c4fa9d
     # via
