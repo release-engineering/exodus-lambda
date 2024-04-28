@@ -6,11 +6,11 @@
 #
 --only-binary :all:
 
-boto3==1.34.88 \
-    --hash=sha256:1bd4cef11b7c5f293cede50f3d33ca89fe3413c51f1864f40163c56a732dd6b3
+boto3==1.34.93 \
+    --hash=sha256:b59355bf4a1408563969526f314611dbeacc151cf90ecb22af295dcc4fe18def
     # via -r requirements.in
-botocore==1.34.88 \
-    --hash=sha256:e87a660599ed3e14b2a770f4efc3df2f2f6d04f3c7bfd64ddbae186667864a7b
+botocore==1.34.93 \
+    --hash=sha256:6fbd5a53a2adc9b3d4ebd90ae0ede83a91a41d96231f8a5984051f75495f246d
     # via
     #   -r requirements.in
     #   boto3
@@ -201,8 +201,8 @@ cryptography==42.0.5 \
     --hash=sha256:f12764b8fffc7a123f641d7d049d382b73f96a34117e0b637b80643169cec8ac \
     --hash=sha256:f8837fe1d6ac4a8052a9a8ddab256bc006242696f03368a4009be7ee3075cdb7
     # via -r requirements.in
-docutils==0.21.1 \
-    --hash=sha256:14c8d34a55b46c88f9f714adb29cefbdd69fb82f3fef825e59c5faab935390d8
+docutils==0.21.2 \
+    --hash=sha256:dafca5b9e384f0e419294eb4d2ff9fa826435bf15f15b7bd45723e8ad76811b2
     # via -r requirements.in
 frozendict==2.3.10 \
     --hash=sha256:07208e4718cb70aa259ac886c19b96a4aad1cf00e9199f211746f738951bbf7c \
