@@ -4,8 +4,6 @@
 #
 #    pip-compile --generate-hashes --pip-args='--platform "manylinux2014_x86_64" --only-binary=":all:" --python-version="3.11" --implementation cp' requirements-fakefront.in
 #
---only-binary :all:
-
 boto3==1.34.98 \
     --hash=sha256:030e43b8efe22b4cf10b9f3ef9e30cd4cf9ef9784b26efe9a4583339f2b2bcec
     # via -r requirements.in
@@ -330,8 +328,9 @@ s3transfer==0.10.1 \
 six==1.16.0 \
     --hash=sha256:8abb2f1d86890a2dfb989f9a77cfcfd3e47c2a354b01111771326f8aa26e0254
     # via python-dateutil
-urllib3==2.2.1 \
-    --hash=sha256:450b20ec296a467077128bff42b73080516e71b56ff59a60a02bef2232c4fa9d
+urllib3==2.2.2 \
+    --hash=sha256:a448b2f64d686155468037e1ace9f2d2199776e17f0a46610480d311f73e3472 \
+    --hash=sha256:dd505485549a7a552833da5e6063639d0d177c04f23bc3864e41e5dc5f612168
     # via
     #   botocore
     #   requests
