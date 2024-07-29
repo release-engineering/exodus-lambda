@@ -1,5 +1,6 @@
 import binascii
 import functools
+import gzip
 import json
 import os
 import time
@@ -65,7 +66,15 @@ class OriginRequest(LambdaBase):
             )
             if query_result["Items"]:
                 item = query_result["Items"][0]
-                out = json.loads(item["config"]["S"])
+                if item_encoded := item["config"].get("B"):
+                    # new-style: config is compressed and stored as bytes
+                    item_bytes = b64decode(item_encoded)
+                    item_json = gzip.decompress(item_bytes).decode()
+                else:
+                    # old-style, config was stored as JSON string.
+                    # Consider deleting this code path in 2025
+                    item_json = item["config"]["S"]
+                out = json.loads(item_json)
             else:
                 # Provide dict with expected keys when no config is found.
                 out = {
