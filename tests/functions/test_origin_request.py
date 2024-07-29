@@ -1,5 +1,7 @@
+import gzip
 import json
 import logging
+from base64 import b64encode
 from urllib.parse import unquote, urlencode
 
 import mock
@@ -342,15 +344,25 @@ def test_origin_request_invalid_item(
     )
 
 
+@pytest.mark.parametrize("binary_config", (True, False))
 @mock.patch("boto3.client")
-def test_origin_request_definitions(mocked_boto3_client):
+def test_origin_request_definitions(mocked_boto3_client, binary_config: bool):
     mocked_defs = mock_definitions()
+    json_defs = json.dumps(mocked_defs)
+
+    if binary_config:
+        # Config in the style exodus-gw writes from late 2024 onwards
+        config = {"B": b64encode(gzip.compress(json_defs.encode())).decode()}
+    else:
+        # Older-style config
+        config = {"S": json_defs}
+
     mocked_boto3_client().query.return_value = {
         "Items": [
             {
                 "from_date": {"S": "2020-02-17T00:00:00.000+00:00"},
                 "config_id": {"S": "exodus-config"},
-                "config": {"S": json.dumps(mocked_defs)},
+                "config": config,
             }
         ]
     }
