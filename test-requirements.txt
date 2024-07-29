@@ -18,11 +18,11 @@ authlib==1.3.1 \
 bandit==1.7.9 \
     --hash=sha256:52077cb339000f337fb25f7e045995c4ad01511e716e5daac37014b9752de8ec
     # via -r test-requirements.in
-boto3==1.34.145 \
-    --hash=sha256:69d5afb7a017d07dd6bdfb680d2912d5d369b3fafa0a45161207d9f393b14d7e
+boto3==1.34.149 \
+    --hash=sha256:11edeeacdd517bda3b7615b754d8440820cdc9ddd66794cc995a9693ddeaa3be
     # via -r requirements.in
-botocore==1.34.145 \
-    --hash=sha256:2e72e262de02adcb0264ac2bac159a28f55dbba8d9e52aa0308773a42950dff5
+botocore==1.34.149 \
+    --hash=sha256:ae6c4be52eeee96f68c116b27d252bab069cd046d61a17cfe8e9da411cf22906
     # via
     #   -r requirements.in
     #   boto3
@@ -328,8 +328,8 @@ gunicorn==22.0.0 \
 idna==3.7 \
     --hash=sha256:82fee1fc78add43492d3a1898bfa6d8a904cc97d8427f683ed8e798d07761aa0
     # via requests
-importlib-metadata==8.0.0 \
-    --hash=sha256:15584cf2b1bf449d98ff8a6ff1abef57bf20f3ac6454f431736cd3e660921b2f
+importlib-metadata==8.2.0 \
+    --hash=sha256:11901fa0c2f97919b288679932bb64febaeacf289d18ac84dd68cb2e74213369
     # via -r test-requirements.in
 iniconfig==2.0.0 \
     --hash=sha256:b6a85871a79d2e3b22d2d1b94ac2824226a63c6b741c88f7ae975f18b6778374
@@ -577,8 +577,8 @@ pygments==2.18.0 \
 pylint==3.2.6 \
     --hash=sha256:03c8e3baa1d9fb995b12c1dbe00aa6c4bcef210c2a2634374aedeb22fb4a8f8f
     # via -r test-requirements.in
-pytest==8.3.1 \
-    --hash=sha256:e9600ccf4f563976e2c99fa02c7624ab938296551f280835ee6516df8bc4ae8c
+pytest==8.3.2 \
+    --hash=sha256:4ba08f9ae7dcf84ded419494d229b48d0903ea6407b030eaec46df5e6a73bba5
     # via
     #   -r test-requirements.in
     #   pytest-cov
