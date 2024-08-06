@@ -1,7 +1,6 @@
 import gzip
 import json
 import logging
-from base64 import b64encode
 from urllib.parse import unquote, urlencode
 
 import mock
@@ -349,13 +348,14 @@ def test_origin_request_invalid_item(
 def test_origin_request_definitions(mocked_boto3_client, binary_config: bool):
     mocked_defs = mock_definitions()
     json_defs = json.dumps(mocked_defs)
+    config: dict[str, str | bytes] = {}
 
     if binary_config:
         # Config in the style exodus-gw writes from late 2024 onwards
-        config = {"B": b64encode(gzip.compress(json_defs.encode())).decode()}
+        config["B"] = gzip.compress(json_defs.encode())
     else:
         # Older-style config
-        config = {"S": json_defs}
+        config["S"] = json_defs
 
     mocked_boto3_client().query.return_value = {
         "Items": [

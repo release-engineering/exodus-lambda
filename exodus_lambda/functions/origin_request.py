@@ -66,9 +66,8 @@ class OriginRequest(LambdaBase):
             )
             if query_result["Items"]:
                 item = query_result["Items"][0]
-                if item_encoded := item["config"].get("B"):
+                if item_bytes := item["config"].get("B"):
                     # new-style: config is compressed and stored as bytes
-                    item_bytes = b64decode(item_encoded)
                     item_json = gzip.decompress(item_bytes).decode()
                 else:
                     # old-style, config was stored as JSON string.
