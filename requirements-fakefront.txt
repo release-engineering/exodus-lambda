@@ -6,21 +6,21 @@
 #
 --only-binary :all:
 
-boto3==1.35.49 \
-    --hash=sha256:b660c649a27a6b47a34f6f858f5bd7c3b0a798a16dec8dda7cbebeee80fd1f60
-    # via -r requirements.in
-botocore==1.35.49 \
-    --hash=sha256:aed4d3643afd702920792b68fbe712a8c3847993820d1048cd238a6469354da1
+boto3==1.35.54 \
+    --hash=sha256:2d5e160b614db55fbee7981001c54476cb827c441cef65b2fcb2c52a62019909
+    # via -r /home/runner/work/exodus-lambda/exodus-lambda/requirements.in
+botocore==1.35.54 \
+    --hash=sha256:9cca1811094b6cdc144c2c063a3ec2db6d7c88194b04d4277cd34fc8e3473aff
     # via
-    #   -r requirements.in
+    #   -r /home/runner/work/exodus-lambda/exodus-lambda/requirements.in
     #   boto3
     #   s3transfer
 cachetools==5.5.0 \
     --hash=sha256:02134e8439cdc2ffb62023ce1debca2944c3f289d66bb17ead3ab3dede74b292
-    # via -r requirements.in
+    # via -r /home/runner/work/exodus-lambda/exodus-lambda/requirements.in
 cdn-definitions==3.1.0 \
     --hash=sha256:e38d54af8a38e832432273ef436a2e9ac824a9aea50179d6c1d3dc0a5215a7c5
-    # via -r requirements.in
+    # via -r /home/runner/work/exodus-lambda/exodus-lambda/requirements.in
 certifi==2024.8.30 \
     --hash=sha256:922820b53db7a7257ffbda3f597266d435245903d80737e34f8a45ff3e3230d8
     # via requests
@@ -225,10 +225,10 @@ cryptography==43.0.3 \
     --hash=sha256:f18c716be16bc1fea8e95def49edf46b82fccaa88587a45f8dc0ff6ab5d8e0a7 \
     --hash=sha256:f46304d6f0c6ab8e52770addfa2fc41e6629495548862279641972b6215451cd \
     --hash=sha256:f7b178f11ed3664fd0e995a47ed2b5ff0a12d893e41dd0494f406d1cf555cab7
-    # via -r requirements.in
+    # via -r /home/runner/work/exodus-lambda/exodus-lambda/requirements.in
 docutils==0.21.2 \
     --hash=sha256:dafca5b9e384f0e419294eb4d2ff9fa826435bf15f15b7bd45723e8ad76811b2
-    # via -r requirements.in
+    # via -r /home/runner/work/exodus-lambda/exodus-lambda/requirements.in
 frozendict==2.4.6 \
     --hash=sha256:02331541611f3897f260900a1815b63389654951126e6e65545e529b63c08361 \
     --hash=sha256:0aaa11e7c472150efe65adbcd6c17ac0f586896096ab3963775e1c5c58ac0098 \
@@ -346,12 +346,12 @@ pyyaml==6.0.2 \
     --hash=sha256:f753120cb8181e736c57ef7636e83f31b9c0d1722c516f7e86cf15b7aa57ff12 \
     --hash=sha256:ff3824dc5261f50c9b0dfb3be22b4567a6f938ccce4587b38952d85fd9e9afe4
     # via
-    #   -r requirements.in
+    #   -r /home/runner/work/exodus-lambda/exodus-lambda/requirements.in
     #   cdn-definitions
 requests==2.32.3 \
     --hash=sha256:70761cfe03c773ceb22aa2f671b4757976145175cdfca038c02654d061d6dcc6
     # via
-    #   -r requirements.in
+    #   -r /home/runner/work/exodus-lambda/exodus-lambda/requirements.in
     #   cdn-definitions
 s3transfer==0.10.3 \
     --hash=sha256:263ed587a5803c6c708d3ce44dc4dfedaab4c1a32e8329bab818933d79ddcf5d

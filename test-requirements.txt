@@ -18,21 +18,28 @@ authlib==1.3.2 \
 bandit==1.7.10 \
     --hash=sha256:665721d7bebbb4485a339c55161ac0eedde27d51e638000d91c8c2d68343ad02
     # via -r test-requirements.in
-boto3==1.35.49 \
-    --hash=sha256:b660c649a27a6b47a34f6f858f5bd7c3b0a798a16dec8dda7cbebeee80fd1f60
-    # via -r requirements.in
-botocore==1.35.49 \
-    --hash=sha256:aed4d3643afd702920792b68fbe712a8c3847993820d1048cd238a6469354da1
+boto3==1.35.54 \
+    --hash=sha256:2d5e160b614db55fbee7981001c54476cb827c441cef65b2fcb2c52a62019909
     # via
+    #   -r /home/runner/work/exodus-lambda/exodus-lambda/requirements.in
+    #   -r requirements.in
+botocore==1.35.54 \
+    --hash=sha256:9cca1811094b6cdc144c2c063a3ec2db6d7c88194b04d4277cd34fc8e3473aff
+    # via
+    #   -r /home/runner/work/exodus-lambda/exodus-lambda/requirements.in
     #   -r requirements.in
     #   boto3
     #   s3transfer
 cachetools==5.5.0 \
     --hash=sha256:02134e8439cdc2ffb62023ce1debca2944c3f289d66bb17ead3ab3dede74b292
-    # via -r requirements.in
+    # via
+    #   -r /home/runner/work/exodus-lambda/exodus-lambda/requirements.in
+    #   -r requirements.in
 cdn-definitions==3.1.0 \
     --hash=sha256:e38d54af8a38e832432273ef436a2e9ac824a9aea50179d6c1d3dc0a5215a7c5
-    # via -r requirements.in
+    # via
+    #   -r /home/runner/work/exodus-lambda/exodus-lambda/requirements.in
+    #   -r requirements.in
 certifi==2024.8.30 \
     --hash=sha256:922820b53db7a7257ffbda3f597266d435245903d80737e34f8a45ff3e3230d8
     # via requests
@@ -306,6 +313,7 @@ cryptography==43.0.3 \
     --hash=sha256:f46304d6f0c6ab8e52770addfa2fc41e6629495548862279641972b6215451cd \
     --hash=sha256:f7b178f11ed3664fd0e995a47ed2b5ff0a12d893e41dd0494f406d1cf555cab7
     # via
+    #   -r /home/runner/work/exodus-lambda/exodus-lambda/requirements.in
     #   -r requirements.in
     #   authlib
 dill==0.3.9 \
@@ -313,7 +321,9 @@ dill==0.3.9 \
     # via pylint
 docutils==0.21.2 \
     --hash=sha256:dafca5b9e384f0e419294eb4d2ff9fa826435bf15f15b7bd45723e8ad76811b2
-    # via -r requirements.in
+    # via
+    #   -r /home/runner/work/exodus-lambda/exodus-lambda/requirements.in
+    #   -r requirements.in
 dparse==0.6.4b0 \
     --hash=sha256:592ff183348b8a5ea0a18442a7965e29445d3a26063654ec2c7e8ef42cd5753c
     # via
@@ -456,8 +466,8 @@ markupsafe==3.0.2 \
     --hash=sha256:f8b3d067f2e40fe93e1ccdd6b2e1d16c43140e76f02fb1319a05cf2b79d99430 \
     --hash=sha256:fcabf5ff6eea076f859677f5f0b6b5c1a51e70a376b0579e0eadef8db48c6b50
     # via jinja2
-marshmallow==3.23.0 \
-    --hash=sha256:82f20a2397834fe6d9611b241f2f7e7b680ed89c49f84728a1ad937be6b4bdf4
+marshmallow==3.23.1 \
+    --hash=sha256:fece2eb2c941180ea1b7fcbd4a83c51bfdd50093fdd3ad2585ee5e1df2508491
     # via safety
 mccabe==0.7.0 \
     --hash=sha256:6c2d30ab6be0e4a46919781807b4f0d834ebdd6c6e3dca0bda5a15f863427b6e
@@ -668,8 +678,8 @@ pytest==8.3.3 \
     # via
     #   -r test-requirements.in
     #   pytest-cov
-pytest-cov==5.0.0 \
-    --hash=sha256:4f0764a1219df53214206bf1feea4633c3b558a2925c8b59f144f682861ce652
+pytest-cov==6.0.0 \
+    --hash=sha256:eee6f1b9e61008bd34975a4d5bab25801eb31898b032dd55addc93e96fcaaa35
     # via -r test-requirements.in
 python-dateutil==2.9.0.post0 \
     --hash=sha256:a8b2bc7bffae282281c8140a97d3aa9c14da0b136dfe83f850eea9a5f7470427
@@ -730,17 +740,19 @@ pyyaml==6.0.2 \
     --hash=sha256:f753120cb8181e736c57ef7636e83f31b9c0d1722c516f7e86cf15b7aa57ff12 \
     --hash=sha256:ff3824dc5261f50c9b0dfb3be22b4567a6f938ccce4587b38952d85fd9e9afe4
     # via
+    #   -r /home/runner/work/exodus-lambda/exodus-lambda/requirements.in
     #   -r requirements.in
     #   bandit
     #   cdn-definitions
 requests==2.32.3 \
     --hash=sha256:70761cfe03c773ceb22aa2f671b4757976145175cdfca038c02654d061d6dcc6
     # via
+    #   -r /home/runner/work/exodus-lambda/exodus-lambda/requirements.in
     #   -r requirements.in
     #   cdn-definitions
     #   safety
-rich==13.9.3 \
-    --hash=sha256:9836f5096eb2172c9e77df411c1b009bace4193d6a481d534fea75ebba758283
+rich==13.9.4 \
+    --hash=sha256:6049d5e6ec054bf2779ab3358186963bac2ea89175919d699e378b99738c2a90
     # via
     #   bandit
     #   safety
