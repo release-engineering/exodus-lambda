@@ -868,3 +868,69 @@ def test_origin_request_autoindex(
         }
 
     assert response == expected_response
+
+
+@mock.patch("boto3.client")
+@mock.patch("exodus_lambda.functions.origin_request.cachetools")
+@mock.patch("exodus_lambda.functions.origin_request.datetime")
+def test_fallback_uri(
+    mocked_datetime,
+    mocked_cache,
+    mocked_boto3_client,
+    caplog,
+):
+    # After the introduction of exclusion_paths, some files are still stored
+    # under the aliased uri. We try the "correct" uri and fallback to the older aliased uri
+
+    req_uri = "/content/dist/rhel8/8/files/deletion.iso"
+    real_uri = "/content/dist/rhel8/8.5/files/deletion.iso"
+    mocked_datetime.now().isoformat.return_value = MOCKED_DT
+    mocked_cache.TTLCache.return_value = {"exodus-config": mock_definitions()}
+
+    mocked_boto3_client().query.side_effect = [
+        {"Items": []},  # req_uri
+        {"Items": []},  # req_uri index page
+        {
+            "Items": [
+                {
+                    "web_uri": {"S": real_uri},
+                    "from_date": {"S": "2020-02-17T00:00:00.000+00:00"},
+                    "object_key": {"S": "e4a3f2sum"},
+                }
+            ]
+        }
+    ]
+    expected_boto_calls = [
+        mock.call(TableName='test-table', Limit=1, ConsistentRead=True,
+          ScanIndexForward=False,
+          KeyConditionExpression='web_uri = :u and from_date <= :d',
+          ExpressionAttributeValues={
+              ':u': {'S': uri},
+              ':d': {'S': '2020-02-17T15:38:05.864+00:00'}}) for uri in
+                      ["/content/dist/rhel8/8/files/deletion.iso",
+                       "/content/dist/rhel8/8/files/deletion.iso/.__exodus_autoindex",
+                       "/content/dist/rhel8/8.5/files/deletion.iso"]
+    ]
+    event = {"Records": [{"cf": {"request": {"uri": req_uri, "headers": {}}}}]}
+
+    with caplog.at_level(logging.DEBUG):
+        request = OriginRequest(
+            conf_file=TEST_CONF,
+        ).handler(event, context=None)
+
+    assert f"Item found for URI: {real_uri}" in caplog.text
+    assert f"No items for '{req_uri}' in table 'test-table' were found. " \
+           f"Trying fallback URI '{real_uri}'." in caplog.text
+
+    mocked_boto3_client().query.assert_has_calls(expected_boto_calls)
+    assert request == {
+        "uri": "/e4a3f2sum",
+        "querystring": urlencode(
+            {"response-content-type": "application/octet-stream"}
+        ),
+        "headers": {
+            "exodus-original-uri": [
+                {"key": "exodus-original-uri", "value": req_uri}
+            ]
+        },
+    }
