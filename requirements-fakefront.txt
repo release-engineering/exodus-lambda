@@ -6,11 +6,11 @@
 #
 --only-binary :all:
 
-boto3==1.35.71 \
-    --hash=sha256:e2969a246bb3208122b3c349c49cc6604c6fc3fc2b2f65d99d3e8ccd745b0c16
+boto3==1.35.76 \
+    --hash=sha256:69458399f41f57a50770c8974796d96978bcca44915c260319696bb43e47dffd
     # via -r /home/runner/work/exodus-lambda/exodus-lambda/requirements.in
-botocore==1.35.71 \
-    --hash=sha256:fc46e7ab1df3cef66dfba1633f4da77c75e07365b36f03bd64a3793634be8fc1
+botocore==1.35.76 \
+    --hash=sha256:b4729d12d00267b3185628f83543917b6caae292385230ab464067621aa086af
     # via
     #   -r /home/runner/work/exodus-lambda/exodus-lambda/requirements.in
     #   boto3
@@ -358,8 +358,8 @@ requests==2.32.3 \
 s3transfer==0.10.4 \
     --hash=sha256:244a76a24355363a68164241438de1b72f8781664920260c48465896b712a41e
     # via boto3
-six==1.16.0 \
-    --hash=sha256:8abb2f1d86890a2dfb989f9a77cfcfd3e47c2a354b01111771326f8aa26e0254
+six==1.17.0 \
+    --hash=sha256:4721f391ed90541fddacab5acf947aa0d3dc7d27b2e1e8eda2be8970586c3274
     # via python-dateutil
 urllib3==2.2.3 \
     --hash=sha256:ca899ca043dcb1bafa3e262d73aa25c465bfb49e0bd9dd5d59f1d0acba2f8fac
