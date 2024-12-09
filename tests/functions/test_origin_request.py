@@ -898,18 +898,25 @@ def test_fallback_uri(
                     "object_key": {"S": "e4a3f2sum"},
                 }
             ]
-        }
+        },
     ]
     expected_boto_calls = [
-        mock.call(TableName='test-table', Limit=1, ConsistentRead=True,
-          ScanIndexForward=False,
-          KeyConditionExpression='web_uri = :u and from_date <= :d',
-          ExpressionAttributeValues={
-              ':u': {'S': uri},
-              ':d': {'S': '2020-02-17T15:38:05.864+00:00'}}) for uri in
-                      ["/content/dist/rhel8/8/files/deletion.iso",
-                       "/content/dist/rhel8/8/files/deletion.iso/.__exodus_autoindex",
-                       "/content/dist/rhel8/8.5/files/deletion.iso"]
+        mock.call(
+            TableName="test-table",
+            Limit=1,
+            ConsistentRead=True,
+            ScanIndexForward=False,
+            KeyConditionExpression="web_uri = :u and from_date <= :d",
+            ExpressionAttributeValues={
+                ":u": {"S": uri},
+                ":d": {"S": "2020-02-17T15:38:05.864+00:00"},
+            },
+        )
+        for uri in [
+            "/content/dist/rhel8/8/files/deletion.iso",
+            "/content/dist/rhel8/8/files/deletion.iso/.__exodus_autoindex",
+            "/content/dist/rhel8/8.5/files/deletion.iso",
+        ]
     ]
     event = {"Records": [{"cf": {"request": {"uri": req_uri, "headers": {}}}}]}
 
@@ -919,8 +926,10 @@ def test_fallback_uri(
         ).handler(event, context=None)
 
     assert f"Item found for URI: {real_uri}" in caplog.text
-    assert f"No items for '{req_uri}' in table 'test-table' were found. " \
-           f"Trying fallback URI '{real_uri}'." in caplog.text
+    assert (
+        f"No items for '{req_uri}' in table 'test-table' were found. "
+        f"Trying fallback URI '{real_uri}'." in caplog.text
+    )
 
     mocked_boto3_client().query.assert_has_calls(expected_boto_calls)
     assert request == {
