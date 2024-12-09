@@ -3,6 +3,7 @@ import functools
 import gzip
 import json
 import os
+import re
 import time
 from base64 import b64decode
 from datetime import datetime, timedelta, timezone
@@ -92,46 +93,60 @@ class OriginRequest(LambdaBase):
         # allow RHUI paths to be aliased to non-RHUI).
         #
         # Aliases are expected to come from cdn-definitions.
+        def uri_alias_inner(ignore_exclude_paths=False):
+            remaining = aliases
+            loop_uri = uri
+            while remaining:
+                processed = []
+                for alias in remaining:
+                    exclusion_match = not ignore_exclude_paths and any(
+                        [
+                            re.search(exclusion, loop_uri)
+                            for exclusion in alias["exclude_paths"]
+                        ]
+                    )
+                    if (
+                        loop_uri.startswith(alias["src"] + "/")
+                        or loop_uri == alias["src"]
+                    ) and not exclusion_match:
+                        loop_uri = loop_uri.replace(
+                            alias["src"], alias["dest"], 1
+                        )
 
-        remaining = aliases
+                if not processed:
+                    # We didn't resolve any alias, then we're done processing.
+                    break
 
-        # We do multiple passes here to ensure that nested aliases
-        # are resolved correctly, regardless of the order in which
-        # they're provided.
-        while remaining:
-            processed = []
+                # We resolved at least one alias, so we need another round
+                # in case others apply now. But take out anything we've already
+                # processed, so it is not possible to recurse.
+                remaining = [r for r in remaining if r not in processed]
+            return loop_uri
 
-            for alias in remaining:
-                if uri.startswith(alias["src"] + "/") or uri == alias["src"]:
-                    uri = uri.replace(alias["src"], alias["dest"], 1)
-                    processed.append(alias)
-
-            if not processed:
-                # We didn't resolve any alias, then we're done processing.
-                break
-
-            # We resolved at least one alias, so we need another round
-            # in case others apply now. But take out anything we've already
-            # processed, so it is not possible to recurse.
-            remaining = [r for r in remaining if r not in processed]
-
-        return uri
+        aliased_uri = uri_alias_inner()
+        fallback = uri_alias_inner(ignore_exclude_paths=True)
+        fallback = None if aliased_uri == fallback else fallback
+        return aliased_uri, fallback
 
     def resolve_aliases(self, uri):
         # aliases relating to origin, e.g. content/origin <=> origin
-        uri = self.uri_alias(uri, self.definitions.get("origin_alias"))
 
+        uri, _ = self.uri_alias(uri, self.definitions.get("origin_alias"))
         # aliases relating to rhui; listing files are a special exemption
         # because they must be allowed to differ for rhui vs non-rhui.
         if not uri.endswith("/listing"):
-            uri = self.uri_alias(uri, self.definitions.get("rhui_alias"))
+            uri, _ = self.uri_alias(uri, self.definitions.get("rhui_alias"))
 
         # aliases relating to releasever; e.g. /content/dist/rhel8/8 <=> /content/dist/rhel8/8.5
-        uri = self.uri_alias(uri, self.definitions.get("releasever_alias"))
+        uri, fallback = self.uri_alias(
+            uri, self.definitions.get("releasever_alias")
+        )
 
         self.logger.debug("Resolved request URI: %s", uri)
+        if fallback:
+            self.logger.debug("Fallback URI: %s", fallback)
 
-        return uri
+        return uri, fallback
 
     def handle_cookie_request(self, event):
         request = event["Records"][0]["cf"]["request"]
@@ -174,13 +189,28 @@ class OriginRequest(LambdaBase):
         )
         return response
 
-    def handle_listing_request(self, uri):
+    def handle_listing_request(self, uri, fallback_uri=None):
         if uri.endswith("/listing"):
             self.logger.info("Handling listing request: %s", uri)
             listing_data = self.definitions.get("listing")
             if listing_data:
                 target = uri[: -len("/listing")]
                 listing = listing_data.get(target)
+                # If a fallback URI is passed, it should be an alias, so we'd
+                # expect the same ending. This is just caution
+                if (
+                    not listing
+                    and fallback_uri
+                    and fallback_uri.endswith("/listing")
+                ):
+                    self.logger.info(
+                        "listing for %s not available, "
+                        "attempting fallback %s",
+                        uri,
+                        fallback_uri,
+                    )
+                    target = uri[: -len("/listing")]
+                    listing = listing_data.get(target)
                 if listing:
                     response = {
                         "body": "\n".join(listing["values"]) + "\n",
@@ -304,33 +334,11 @@ class OriginRequest(LambdaBase):
             valid = False
         return valid
 
-    def handler(self, event, context):
-        # pylint: disable=unused-argument
-
-        request = event["Records"][0]["cf"]["request"]
-
-        if not self.validate_request(request):
-            return {"status": "400", "statusDescription": "Bad Request"}
-
-        self.logger.debug(
-            "Incoming request value for origin_request",
-            extra={"request": request},
-        )
-
-        request["uri"] = unquote(request["uri"])
-        original_uri = request["uri"]
-
-        if request["uri"].startswith("/_/cookie/"):
-            return self.handle_cookie_request(event)
-
-        uri = self.resolve_aliases(request["uri"])
-
-        listing_response = self.handle_listing_request(uri)
-        if listing_response:
-            self.set_cache_control(uri, listing_response)
-            return listing_response
-
-        table = self.conf["table"]["name"]
+    def handle_file_request(
+        self, request, table, original_uri, uri, fallback_uri=None
+    ):
+        # Try find the db entry corresponding to the uri. We try the uri, it's
+        # corresponding index path and then the fallback_uri.
 
         # Do not permit clients to explicitly request an index file
         if not uri.endswith("/" + self.index):
@@ -374,6 +382,51 @@ class OriginRequest(LambdaBase):
                         return response
 
                     return out
+        if fallback_uri:
+            self.logger.info(
+                "No items for '%s' in table '%s' were found. "
+                "Trying fallback URI '%s'.",
+                original_uri,
+                table,
+                fallback_uri,
+            )
+            return self.handle_file_request(
+                request, table, original_uri, fallback_uri
+            )
+
+    def handler(self, event, context):
+        # pylint: disable=unused-argument
+
+        request = event["Records"][0]["cf"]["request"]
+
+        if not self.validate_request(request):
+            return {"status": "400", "statusDescription": "Bad Request"}
+
+        self.logger.debug(
+            "Incoming request value for origin_request",
+            extra={"request": request},
+        )
+
+        request["uri"] = unquote(request["uri"])
+        original_uri = request["uri"]
+
+        if request["uri"].startswith("/_/cookie/"):
+            return self.handle_cookie_request(event)
+
+        uri, fallback_uri = self.resolve_aliases(request["uri"])
+
+        listing_response = self.handle_listing_request(uri, fallback_uri)
+        if listing_response:
+            self.set_cache_control(uri, listing_response)
+            return listing_response
+
+        table = self.conf["table"]["name"]
+        self.logger.debug("file request time")
+        if out := self.handle_file_request(
+            request, table, original_uri, uri, fallback_uri
+        ):
+            return out
+
         self.logger.info("No item found for URI: %s", uri)
         return {"status": "404", "statusDescription": "Not Found"}
 

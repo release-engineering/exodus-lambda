@@ -1,13 +1,15 @@
 # More in depth tests for alias resolution.
 from collections import namedtuple
 
+import pytest
+
 from exodus_lambda.functions.origin_request import OriginRequest
 
 from ..test_utils.utils import generate_test_config
 
 TEST_CONF = generate_test_config()
 
-Alias = namedtuple("Alias", ["src", "dest"])
+Alias = namedtuple("Alias", ["src", "dest", "exclude_paths"])
 
 
 def test_alias_single():
@@ -16,14 +18,14 @@ def test_alias_single():
     req = OriginRequest(conf_file=TEST_CONF)
 
     aliases = [
-        {"src": "/foo/bar", "dest": ""},
-        {"src": "/baz", "dest": "/quux"},
+        {"src": "/foo/bar", "dest": "", "exclude_paths": []},
+        {"src": "/baz", "dest": "/quux", "exclude_paths": []},
     ]
 
     # Only the first layer of /foo/bar ends up being resolved.
-    assert (
-        req.uri_alias("/foo/bar/foo/bar/baz/somefile", aliases)
-        == "/foo/bar/baz/somefile"
+    assert req.uri_alias("/foo/bar/foo/bar/baz/somefile", aliases) == (
+        "/foo/bar/baz/somefile",
+        None,
     )
 
 
@@ -32,10 +34,13 @@ def test_alias_boundary():
 
     req = OriginRequest(conf_file=TEST_CONF)
 
-    aliases = [{"src": "/foo/bar", "dest": "/"}]
+    aliases = [{"src": "/foo/bar", "dest": "/", "exclude_paths": []}]
 
     # /foo/bar should not be resolved since it's not followed by /.
-    assert req.uri_alias("/foo/bar-somefile", aliases) == "/foo/bar-somefile"
+    assert req.uri_alias("/foo/bar-somefile", aliases) == (
+        "/foo/bar-somefile",
+        None,
+    )
 
 
 def test_alias_equal():
@@ -43,6 +48,89 @@ def test_alias_equal():
 
     req = OriginRequest(conf_file=TEST_CONF)
 
-    aliases = [{"src": "/foo/bar", "dest": "/quux"}]
+    aliases = [{"src": "/foo/bar", "dest": "/quux", "exclude_paths": []}]
 
-    assert req.uri_alias("/foo/bar", aliases) == "/quux"
+    assert req.uri_alias("/foo/bar", aliases) == ("/quux", None)
+
+
+@pytest.mark.parametrize(
+    "uri, expected_uri, aliases",
+    [
+        (
+            "/origin/path/dir/filename.ext",
+            ("/origin/path/dir/filename.ext", "/alias/dir/filename.ext"),
+            [
+                {
+                    "src": "/origin/path",
+                    "dest": "/alias",
+                    "exclude_paths": ["/dir/"],
+                }
+            ],
+        ),
+        (
+            "/origin/path/dir/filename.ext",
+            ("/alias/dir/filename.ext", None),
+            [
+                {
+                    "src": "/origin/path",
+                    "dest": "/alias",
+                    "exclude_paths": ["/banana/"],
+                }
+            ],
+        ),
+        (
+            "/origin/path/c/dir/filename.ext",
+            (
+                "/second/step/c/dir/filename.ext",
+                "/third/step/c/dir/filename.ext",
+            ),
+            [
+                {
+                    "src": "/origin/path",
+                    "dest": "/first/step",
+                    "exclude_paths": ["/a/"],
+                },
+                {"src": "/first", "dest": "/second", "exclude_paths": ["/b/"]},
+                {"src": "/second", "dest": "/third", "exclude_paths": ["/c/"]},
+            ],
+        ),
+        (
+            "/origin/path/rhel7/dir/filename.ext",
+            ("/aliased/path/rhel7/dir/filename.ext", None),
+            [
+                {
+                    "src": "/origin",
+                    "dest": "/aliased",
+                    "exclude_paths": ["/rhel[89]/"],
+                },
+            ],
+        ),
+        (
+            "/origin/path/rhel9/dir/filename.ext",
+            (
+                "/origin/path/rhel9/dir/filename.ext",
+                "/aliased/path/rhel9/dir/filename.ext",
+            ),
+            [
+                {
+                    "src": "/origin",
+                    "dest": "/aliased",
+                    "exclude_paths": ["/rhel[89]/"],
+                },
+            ],
+        ),
+    ],
+    ids=[
+        "excluded",
+        "not excluded",
+        "multilevel",
+        "regex not excluded",
+        "regex excluded",
+    ],
+)
+def test_alias_exclusions(uri, expected_uri, aliases):
+    """Paths exactly matching an alias can be resolved."""
+
+    req = OriginRequest(conf_file=TEST_CONF)
+
+    assert req.uri_alias(uri, aliases) == expected_uri
