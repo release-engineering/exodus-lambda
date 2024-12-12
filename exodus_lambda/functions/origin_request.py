@@ -103,11 +103,15 @@ class OriginRequest(LambdaBase):
             processed = []
 
             for alias in remaining:
-                exclusion_match = not ignore_exclusions and \
-                                  any([re.search(exclusion, uri) for exclusion
-                                       in alias.get("exclude_paths",[])])
-                if (uri.startswith(alias["src"] + "/") or uri == alias["src"]) \
-                        and not exclusion_match:
+                exclusion_match = not ignore_exclusions and any(
+                    [
+                        re.search(exclusion, uri)
+                        for exclusion in alias.get("exclude_paths", [])
+                    ]
+                )
+                if (
+                    uri.startswith(alias["src"] + "/") or uri == alias["src"]
+                ) and not exclusion_match:
                     uri = uri.replace(alias["src"], alias["dest"], 1)
                     processed.append(alias)
 
@@ -125,17 +129,20 @@ class OriginRequest(LambdaBase):
     def resolve_aliases(self, uri, ignore_exclusions=False):
         # aliases relating to origin, e.g. content/origin <=> origin
 
-        uri = self.uri_alias(uri, self.definitions.get("origin_alias"),
-                             ignore_exclusions)
+        uri = self.uri_alias(
+            uri, self.definitions.get("origin_alias"), ignore_exclusions
+        )
         # aliases relating to rhui; listing files are a special exemption
         # because they must be allowed to differ for rhui vs non-rhui.
         if not uri.endswith("/listing"):
-            uri = self.uri_alias(uri, self.definitions.get("rhui_alias"),
-                                 ignore_exclusions)
+            uri = self.uri_alias(
+                uri, self.definitions.get("rhui_alias"), ignore_exclusions
+            )
 
         # aliases relating to releasever; e.g. /content/dist/rhel8/8 <=> /content/dist/rhel8/8.5
-        uri = self.uri_alias(uri, self.definitions.get("releasever_alias"),
-                             ignore_exclusions)
+        uri = self.uri_alias(
+            uri, self.definitions.get("releasever_alias"), ignore_exclusions
+        )
 
         self.logger.debug("Resolved request URI: %s", uri)
 
@@ -377,15 +384,20 @@ class OriginRequest(LambdaBase):
             return self.handle_cookie_request(event)
 
         uri = self.resolve_aliases(request["uri"])
-        fallback_uri = self.resolve_aliases(request["uri"],
-                                            ignore_exclusions=True)
+        fallback_uri = self.resolve_aliases(
+            request["uri"], ignore_exclusions=True
+        )
         fallback_uri = fallback_uri if uri != fallback_uri else None
         if listing_response := self.handle_listing_request(uri):
             self.set_cache_control(uri, listing_response)
             return listing_response
         if fallback_uri and fallback_uri.endswith("/listing"):
-            self.logger.info("Listing could not be found for '%s'."
-                             " Attempting fallback '%s'", uri, fallback_uri)
+            self.logger.info(
+                "Listing could not be found for '%s'."
+                " Attempting fallback '%s'",
+                uri,
+                fallback_uri,
+            )
             if listing_response := self.handle_listing_request(fallback_uri):
                 self.set_cache_control(fallback_uri, listing_response)
                 return listing_response
@@ -394,9 +406,16 @@ class OriginRequest(LambdaBase):
         if out := self.handle_file_request(request, table, original_uri, uri):
             return out
         if fallback_uri:
-            self.logger.info("No items for '%s' in table '%s' were found. "
-                             "Trying fallback URI '%s'.", uri, table, fallback_uri)
-            if out := self.handle_file_request(request, table, original_uri, fallback_uri):
+            self.logger.info(
+                "No items for '%s' in table '%s' were found. "
+                "Trying fallback URI '%s'.",
+                uri,
+                table,
+                fallback_uri,
+            )
+            if out := self.handle_file_request(
+                request, table, original_uri, fallback_uri
+            ):
                 return out
 
         self.logger.info("No item found for URI: %s", uri)
