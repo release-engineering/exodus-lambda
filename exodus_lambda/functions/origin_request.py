@@ -103,11 +103,15 @@ class OriginRequest(LambdaBase):
             processed = []
 
             for alias in remaining:
-                exclusion_match = not ignore_exclusions and \
-                                  any([re.search(exclusion, uri) for exclusion
-                                       in alias.get("exclude_paths",[])])
-                if (uri.startswith(alias["src"] + "/") or uri == alias["src"]) \
-                        and not exclusion_match:
+                exclusion_match = not ignore_exclusions and any(
+                    [
+                        re.search(exclusion, uri)
+                        for exclusion in alias.get("exclude_paths", [])
+                    ]
+                )
+                if (
+                    uri.startswith(alias["src"] + "/") or uri == alias["src"]
+                ) and not exclusion_match:
                     uri = uri.replace(alias["src"], alias["dest"], 1)
                     processed.append(alias)
 
@@ -125,17 +129,20 @@ class OriginRequest(LambdaBase):
     def resolve_aliases(self, uri, ignore_exclusions=False):
         # aliases relating to origin, e.g. content/origin <=> origin
 
-        uri = self.uri_alias(uri, self.definitions.get("origin_alias"),
-                             ignore_exclusions)
+        uri = self.uri_alias(
+            uri, self.definitions.get("origin_alias"), ignore_exclusions
+        )
         # aliases relating to rhui; listing files are a special exemption
         # because they must be allowed to differ for rhui vs non-rhui.
         if not uri.endswith("/listing"):
-            uri = self.uri_alias(uri, self.definitions.get("rhui_alias"),
-                                 ignore_exclusions)
+            uri = self.uri_alias(
+                uri, self.definitions.get("rhui_alias"), ignore_exclusions
+            )
 
         # aliases relating to releasever; e.g. /content/dist/rhel8/8 <=> /content/dist/rhel8/8.5
-        uri = self.uri_alias(uri, self.definitions.get("releasever_alias"),
-                             ignore_exclusions)
+        uri = self.uri_alias(
+            uri, self.definitions.get("releasever_alias"), ignore_exclusions
+        )
 
         self.logger.debug("Resolved request URI: %s", uri)
 
@@ -377,8 +384,9 @@ class OriginRequest(LambdaBase):
             return self.handle_cookie_request(event)
 
         preferred_uri = self.resolve_aliases(request["uri"])
-        fallback_uri = self.resolve_aliases(request["uri"],
-                                            ignore_exclusions=True)
+        fallback_uri = self.resolve_aliases(
+            request["uri"], ignore_exclusions=True
+        )
         uris = [preferred_uri]
         # Some file keys might take a while to update to reflect URI alias exclusions.
         # Allowing the original behaviour as a fallback will avoid a flood of 404 errors
@@ -391,7 +399,9 @@ class OriginRequest(LambdaBase):
                 return listing_response
 
             table = self.conf["table"]["name"]
-            if out := self.handle_file_request(request, table, original_uri, uri):
+            if out := self.handle_file_request(
+                request, table, original_uri, uri
+            ):
                 return out
 
             self.logger.info("No item found for URI: %s", uri)

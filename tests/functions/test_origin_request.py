@@ -492,20 +492,25 @@ def test_origin_request_listing_typical(mocked_cache, caplog):
         },
     }
 
+
 @mock.patch("boto3.client")
 @mock.patch("exodus_lambda.functions.origin_request.cachetools")
-def test_origin_request_listing_fallback(mocked_cache, mocked_boto3_client, caplog):
+def test_origin_request_listing_fallback(
+    mocked_cache, mocked_boto3_client, caplog
+):
 
     req_uri = "/content/dist/rhel/myOwnRHEL/listing"
     real_uri = "/content/dist/rhel/extraSpecialRHEL/listing"
     definitions = mock_definitions()
-    definitions["listing"]["/content/dist/rhel/extraSpecialRHEL"]\
-        = {"var": "basearch", "values": ["x86_64"]}
+    definitions["listing"]["/content/dist/rhel/extraSpecialRHEL"] = {
+        "var": "basearch",
+        "values": ["x86_64"],
+    }
     test_alias = {
-            "src": "/content/dist/rhel/myOwnRHEL",
-            "dest": "/content/dist/rhel/extraSpecialRHEL",
-            "exclude_paths": ["listing"]
-        }
+        "src": "/content/dist/rhel/myOwnRHEL",
+        "dest": "/content/dist/rhel/extraSpecialRHEL",
+        "exclude_paths": ["listing"],
+    }
     definitions["releasever_alias"].append(test_alias)
     mocked_cache.TTLCache.return_value = {"exodus-config": definitions}
 
@@ -534,6 +539,7 @@ def test_origin_request_listing_fallback(mocked_cache, mocked_boto3_client, capl
             ],
         },
     }
+
 
 @mock.patch("boto3.client")
 @mock.patch("exodus_lambda.functions.origin_request.cachetools")
@@ -940,18 +946,25 @@ def test_fallback_uri(
                     "object_key": {"S": "e4a3f2sum"},
                 }
             ]
-        }
+        },
     ]
     expected_boto_calls = [
-        mock.call(TableName='test-table', Limit=1, ConsistentRead=True,
-          ScanIndexForward=False,
-          KeyConditionExpression='web_uri = :u and from_date <= :d',
-          ExpressionAttributeValues={
-              ':u': {'S': uri},
-              ':d': {'S': '2020-02-17T15:38:05.864+00:00'}}) for uri in
-                      ["/content/dist/rhel8/8/files/deletion.iso",
-                       "/content/dist/rhel8/8/files/deletion.iso/.__exodus_autoindex",
-                       "/content/dist/rhel8/8.5/files/deletion.iso"]
+        mock.call(
+            TableName="test-table",
+            Limit=1,
+            ConsistentRead=True,
+            ScanIndexForward=False,
+            KeyConditionExpression="web_uri = :u and from_date <= :d",
+            ExpressionAttributeValues={
+                ":u": {"S": uri},
+                ":d": {"S": "2020-02-17T15:38:05.864+00:00"},
+            },
+        )
+        for uri in [
+            "/content/dist/rhel8/8/files/deletion.iso",
+            "/content/dist/rhel8/8/files/deletion.iso/.__exodus_autoindex",
+            "/content/dist/rhel8/8.5/files/deletion.iso",
+        ]
     ]
     event = {"Records": [{"cf": {"request": {"uri": req_uri, "headers": {}}}}]}
 

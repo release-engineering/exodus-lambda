@@ -1,5 +1,6 @@
 # More in depth tests for alias resolution.
 from collections import namedtuple
+
 import pytest
 
 from exodus_lambda.functions.origin_request import OriginRequest
@@ -53,69 +54,101 @@ def test_alias_equal():
     "uri, expected_uri, ignore_exclusions, aliases",
     [
         (
-                "/origin/path/dir/filename.ext",
-                "/origin/path/dir/filename.ext",
-                False,
-                [{"src": "/origin/path", "dest": "/alias",
-                  "exclude_paths": ["/dir/"]}],
+            "/origin/path/dir/filename.ext",
+            "/origin/path/dir/filename.ext",
+            False,
+            [
+                {
+                    "src": "/origin/path",
+                    "dest": "/alias",
+                    "exclude_paths": ["/dir/"],
+                }
+            ],
         ),
         (
-                "/origin/path/dir/filename.ext",
-                "/alias/dir/filename.ext",
-                False,
-                [{"src": "/origin/path", "dest": "/alias",
-                  "exclude_paths": ["/banana/"]}],
+            "/origin/path/dir/filename.ext",
+            "/alias/dir/filename.ext",
+            False,
+            [
+                {
+                    "src": "/origin/path",
+                    "dest": "/alias",
+                    "exclude_paths": ["/banana/"],
+                }
+            ],
         ),
         (
-                "/origin/path/c/dir/filename.ext",
-                "/second/step/c/dir/filename.ext",
-                False,
-                [
-                    {"src": "/origin/path", "dest": "/first/step", "exclude_paths": ["/a/"]},
-                    {"src": "/first", "dest": "/second", "exclude_paths": ["/b/"]},
-                    {"src": "/second", "dest": "/third", "exclude_paths": ["/c/"]}
-                ],
+            "/origin/path/c/dir/filename.ext",
+            "/second/step/c/dir/filename.ext",
+            False,
+            [
+                {
+                    "src": "/origin/path",
+                    "dest": "/first/step",
+                    "exclude_paths": ["/a/"],
+                },
+                {"src": "/first", "dest": "/second", "exclude_paths": ["/b/"]},
+                {"src": "/second", "dest": "/third", "exclude_paths": ["/c/"]},
+            ],
         ),
         (
-                "/origin/path/rhel7/dir/filename.ext",
-                "/aliased/path/rhel7/dir/filename.ext",
-                False,
-                [
-                    {"src": "/origin", "dest": "/aliased",
-                     "exclude_paths": ["/rhel[89]/"]},
-                ],
+            "/origin/path/rhel7/dir/filename.ext",
+            "/aliased/path/rhel7/dir/filename.ext",
+            False,
+            [
+                {
+                    "src": "/origin",
+                    "dest": "/aliased",
+                    "exclude_paths": ["/rhel[89]/"],
+                },
+            ],
         ),
         (
-                "/origin/path/rhel9/dir/filename.ext",
-                "/origin/path/rhel9/dir/filename.ext",
-                False,
-                [
-                    {"src": "/origin", "dest": "/aliased",
-                     "exclude_paths": ["/rhel[89]/"]},
-                ],
+            "/origin/path/rhel9/dir/filename.ext",
+            "/origin/path/rhel9/dir/filename.ext",
+            False,
+            [
+                {
+                    "src": "/origin",
+                    "dest": "/aliased",
+                    "exclude_paths": ["/rhel[89]/"],
+                },
+            ],
         ),
         (
-                "/origin/path/rhel9/dir/filename.ext",
-                "/aliased/path/rhel9/dir/filename.ext",
-                True,
-                [
-                    {"src": "/origin", "dest": "/aliased",
-                     "exclude_paths": ["/rhel9/"]},
-                ],
+            "/origin/path/rhel9/dir/filename.ext",
+            "/aliased/path/rhel9/dir/filename.ext",
+            True,
+            [
+                {
+                    "src": "/origin",
+                    "dest": "/aliased",
+                    "exclude_paths": ["/rhel9/"],
+                },
+            ],
         ),
-(
-                "/origin/path/rhel9/dir/filename.ext",
-                "/aliased/path/rhel9/dir/filename.ext",
-                True,
-                [
-                    {"src": "/origin", "dest": "/aliased",
-                     "exclude_paths": ["/rhel7/"]},
-                ],
+        (
+            "/origin/path/rhel9/dir/filename.ext",
+            "/aliased/path/rhel9/dir/filename.ext",
+            True,
+            [
+                {
+                    "src": "/origin",
+                    "dest": "/aliased",
+                    "exclude_paths": ["/rhel7/"],
+                },
+            ],
         ),
     ],
-    ids=["excluded", "not excluded", "multilevel", "regex not excluded",
-         "regex excluded", "exclusion ignored matching",
-         "exclusion ignored no match"],
+    ids=[
+        "excluded",
+        "not excluded",
+        "multilevel",
+        "regex not excluded",
+        "regex excluded",
+        "exclusion ignored matching",
+        "exclusion ignored no match",
+    ],
 )
 def test_alias_exclusions(uri, expected_uri, ignore_exclusions, aliases):
     """Paths exactly matching an alias can be resolved."""
