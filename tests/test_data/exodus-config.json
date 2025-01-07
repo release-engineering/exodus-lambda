@@ -6,7 +6,8 @@
         },
         {
             "src": "/origin/rpm",
-            "dest": "/origin/rpms"
+            "dest": "/origin/rpms",
+            "exclude_paths": []
         }
     ],
     "rhui_alias": [
@@ -92,19 +93,23 @@
         },
         {
             "src": "/content/els/rhel/rhui",
-            "dest": "/content/els/rhel"
+            "dest": "/content/els/rhel",
+            "exclude_paths": []
         },
         {
             "src": "/content/eus/rhel8/rhui",
-            "dest": "/content/eus/rhel8"
+            "dest": "/content/eus/rhel8",
+            "exclude_paths": []
         },
         {
             "src": "/content/eus/rhel/rhui",
-            "dest": "/content/eus/rhel"
+            "dest": "/content/eus/rhel",
+            "exclude_paths": []
         },
         {
             "src": "/content/rc/rhel/rhui",
-            "dest": "/content/rc/rhel"
+            "dest": "/content/rc/rhel",
+            "exclude_paths": []
         }
     ],
     "releasever_alias": [
@@ -134,27 +139,33 @@
         },
         {
             "src": "/content/dist/rhel/power/7/7Server",
-            "dest": "/content/dist/rhel/power/7/7.9"
+            "dest": "/content/dist/rhel/power/7/7.9",
+            "exclude_paths": []
         },
         {
             "src": "/content/dist/rhel/server/7/7Server",
-            "dest": "/content/dist/rhel/server/7/7.9"
+            "dest": "/content/dist/rhel/server/7/7.9",
+            "exclude_paths": []
         },
         {
             "src": "/content/dist/rhel/system-z/7/7Server",
-            "dest": "/content/dist/rhel/system-z/7/7.9"
+            "dest": "/content/dist/rhel/system-z/7/7.9",
+            "exclude_paths": []
         },
         {
             "src": "/content/dist/rhel/workstation/7/7Workstation",
-            "dest": "/content/dist/rhel/workstation/7/7.9"
+            "dest": "/content/dist/rhel/workstation/7/7.9",
+            "exclude_paths": ["/files/", "/images/", "/iso/"]
         },
         {
             "src": "/content/dist/rhel8/8",
-            "dest": "/content/dist/rhel8/8.5"
+            "dest": "/content/dist/rhel8/8.5",
+            "exclude_paths": ["/files/", "/images/", "/iso/"]
         },
         {
             "src": "/content/dist/rhel9/9",
-            "dest": "/content/dist/rhel9/9.0"
+            "dest": "/content/dist/rhel9/9.0",
+            "exclude_paths": ["/files/", "/images/", "/iso/"]
         }
     ],
     "listing": {

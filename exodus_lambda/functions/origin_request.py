@@ -3,6 +3,7 @@ import functools
 import gzip
 import json
 import os
+import re
 import time
 from base64 import b64decode
 from datetime import datetime, timedelta, timezone
@@ -87,7 +88,7 @@ class OriginRequest(LambdaBase):
 
         return out
 
-    def uri_alias(self, uri, aliases):
+    def uri_alias(self, uri, aliases, ignore_exclusions=False):
         # Resolve every alias between paths within the uri (e.g.
         # allow RHUI paths to be aliased to non-RHUI).
         #
@@ -102,7 +103,15 @@ class OriginRequest(LambdaBase):
             processed = []
 
             for alias in remaining:
-                if uri.startswith(alias["src"] + "/") or uri == alias["src"]:
+                exclusion_match = not ignore_exclusions and any(
+                    [
+                        re.search(exclusion, uri)
+                        for exclusion in alias.get("exclude_paths", [])
+                    ]
+                )
+                if (
+                    uri.startswith(alias["src"] + "/") or uri == alias["src"]
+                ) and not exclusion_match:
                     uri = uri.replace(alias["src"], alias["dest"], 1)
                     processed.append(alias)
 
@@ -117,17 +126,23 @@ class OriginRequest(LambdaBase):
 
         return uri
 
-    def resolve_aliases(self, uri):
+    def resolve_aliases(self, uri, ignore_exclusions=False):
         # aliases relating to origin, e.g. content/origin <=> origin
-        uri = self.uri_alias(uri, self.definitions.get("origin_alias"))
 
+        uri = self.uri_alias(
+            uri, self.definitions.get("origin_alias"), ignore_exclusions
+        )
         # aliases relating to rhui; listing files are a special exemption
         # because they must be allowed to differ for rhui vs non-rhui.
         if not uri.endswith("/listing"):
-            uri = self.uri_alias(uri, self.definitions.get("rhui_alias"))
+            uri = self.uri_alias(
+                uri, self.definitions.get("rhui_alias"), ignore_exclusions
+            )
 
         # aliases relating to releasever; e.g. /content/dist/rhel8/8 <=> /content/dist/rhel8/8.5
-        uri = self.uri_alias(uri, self.definitions.get("releasever_alias"))
+        uri = self.uri_alias(
+            uri, self.definitions.get("releasever_alias"), ignore_exclusions
+        )
 
         self.logger.debug("Resolved request URI: %s", uri)
 
@@ -304,33 +319,8 @@ class OriginRequest(LambdaBase):
             valid = False
         return valid
 
-    def handler(self, event, context):
-        # pylint: disable=unused-argument
-
-        request = event["Records"][0]["cf"]["request"]
-
-        if not self.validate_request(request):
-            return {"status": "400", "statusDescription": "Bad Request"}
-
-        self.logger.debug(
-            "Incoming request value for origin_request",
-            extra={"request": request},
-        )
-
-        request["uri"] = unquote(request["uri"])
-        original_uri = request["uri"]
-
-        if request["uri"].startswith("/_/cookie/"):
-            return self.handle_cookie_request(event)
-
-        uri = self.resolve_aliases(request["uri"])
-
-        listing_response = self.handle_listing_request(uri)
-        if listing_response:
-            self.set_cache_control(uri, listing_response)
-            return listing_response
-
-        table = self.conf["table"]["name"]
+    def handle_file_request(self, request, table, original_uri, uri):
+        # Try find the db entry corresponding to the uri.
 
         # Do not permit clients to explicitly request an index file
         if not uri.endswith("/" + self.index):
@@ -374,7 +364,47 @@ class OriginRequest(LambdaBase):
                         return response
 
                     return out
-        self.logger.info("No item found for URI: %s", uri)
+
+    def handler(self, event, context):
+        # pylint: disable=unused-argument
+        request = event["Records"][0]["cf"]["request"]
+
+        if not self.validate_request(request):
+            return {"status": "400", "statusDescription": "Bad Request"}
+
+        self.logger.debug(
+            "Incoming request value for origin_request",
+            extra={"request": request},
+        )
+
+        request["uri"] = unquote(request["uri"])
+        original_uri = request["uri"]
+
+        if request["uri"].startswith("/_/cookie/"):
+            return self.handle_cookie_request(event)
+
+        preferred_uri = self.resolve_aliases(request["uri"])
+        fallback_uri = self.resolve_aliases(
+            request["uri"], ignore_exclusions=True
+        )
+        uris = [preferred_uri]
+        # Some file keys might take a while to update to reflect URI alias exclusions.
+        # Allowing the original behaviour as a fallback will avoid a flood of 404 errors
+        if preferred_uri != fallback_uri:
+            uris.append(fallback_uri)
+
+        for uri in uris:
+            if listing_response := self.handle_listing_request(uri):
+                self.set_cache_control(uri, listing_response)
+                return listing_response
+
+            table = self.conf["table"]["name"]
+            if out := self.handle_file_request(
+                request, table, original_uri, uri
+            ):
+                return out
+
+            self.logger.info("No item found for URI: %s", uri)
         return {"status": "404", "statusDescription": "Not Found"}
 
 
