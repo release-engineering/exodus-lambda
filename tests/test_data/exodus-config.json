@@ -155,17 +155,17 @@
         {
             "src": "/content/dist/rhel/workstation/7/7Workstation",
             "dest": "/content/dist/rhel/workstation/7/7.9",
-            "exclude_paths": ["/files/", "/images/", "/iso/"]
+            "exclude_paths": ["/files/", "/iso/"]
         },
         {
             "src": "/content/dist/rhel8/8",
             "dest": "/content/dist/rhel8/8.5",
-            "exclude_paths": ["/files/", "/images/", "/iso/"]
+            "exclude_paths": ["/files/", "/iso/"]
         },
         {
             "src": "/content/dist/rhel9/9",
             "dest": "/content/dist/rhel9/9.0",
-            "exclude_paths": ["/files/", "/images/", "/iso/"]
+            "exclude_paths": ["/files/", "/iso/"]
         }
     ],
     "listing": {
