@@ -18,13 +18,13 @@ authlib==1.4.0 \
 bandit==1.8.0 \
     --hash=sha256:b1a61d829c0968aed625381e426aa378904b996529d048f8d908fa28f6b13e38
     # via -r test-requirements.in
-boto3==1.35.92 \
-    --hash=sha256:786930d5f1cd13d03db59ff2abbb2b7ffc173fd66646d5d8bee07f316a5f16ca
+boto3==1.35.97 \
+    --hash=sha256:8e49416216a6e3a62c2a0c44fba4dd2852c85472e7b702516605b1363867d220
     # via
     #   -r /home/runner/work/exodus-lambda/exodus-lambda/requirements.in
     #   -r requirements.in
-botocore==1.35.92 \
-    --hash=sha256:f94ae1e056a675bd67c8af98a6858d06e3927d974d6c712ed6e27bb1d11bee1d
+botocore==1.35.97 \
+    --hash=sha256:fed4f156b1a9b8ece53738f702ba5851b8c6216b4952de326547f349cc494f14
     # via
     #   -r /home/runner/work/exodus-lambda/exodus-lambda/requirements.in
     #   -r requirements.in
@@ -453,8 +453,8 @@ markupsafe==3.0.2 \
     --hash=sha256:f8b3d067f2e40fe93e1ccdd6b2e1d16c43140e76f02fb1319a05cf2b79d99430 \
     --hash=sha256:fcabf5ff6eea076f859677f5f0b6b5c1a51e70a376b0579e0eadef8db48c6b50
     # via jinja2
-marshmallow==3.23.3 \
-    --hash=sha256:20c0f8c613f68bcb45b2a0d3282e2f172575560170bf220d67aafb42717910e4
+marshmallow==3.25.1 \
+    --hash=sha256:ec5d00d873ce473b7f2ffcb7104286a376c354cab0c2fa12f5573dab03e87210
     # via safety
 mccabe==0.7.0 \
     --hash=sha256:6c2d30ab6be0e4a46919781807b4f0d834ebdd6c6e3dca0bda5a15f863427b6e
@@ -644,8 +644,8 @@ pydantic-core==2.23.4 \
     --hash=sha256:f69a8e0b033b747bb3e36a44e7732f0c99f7edd5cea723d45bc0d6e95377ffee \
     --hash=sha256:ff02b6d461a6de369f07ec15e465a88895f3223eb75073ffea56b84d9331f607
     # via pydantic
-pygments==2.19.0 \
-    --hash=sha256:4755e6e64d22161d5b61432c0600c923c5927214e7c956e31c23923c89251a9b
+pygments==2.19.1 \
+    --hash=sha256:9ea1544ad55cecf4b8242fab6dd35a93bbce657034b0611ee383099054ab6d8c
     # via rich
 pylint==3.3.3 \
     --hash=sha256:26e271a2bc8bce0fc23833805a9076dd9b4d5194e2a02164942cb3cdc37b4183
@@ -734,8 +734,8 @@ rich==13.9.4 \
     #   bandit
     #   safety
     #   typer
-ruamel-yaml==0.18.9 \
-    --hash=sha256:c17d2a7ccf7fd2dd4b6d699111c37e94f12277a1db71e847ad7f3d19b8e3e9f4
+ruamel-yaml==0.18.10 \
+    --hash=sha256:30f22513ab2301b3d2b577adc121c6471f28734d3d9728581245f1e76468b4f1
     # via
     #   safety
     #   safety-schemas
