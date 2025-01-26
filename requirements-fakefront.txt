@@ -6,17 +6,17 @@
 #
 --only-binary :all:
 
-boto3==1.36.2 \
-    --hash=sha256:76cfc9a705be46e8d22607efacc8d688c064f923d785a01c00b28e9a96425d1a
+boto3==1.36.6 \
+    --hash=sha256:6d473f0f340d02b4e9ad5b8e68786a09728101a8b950231b89ebdaf72b6dca21
     # via -r /home/runner/work/exodus-lambda/exodus-lambda/requirements.in
-botocore==1.36.2 \
-    --hash=sha256:bc3b7e3b573a48af2bd7116b80fe24f9a335b0b67314dcb2697a327d009abf29
+botocore==1.36.6 \
+    --hash=sha256:f77bbbb03fb420e260174650fb5c0cc142ec20a96967734eed2b0ef24334ef34
     # via
     #   -r /home/runner/work/exodus-lambda/exodus-lambda/requirements.in
     #   boto3
     #   s3transfer
-cachetools==5.5.0 \
-    --hash=sha256:02134e8439cdc2ffb62023ce1debca2944c3f289d66bb17ead3ab3dede74b292
+cachetools==5.5.1 \
+    --hash=sha256:b76651fdc3b24ead3c648bbdeeb940c1b04d365b38b4af66788f9ec4a81d42bb
     # via -r /home/runner/work/exodus-lambda/exodus-lambda/requirements.in
 cdn-definitions==3.3.0 \
     --hash=sha256:e614d54ef65f1873eed2f7292e3b96b8a6eade967cdca1f8fe2fc13eb66cea1a
@@ -340,8 +340,8 @@ requests==2.32.3 \
     # via
     #   -r /home/runner/work/exodus-lambda/exodus-lambda/requirements.in
     #   cdn-definitions
-s3transfer==0.11.1 \
-    --hash=sha256:8fa0aa48177be1f3425176dfe1ab85dcd3d962df603c3dbfc585e6bf857ef0ff
+s3transfer==0.11.2 \
+    --hash=sha256:be6ecb39fadd986ef1701097771f87e4d2f821f27f6071c872143884d2950fbc
     # via boto3
 six==1.17.0 \
     --hash=sha256:4721f391ed90541fddacab5acf947aa0d3dc7d27b2e1e8eda2be8970586c3274
