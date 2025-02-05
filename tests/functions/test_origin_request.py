@@ -1,3 +1,4 @@
+import copy
 import gzip
 import json
 import logging
@@ -988,3 +989,616 @@ def test_fallback_uri(
             ]
         },
     }
+
+
+@pytest.mark.parametrize(
+    "content_exists, mirror_reads",
+    [
+        (
+            False,
+            1,
+        ),
+        (True, 1),
+        (
+            False,
+            0,
+        ),
+        (True, 0),
+    ],
+    ids=[
+        "mirrored reads enabled, content exists",
+        "mirrored reads enabled, content does not exist",
+        "mirrored reads disabled, content exists",
+        "mirrored reads disabled, content does not exist",
+    ],
+)
+@mock.patch("boto3.client")
+@mock.patch("exodus_lambda.functions.origin_request.cachetools")
+@mock.patch("exodus_lambda.functions.origin_request.datetime")
+def test_origin_request_mirrored_reads_dest_alias(
+    mocked_datetime,
+    mocked_cache,
+    mocked_boto3_client,
+    content_exists,
+    mirror_reads,
+    caplog,
+):
+    """Given the releasever alias /content/dist/rhel9/9 => /content/dist/rhel9/9.0,
+    if the client requests /content/dist/rhel9/9.0/x86_64/appstream/os/repodata/abc-primary.xml.gz,
+    exodus-cdn should only lookup that path. Although a /content/dist/rhel9/9 => /content/dist/rhel9/9.0
+    alias exists, no mirroring occurs because this incoming request already uses the destination side of
+    the alias. This behavior is expected regardless if mirrored writes are enabled or disabled.
+    """
+    conf = copy.deepcopy(TEST_CONF)
+    conf["mirror_reads"] = mirror_reads
+
+    # A path which involves the dest side of the releasever alias
+    req_uri = "/content/dist/rhel9/9.0/x86_64/appstream/os/repodata/abc-primary.xml.gz,"
+
+    # The expected queries differ based on whether we expect to find content at the the resolved
+    # alias.
+    if content_exists:
+        mocked_boto3_client().query.side_effect = [
+            {
+                "Items": [
+                    {
+                        "web_uri": {"S": req_uri},
+                        "from_date": {"S": "2020-02-17T00:00:00.000+00:00"},
+                        "object_key": {"S": "e4a3f2sum"},
+                    }
+                ]
+            },
+        ]
+        expected_queried_uris = [req_uri]
+    else:
+        mocked_boto3_client().query.side_effect = [
+            {"Items": []},  # req_uri
+            {"Items": []},  # req_uri autoindex
+        ]
+        expected_queried_uris = [
+            req_uri,
+            f"{req_uri}/.__exodus_autoindex",
+        ]
+
+    mocked_datetime.now().isoformat.return_value = MOCKED_DT
+    mocked_cache.TTLCache.return_value = {"exodus-config": mock_definitions()}
+
+    event = {"Records": [{"cf": {"request": {"uri": req_uri, "headers": {}}}}]}
+
+    with caplog.at_level(logging.DEBUG):
+        request = OriginRequest(
+            conf_file=conf,
+        ).handler(event, context=None)
+
+    assert "Incoming request value for origin_request" in caplog.text
+
+    req_uri_decoded = unquote(req_uri)
+
+    if content_exists:
+        assert f"Item found for URI: {req_uri}" in caplog.text
+        assert request == {
+            "uri": "/e4a3f2sum",
+            "headers": {
+                "exodus-original-uri": [
+                    {"key": "exodus-original-uri", "value": req_uri_decoded}
+                ]
+            },
+            "querystring": urlencode(
+                {"response-content-type": "application/octet-stream"}
+            ),
+        }
+    else:
+        for uri in expected_queried_uris:
+            if not uri.endswith(".__exodus_autoindex"):
+                assert f"No item found for URI: {uri}" in caplog.text
+        assert request == {
+            "status": "404",
+            "statusDescription": "Not Found",
+        }
+
+    expected_boto_calls = [
+        mock.call(
+            TableName="test-table",
+            Limit=1,
+            ConsistentRead=True,
+            ScanIndexForward=False,
+            KeyConditionExpression="web_uri = :u and from_date <= :d",
+            ExpressionAttributeValues={
+                ":u": {"S": uri},
+                ":d": {"S": "2020-02-17T15:38:05.864+00:00"},
+            },
+        )
+        for uri in expected_queried_uris
+    ]
+    mocked_boto3_client().query.assert_has_calls(expected_boto_calls)
+
+
+@pytest.mark.parametrize(
+    "boto_side_effect, expected_queried_uris, found_uri, mirror_reads",
+    [
+        (
+            [
+                {"Items": []},  # resolved alias
+                {"Items": []},  # autoindex
+                {
+                    "Items": [
+                        {
+                            "web_uri": {
+                                "S": "/content/dist/rhel9/9/x86_64/appstream/os/repodata/abc-comps.xml"
+                            },
+                            "from_date": {
+                                "S": "2020-02-17T00:00:00.000+00:00"
+                            },
+                            "object_key": {"S": "e4a3f2sum"},
+                        }
+                    ]
+                },
+            ],
+            [
+                "/content/dist/rhel9/9.0/x86_64/appstream/os/repodata/abc-comps.xml",
+                "/content/dist/rhel9/9.0/x86_64/appstream/os/repodata/abc-comps.xml/.__exodus_autoindex",
+                "/content/dist/rhel9/9/x86_64/appstream/os/repodata/abc-comps.xml",
+            ],
+            "/content/dist/rhel9/9/x86_64/appstream/os/repodata/abc-comps.xml",
+            "true",
+        ),
+        (
+            [
+                {
+                    "Items": [
+                        {
+                            "web_uri": {
+                                "S": "/content/dist/rhel9/9.0/x86_64/appstream/os/repodata/abc-comps.xml"
+                            },
+                            "from_date": {
+                                "S": "2020-02-17T00:00:00.000+00:00"
+                            },
+                            "object_key": {"S": "e4a3f2sum"},
+                        }
+                    ]
+                },
+            ],
+            [
+                "/content/dist/rhel9/9.0/x86_64/appstream/os/repodata/abc-comps.xml",
+            ],
+            "/content/dist/rhel9/9.0/x86_64/appstream/os/repodata/abc-comps.xml",
+            "true",
+        ),
+        (
+            [
+                {"Items": []},  # resolved alias
+                {"Items": []},  # resolved alias autoindex
+                {"Items": []},  # original uri
+                {"Items": []},  # original uri autoindex
+            ],
+            [
+                "/content/dist/rhel9/9.0/x86_64/appstream/os/repodata/abc-comps.xml",
+                "/content/dist/rhel9/9.0/x86_64/appstream/os/repodata/abc-comps.xml/.__exodus_autoindex",
+                "/content/dist/rhel9/9/x86_64/appstream/os/repodata/abc-comps.xml",
+                "/content/dist/rhel9/9/x86_64/appstream/os/repodata/abc-comps.xml/.__exodus_autoindex",
+            ],
+            "",
+            "true",
+        ),
+        (
+            [
+                {
+                    "Items": [
+                        {
+                            "web_uri": {
+                                "S": "/content/dist/rhel9/9.0/x86_64/appstream/os/repodata/abc-comps.xml"
+                            },
+                            "from_date": {
+                                "S": "2020-02-17T00:00:00.000+00:00"
+                            },
+                            "object_key": {"S": "e4a3f2sum"},
+                        }
+                    ]
+                },
+            ],
+            [
+                "/content/dist/rhel9/9.0/x86_64/appstream/os/repodata/abc-comps.xml",
+            ],
+            "/content/dist/rhel9/9.0/x86_64/appstream/os/repodata/abc-comps.xml",
+            "false",
+        ),
+        (
+            [
+                {"Items": []},  # resolved alias
+                {"Items": []},  # resolved alias autoindex
+            ],
+            [
+                "/content/dist/rhel9/9.0/x86_64/appstream/os/repodata/abc-comps.xml",
+                "/content/dist/rhel9/9.0/x86_64/appstream/os/repodata/abc-comps.xml/.__exodus_autoindex",
+            ],
+            "",
+            "false",
+        ),
+    ],
+    ids=[
+        "mirrored reads enabled, content at resolved alias does not exist, but content at original uri exists",
+        "mirrored reads enabled, content at resolved alias exists",
+        "mirrored reads enabled, neither content at resolved alias nor original uri exists",
+        "mirrored reads disabled, content at resolved alias exists",
+        "mirrored reads disabled, content at resolved alias does not exist",
+    ],
+)
+@mock.patch("boto3.client")
+@mock.patch("exodus_lambda.functions.origin_request.cachetools")
+@mock.patch("exodus_lambda.functions.origin_request.datetime")
+def test_origin_request_mirrored_reads_enabled_src_alias(
+    mocked_datetime,
+    mocked_cache,
+    mocked_boto3_client,
+    boto_side_effect,
+    expected_queried_uris,
+    found_uri,
+    mirror_reads,
+    caplog,
+):
+    """Given the releasever alias /content/dist/rhel9/9 => /content/dist/rhel9/9.0,
+    if the client requests /content/dist/rhel9/9/x86_64/appstream/os/repodata/abc-comps.xml,
+    exodus-cdn should first lookup content for the path with the alias resolved
+    (/content/dist/rhel9/9.0/x86_64/appstream/os/repodata/abc-comps.xml), and only if that lookup
+    finds no item, exodus-cdn looks up content for the path with the alias not resolved,
+    /content/dist/rhel9/9/x86_64/appstream/os/repodata/abc-comps.xml.
+
+    When mirrored reads are disabled, exodus-cdn only performs the first lookup (i.e.,
+    exodus-cdn will only look up content for the path with the alias resolved,
+    /content/dist/rhel9/9.0/x86_64/appstream/os/repodata/abc-comps.xml)."""
+    # The requested uri, which involves the src side of a releasever alias
+    req_uri = (
+        "/content/dist/rhel9/9/x86_64/appstream/os/repodata/abc-comps.xml"
+    )
+
+    conf = copy.deepcopy(TEST_CONF)
+    conf["mirror_reads"] = mirror_reads
+
+    mocked_datetime.now().isoformat.return_value = MOCKED_DT
+    mocked_cache.TTLCache.return_value = {"exodus-config": mock_definitions()}
+    mocked_boto3_client().query.side_effect = boto_side_effect
+
+    event = {"Records": [{"cf": {"request": {"uri": req_uri, "headers": {}}}}]}
+
+    with caplog.at_level(logging.DEBUG):
+        request = OriginRequest(
+            conf_file=conf,
+        ).handler(event, context=None)
+
+    assert "Incoming request value for origin_request" in caplog.text
+
+    req_uri_decoded = unquote(req_uri)
+
+    if found_uri:
+        assert f"Item found for URI: {found_uri}" in caplog.text
+        assert request == {
+            "uri": "/e4a3f2sum",
+            "headers": {
+                "exodus-original-uri": [
+                    {"key": "exodus-original-uri", "value": req_uri_decoded}
+                ]
+            },
+            "querystring": urlencode(
+                {"response-content-type": "application/octet-stream"}
+            ),
+        }
+    else:
+        for uri in expected_queried_uris:
+            if not uri.endswith(".__exodus_autoindex"):
+                assert f"No item found for URI: {uri}" in caplog.text
+        assert request == {
+            "status": "404",
+            "statusDescription": "Not Found",
+        }
+
+    expected_boto_calls = [
+        mock.call(
+            TableName="test-table",
+            Limit=1,
+            ConsistentRead=True,
+            ScanIndexForward=False,
+            KeyConditionExpression="web_uri = :u and from_date <= :d",
+            ExpressionAttributeValues={
+                ":u": {"S": uri},
+                ":d": {"S": "2020-02-17T15:38:05.864+00:00"},
+            },
+        )
+        for uri in expected_queried_uris
+    ]
+    mocked_boto3_client().query.assert_has_calls(expected_boto_calls)
+
+
+@pytest.mark.parametrize(
+    "boto_side_effect, expected_queried_uris, found_uri, mirror_reads",
+    [
+        (
+            [
+                {"Items": []},  # resolved alias
+                {"Items": []},  # autoindex
+                {
+                    "Items": [
+                        {
+                            "web_uri": {
+                                "S": "/content/dist/rhel9/9/x86_64/appstream/os/repodata/abc-comps.xml"
+                            },
+                            "from_date": {
+                                "S": "2020-02-17T00:00:00.000+00:00"
+                            },
+                            "object_key": {"S": "e4a3f2sum"},
+                        }
+                    ]
+                },
+            ],
+            [
+                "/content/dist/rhel9/9.0/x86_64/appstream/os/repodata/abc-comps.xml",
+                "/content/dist/rhel9/9.0/x86_64/appstream/os/repodata/abc-comps.xml/.__exodus_autoindex",
+                "/content/dist/rhel9/9/x86_64/appstream/os/repodata/abc-comps.xml",
+            ],
+            "/content/dist/rhel9/9/x86_64/appstream/os/repodata/abc-comps.xml",
+            "true",
+        ),
+        (
+            [
+                {
+                    "Items": [
+                        {
+                            "web_uri": {
+                                "S": "/content/dist/rhel9/9.0/x86_64/appstream/os/repodata/abc-comps.xml"
+                            },
+                            "from_date": {
+                                "S": "2020-02-17T00:00:00.000+00:00"
+                            },
+                            "object_key": {"S": "e4a3f2sum"},
+                        }
+                    ]
+                },
+            ],
+            [
+                "/content/dist/rhel9/9.0/x86_64/appstream/os/repodata/abc-comps.xml",
+            ],
+            "/content/dist/rhel9/9.0/x86_64/appstream/os/repodata/abc-comps.xml",
+            "true",
+        ),
+        (
+            [
+                {"Items": []},  # resolved alias
+                {"Items": []},  # autoindex
+                {"Items": []},  # original uri
+                {"Items": []},  # original uri autoindex
+            ],
+            [
+                "/content/dist/rhel9/9.0/x86_64/appstream/os/repodata/abc-comps.xml",
+                "/content/dist/rhel9/9.0/x86_64/appstream/os/repodata/abc-comps.xml/.__exodus_autoindex",
+                "/content/dist/rhel9/9/x86_64/appstream/os/repodata/abc-comps.xml",
+                "/content/dist/rhel9/9/x86_64/appstream/os/repodata/abc-comps.xml/.__exodus_autoindex",
+            ],
+            "",
+            "true",
+        ),
+        (
+            [
+                {
+                    "Items": [
+                        {
+                            "web_uri": {
+                                "S": "/content/dist/rhel9/9.0/x86_64/appstream/os/repodata/abc-comps.xml"
+                            },
+                            "from_date": {
+                                "S": "2020-02-17T00:00:00.000+00:00"
+                            },
+                            "object_key": {"S": "e4a3f2sum"},
+                        }
+                    ]
+                },
+            ],
+            [
+                "/content/dist/rhel9/9.0/x86_64/appstream/os/repodata/abc-comps.xml",
+            ],
+            "/content/dist/rhel9/9.0/x86_64/appstream/os/repodata/abc-comps.xml",
+            "false",
+        ),
+        (
+            [
+                {"Items": []},  # resolved alias
+                {"Items": []},  # autoindex
+            ],
+            [
+                "/content/dist/rhel9/9.0/x86_64/appstream/os/repodata/abc-comps.xml",
+                "/content/dist/rhel9/9.0/x86_64/appstream/os/repodata/abc-comps.xml/.__exodus_autoindex",
+            ],
+            "",
+            "false",
+        ),
+    ],
+    ids=[
+        "mirrored reads enabled, content exists at original URI but not at resolved alias",
+        "mirrored reads enabled, content exists at resolved alias",
+        "mirrored reads enabled, no content found at URI",
+        "mirrored reads disabled, content exists at resolved alias",
+        "mirrored reads disabled, no content found at URI",
+    ],
+)
+@mock.patch("boto3.client")
+@mock.patch("exodus_lambda.functions.origin_request.cachetools")
+@mock.patch("exodus_lambda.functions.origin_request.datetime")
+def test_origin_request_mirrored_reads_enabled_rhui_alias(
+    mocked_datetime,
+    mocked_cache,
+    mocked_boto3_client,
+    boto_side_effect,
+    expected_queried_uris,
+    found_uri,
+    mirror_reads,
+    caplog,
+):
+    """Given the releasever alias /content/dist/rhel9/9 => /content/dist/rhel9/9.0,
+    and the RHUI alias /content/dist/rhel9/rhui => /content/dist/rhel9,
+    if the client requests /content/dist/rhel9/rhui/9/x86_64/appstream/os/repodata/abc-comps.xml,
+    exodus-cdn should first lookup content for the path with the rhui alias resolved and the releasever
+    alias resolved (/content/dist/rhel9/9.0/x86_64/appstream/os/repodata/abc-comps.xml); if and only if
+    that lookup finds no item, exodus-cdn looks up content for the path with the rhui alias resolved but the
+    releasever alias not resolved, /content/dist/rhel9/9/x86_64/appstream/os/repodata/abc-comps.xml.
+
+    When mirrored reads are disabled, exodus-cdn only performs the first lookup (i.e., exodus-cdn
+    only looks up content for the path with the rhui and releasever aliases resolved:
+    /content/dist/rhel9/9.0/x86_64/appstream/os/repodata/abc-comps.xml).
+    """
+    # The requested uri, which involves a RHUI and releasever alias
+    req_uri = (
+        "/content/dist/rhel9/rhui/9/x86_64/appstream/os/repodata/abc-comps.xml"
+    )
+
+    conf = copy.deepcopy(TEST_CONF)
+    conf["mirror_reads"] = mirror_reads
+
+    mocked_datetime.now().isoformat.return_value = MOCKED_DT
+    mocked_cache.TTLCache.return_value = {"exodus-config": mock_definitions()}
+    mocked_boto3_client().query.side_effect = boto_side_effect
+
+    event = {"Records": [{"cf": {"request": {"uri": req_uri, "headers": {}}}}]}
+
+    with caplog.at_level(logging.DEBUG):
+        request = OriginRequest(
+            conf_file=conf,
+        ).handler(event, context=None)
+
+    assert "Incoming request value for origin_request" in caplog.text
+
+    req_uri_decoded = unquote(req_uri)
+
+    if found_uri:
+        assert f"Item found for URI: {found_uri}" in caplog.text
+        assert request == {
+            "uri": "/e4a3f2sum",
+            "headers": {
+                "exodus-original-uri": [
+                    {"key": "exodus-original-uri", "value": req_uri_decoded}
+                ]
+            },
+            "querystring": urlencode(
+                {"response-content-type": "application/octet-stream"}
+            ),
+        }
+    else:
+        for uri in expected_queried_uris:
+            if not uri.endswith(".__exodus_autoindex"):
+                assert f"No item found for URI: {uri}" in caplog.text
+        assert request == {
+            "status": "404",
+            "statusDescription": "Not Found",
+        }
+
+    expected_boto_calls = [
+        mock.call(
+            TableName="test-table",
+            Limit=1,
+            ConsistentRead=True,
+            ScanIndexForward=False,
+            KeyConditionExpression="web_uri = :u and from_date <= :d",
+            ExpressionAttributeValues={
+                ":u": {"S": uri},
+                ":d": {"S": "2020-02-17T15:38:05.864+00:00"},
+            },
+        )
+        for uri in expected_queried_uris
+    ]
+    mocked_boto3_client().query.assert_has_calls(expected_boto_calls)
+
+
+@pytest.mark.parametrize(
+    "mirror_reads, content_exists",
+    [
+        ("True", False),
+        ("False", False),
+        ("True", True),
+        ("False", True),
+    ],
+    ids=[
+        "mirrored reads enabled, content does not exist at URI",
+        "mirrored reads disabled, content does not exist at URI",
+        "mirrored reads enabled, content exists at URI",
+        "mirrored reads disabled, content exists at URI",
+    ],
+)
+@mock.patch("boto3.client")
+@mock.patch("exodus_lambda.functions.origin_request.cachetools")
+@mock.patch("exodus_lambda.functions.origin_request.datetime")
+def test_origin_request_mirrored_reads_no_alias(
+    mocked_datetime,
+    mocked_cache,
+    mocked_boto3_client,
+    mirror_reads,
+    content_exists,
+    caplog,
+):
+    """If there is not a releasever alias involved, exodus-cdn should only look up the
+    requested path (regardless if mirrored writes is enabled or disabled)."""
+    conf = copy.deepcopy(TEST_CONF)
+    conf["mirror_reads"] = mirror_reads
+
+    # A path which does not involve a releasever alias
+    req_uri = "/content/eus/rhel8/8.4/x86_64/baseos/os/repodata/repomd.xml"
+
+    mocked_datetime.now().isoformat.return_value = MOCKED_DT
+    mocked_cache.TTLCache.return_value = {"exodus-config": mock_definitions()}
+    if content_exists:
+        mocked_boto3_client().query.side_effect = [
+            {
+                "Items": [
+                    {
+                        "web_uri": {"S": req_uri},
+                        "from_date": {"S": "2020-02-17T00:00:00.000+00:00"},
+                        "object_key": {"S": "e4a3f2sum"},
+                    }
+                ]
+            },
+        ]
+    else:
+        mocked_boto3_client().query.side_effect = [
+            {"Items": []},  # req_uri
+            {"Items": []},  # req_uri autoindex
+        ]
+
+    event = {"Records": [{"cf": {"request": {"uri": req_uri, "headers": {}}}}]}
+
+    with caplog.at_level(logging.DEBUG):
+        request = OriginRequest(
+            conf_file=conf,
+        ).handler(event, context=None)
+
+    assert "Incoming request value for origin_request" in caplog.text
+
+    if content_exists:
+        assert f"Item found for URI: {req_uri}" in caplog.text
+        assert request == {
+            "uri": "/e4a3f2sum",
+            "headers": {
+                "exodus-original-uri": [
+                    {"key": "exodus-original-uri", "value": req_uri}
+                ]
+            },
+            "querystring": urlencode(
+                {"response-content-type": "application/octet-stream"}
+            ),
+        }
+    else:
+        assert f"No item found for URI: {req_uri}" in caplog.text
+        assert request == {
+            "status": "404",
+            "statusDescription": "Not Found",
+        }
+
+    expected_boto_calls = [
+        mock.call(
+            TableName="test-table",
+            Limit=1,
+            ConsistentRead=True,
+            ScanIndexForward=False,
+            KeyConditionExpression="web_uri = :u and from_date <= :d",
+            ExpressionAttributeValues={
+                ":u": {"S": req_uri},
+                ":d": {"S": "2020-02-17T15:38:05.864+00:00"},
+            },
+        )
+    ]
+    mocked_boto3_client().query.assert_has_calls(expected_boto_calls)
