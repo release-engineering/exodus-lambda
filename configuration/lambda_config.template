@@ -17,6 +17,7 @@
   "headers": {
     "max_age": $EXODUS_HEADERS_MAX_AGE
   },
+  "mirror_reads": "$EXODUS_MIRROR_READS",
   "lambda_version": "$EXODUS_LAMBDA_VERSION",
   "index_filename": "$EXODUS_INDEX_FILENAME",
   "logging": {
