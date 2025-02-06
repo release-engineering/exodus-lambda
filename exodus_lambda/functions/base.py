@@ -59,6 +59,15 @@ class LambdaBase(object):
     def index(self):
         return self.conf["index_filename"]
 
+    @property
+    def mirror_reads(self):
+        if str(self.conf.get("mirror_reads", "true")).lower() in (
+            "0",
+            "false",
+        ):
+            return False
+        return True
+
     def set_lambda_version(self, response):
         response.setdefault("headers", {})["x-exodus-version"] = [
             {"key": "X-Exodus-Version", "value": self.lambda_version}

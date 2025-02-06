@@ -126,12 +126,14 @@ class OriginRequest(LambdaBase):
 
         return uri
 
-    def resolve_aliases(self, uri, ignore_exclusions=False):
+    def resolve_aliases(
+        self, uri, ignore_exclusions=False, ignore_releasever=False
+    ):
         # aliases relating to origin, e.g. content/origin <=> origin
-
         uri = self.uri_alias(
             uri, self.definitions.get("origin_alias"), ignore_exclusions
         )
+
         # aliases relating to rhui; listing files are a special exemption
         # because they must be allowed to differ for rhui vs non-rhui.
         if not uri.endswith("/listing"):
@@ -140,9 +142,12 @@ class OriginRequest(LambdaBase):
             )
 
         # aliases relating to releasever; e.g. /content/dist/rhel8/8 <=> /content/dist/rhel8/8.5
-        uri = self.uri_alias(
-            uri, self.definitions.get("releasever_alias"), ignore_exclusions
-        )
+        if not ignore_releasever:
+            uri = self.uri_alias(
+                uri,
+                self.definitions.get("releasever_alias"),
+                ignore_exclusions,
+            )
 
         self.logger.debug("Resolved request URI: %s", uri)
 
@@ -392,6 +397,23 @@ class OriginRequest(LambdaBase):
         # Allowing the original behaviour as a fallback will avoid a flood of 404 errors
         if preferred_uri != fallback_uri:
             uris.append(fallback_uri)
+
+        # When exodus-cdn is looking up content to be served for a path having a
+        # $releasever alias in effect, it should attempt to look up content on
+        # both sides of the alias.
+        if self.mirror_reads:
+            # Attempt to look up content on the other side of the alias (the original
+            # path.)
+            # Note: Only the releasever alias is left unresolved. Other alias types
+            # (rhui and origin aliases) are resolved.
+            for ignore_exclusions in (False, True):
+                mirrored_uri = self.resolve_aliases(
+                    request["uri"],
+                    ignore_exclusions=ignore_exclusions,
+                    ignore_releasever=True,
+                )
+                if mirrored_uri not in uris:
+                    uris.append(mirrored_uri)
 
         for uri in uris:
             if listing_response := self.handle_listing_request(uri):
