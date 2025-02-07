@@ -12,26 +12,26 @@ annotated-types==0.7.0 \
 astroid==3.3.8 \
     --hash=sha256:187ccc0c248bfbba564826c26f070494f7bc964fd286b6d9fff4420e55de828c
     # via pylint
-authlib==1.4.0 \
-    --hash=sha256:4bb20b978c8b636222b549317c1815e1fe62234fc1c5efe8855d84aebf3a74e3
+authlib==1.4.1 \
+    --hash=sha256:edc29c3f6a3e72cd9e9f45fff67fc663a2c364022eb0371c003f22d5405915c1
     # via safety
 bandit==1.8.2 \
     --hash=sha256:df6146ad73dd30e8cbda4e29689ddda48364e36ff655dbfc86998401fcf1721f
     # via -r test-requirements.in
-boto3==1.36.2 \
-    --hash=sha256:76cfc9a705be46e8d22607efacc8d688c064f923d785a01c00b28e9a96425d1a
+boto3==1.36.11 \
+    --hash=sha256:641dd772eac111d9443258f0f5491c57c2af47bddae94a8d32de19edb5bf7b1c
     # via
     #   -r /home/runner/work/exodus-lambda/exodus-lambda/requirements.in
     #   -r requirements.in
-botocore==1.36.2 \
-    --hash=sha256:bc3b7e3b573a48af2bd7116b80fe24f9a335b0b67314dcb2697a327d009abf29
+botocore==1.36.11 \
+    --hash=sha256:82c5660027f696608d0e55feb08c146c11c7ebeba7615961c7765dcf6009a00d
     # via
     #   -r /home/runner/work/exodus-lambda/exodus-lambda/requirements.in
     #   -r requirements.in
     #   boto3
     #   s3transfer
-cachetools==5.5.0 \
-    --hash=sha256:02134e8439cdc2ffb62023ce1debca2944c3f289d66bb17ead3ab3dede74b292
+cachetools==5.5.1 \
+    --hash=sha256:b76651fdc3b24ead3c648bbdeeb940c1b04d365b38b4af66788f9ec4a81d42bb
     # via
     #   -r /home/runner/work/exodus-lambda/exodus-lambda/requirements.in
     #   -r requirements.in
@@ -40,8 +40,8 @@ cdn-definitions==3.3.0 \
     # via
     #   -r /home/runner/work/exodus-lambda/exodus-lambda/requirements.in
     #   -r requirements.in
-certifi==2024.12.14 \
-    --hash=sha256:1275f7a45be9464efc1173084eaa30f866fe2e47d389406136d332ed4967ec56
+certifi==2025.1.31 \
+    --hash=sha256:ca78db4565a652026a4db2bcdf68f2fb589ea80d0be70e03929ed730746b84fe
     # via requests
 cffi==1.17.1 \
     --hash=sha256:045d61c734659cc045141be4bae381a41d89b741f795af1dd018bfb532fd0df8 \
@@ -371,14 +371,14 @@ gunicorn==23.0.0 \
 idna==3.10 \
     --hash=sha256:946d195a0d259cbba61165e88e65941f16e9b36ea6ddb97f00452bae8b1287d3
     # via requests
-importlib-metadata==8.5.0 \
-    --hash=sha256:45e54197d28b7a7f1559e60b95e7c567032b602131fbd588f1497f47880aa68b
+importlib-metadata==8.6.1 \
+    --hash=sha256:02a89390c1e15fdfdc0d7c6b25cb3e62650d0494005c97d6f148bf5b9787525e
     # via -r test-requirements.in
 iniconfig==2.0.0 \
     --hash=sha256:b6a85871a79d2e3b22d2d1b94ac2824226a63c6b741c88f7ae975f18b6778374
     # via pytest
-isort==5.13.2 \
-    --hash=sha256:8ca5e72a8d85860d5a3fa69b8745237f2939afe12dbf656afbcb47fe72d947a6
+isort==6.0.0 \
+    --hash=sha256:567954102bb47bb12e0fae62606570faacddd441e45683968c8d1734fb1af892
     # via pylint
 jinja2==3.1.5 \
     --hash=sha256:aba0f4dc9ed8013c424088f68a5c226f7d6097ed89b246d7749c2ec4175c6adb
@@ -453,8 +453,8 @@ markupsafe==3.0.2 \
     --hash=sha256:f8b3d067f2e40fe93e1ccdd6b2e1d16c43140e76f02fb1319a05cf2b79d99430 \
     --hash=sha256:fcabf5ff6eea076f859677f5f0b6b5c1a51e70a376b0579e0eadef8db48c6b50
     # via jinja2
-marshmallow==3.25.1 \
-    --hash=sha256:ec5d00d873ce473b7f2ffcb7104286a376c354cab0c2fa12f5573dab03e87210
+marshmallow==3.26.0 \
+    --hash=sha256:1287bca04e6a5f4094822ac153c03da5e214a0a60bcd557b140f3e66991b8ca1
     # via safety
 mccabe==0.7.0 \
     --hash=sha256:6c2d30ab6be0e4a46919781807b4f0d834ebdd6c6e3dca0bda5a15f863427b6e
@@ -647,8 +647,8 @@ pydantic-core==2.23.4 \
 pygments==2.19.1 \
     --hash=sha256:9ea1544ad55cecf4b8242fab6dd35a93bbce657034b0611ee383099054ab6d8c
     # via rich
-pylint==3.3.3 \
-    --hash=sha256:26e271a2bc8bce0fc23833805a9076dd9b4d5194e2a02164942cb3cdc37b4183
+pylint==3.3.4 \
+    --hash=sha256:289e6a1eb27b453b08436478391a48cd53bb0efb824873f949e709350f3de018
     # via -r test-requirements.in
 pytest==8.3.4 \
     --hash=sha256:50e16d954148559c9a74109af1eaf0c945ba2d8f30f0a3d3335edde19788b6f6
@@ -786,8 +786,8 @@ ruamel-yaml-clib==0.2.12 \
     --hash=sha256:fc4b630cd3fa2cf7fce38afa91d7cfe844a9f75d7f0f36393fa98815e911d987 \
     --hash=sha256:fd5415dded15c3822597455bc02bcd66e81ef8b7a48cb71a33628fc9fdde39df
     # via ruamel-yaml
-s3transfer==0.11.1 \
-    --hash=sha256:8fa0aa48177be1f3425176dfe1ab85dcd3d962df603c3dbfc585e6bf857ef0ff
+s3transfer==0.11.2 \
+    --hash=sha256:be6ecb39fadd986ef1701097771f87e4d2f821f27f6071c872143884d2950fbc
     # via boto3
 safety==3.2.14 \
     --hash=sha256:23ceeb06038ff65607c7f1311bffa3e92b029148b367b360ad8287d9f3395194
