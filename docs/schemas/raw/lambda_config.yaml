@@ -39,6 +39,18 @@ properties:
     maximum: 10000
     minimum: 0
 
+  mirror_reads:
+    type: string
+    description: >-
+      Whether to enable (true) or disable (false) the mirrored reads feature. When
+      exodus-cdn looks up content to be served for a path having a $releasever alias
+      in effect, if mirror_reads is enabled (true), the exodus-cdn will attempt to
+      look up content on both sides of the alias; if mirror_reads is disabled (false),
+      the exodus-cdn will only attempt to look up content on the destination side of the
+      alias.
+    maxLength: 5
+    minLength: 1
+
   headers:
     type: object
     properties:
