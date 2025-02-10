@@ -133,3 +133,34 @@ def test_json_logger_configurable_datefmt(caplog):
             "response": None,
         },
     ]
+
+
+@pytest.mark.parametrize(
+    "config_value,enabled",
+    [
+        ("", True),
+        ("True", True),
+        ("true", True),
+        (1, True),
+        ("1", True),
+        ("false", False),
+        ("0", False),
+        (0, False),
+    ],
+    ids=[
+        "empty string, unset",
+        "mixed case true",
+        "lowercase true",
+        "int 1",
+        "string 1",
+        "false string",
+        "string 0",
+        "int 0",
+    ],
+)
+def test_mirrored_reads(config_value, enabled):
+    """Verify that the mirror_reads config value produces the expected
+    mirror_reads property."""
+    conf = copy.deepcopy(TEST_CONF)
+    conf["mirror_reads"] = config_value
+    assert LambdaBase(conf_file=conf).mirror_reads == enabled
