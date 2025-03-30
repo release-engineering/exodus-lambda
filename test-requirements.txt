@@ -18,13 +18,13 @@ authlib==1.5.1 \
 bandit==1.8.3 \
     --hash=sha256:28f04dc0d258e1dd0f99dee8eefa13d1cb5e3fde1a5ab0c523971f97b289bcd8
     # via -r test-requirements.in
-boto3==1.37.18 \
-    --hash=sha256:1545c943f36db41853cdfdb6ff09c4eda9220dd95bd2fae76fc73091603525d1
+boto3==1.37.23 \
+    --hash=sha256:fc462b9fd738bd8a1c121d94d237c6b6a05a2c1cc709d16f5223acb752f7310b
     # via
     #   -r /home/runner/work/exodus-lambda/exodus-lambda/requirements.in
     #   -r requirements.in
-botocore==1.37.18 \
-    --hash=sha256:a8b97d217d82b3c4f6bcc906e264df7ebb51e2c6a62b3548a97cd173fb8759a1
+botocore==1.37.23 \
+    --hash=sha256:ffbe1f5958adb1c50d72d3ad1018cb265fe349248c08782d334601c0814f0e38
     # via
     #   -r /home/runner/work/exodus-lambda/exodus-lambda/requirements.in
     #   -r requirements.in
@@ -833,8 +833,8 @@ requests==2.32.3 \
     #   -r requirements.in
     #   cdn-definitions
     #   safety
-rich==13.9.4 \
-    --hash=sha256:6049d5e6ec054bf2779ab3358186963bac2ea89175919d699e378b99738c2a90
+rich==14.0.0 \
+    --hash=sha256:1c9491e1951aac09caffd42f448ee3d04e58923ffe14993f6e83068dc395d7e0
     # via
     #   bandit
     #   typer
@@ -917,8 +917,8 @@ tqdm==4.67.1 \
 typer==0.15.2 \
     --hash=sha256:46a499c6107d645a9c13f7ee46c5d5096cae6f5fc57dd11eccbbb9ae3e44ddfc
     # via safety
-typing-extensions==4.12.2 \
-    --hash=sha256:04e5ca0351e0f3f85c6853954072df659d0d13fac324d0072316b67d7794700d
+typing-extensions==4.13.0 \
+    --hash=sha256:c8dd92cc0d6425a97c18fbb9d1954e5ff92c1ca881a309c45f06ebc0b79058e5
     # via
     #   mypy
     #   pydantic
