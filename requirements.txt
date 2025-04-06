@@ -6,11 +6,11 @@
 #
 --only-binary :all:
 
-boto3==1.37.23 \
-    --hash=sha256:fc462b9fd738bd8a1c121d94d237c6b6a05a2c1cc709d16f5223acb752f7310b
+boto3==1.37.28 \
+    --hash=sha256:e584d9d33808633e73af3d962e22cf2cea91a38bc5a17577bb25618f8ded504f
     # via -r requirements.in
-botocore==1.37.23 \
-    --hash=sha256:ffbe1f5958adb1c50d72d3ad1018cb265fe349248c08782d334601c0814f0e38
+botocore==1.37.28 \
+    --hash=sha256:c26b645d7b125bf42ffc1671b862b47500ee658e3a1c95d2438cb689fc85df15
     # via
     #   -r requirements.in
     #   boto3
