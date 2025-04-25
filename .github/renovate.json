@@ -1,9 +1,13 @@
 {
-  "enabled": true,
   "enabledManagers": ["dockerfile", "github-actions"],
   "dockerfile": {
     "fileMatch": [".*Containerfile$"]
   },
-  "automerge": true,
-  "stabilityDays": 3
+  "minimumReleaseAge": "3 days",
+  "packageRules": [
+    {
+      "matchDepTypes": ["uses-with"],
+      "enabled": false
+    }
+  ]
 }
