@@ -1,12 +1,20 @@
-FROM registry.access.redhat.com/ubi8/ubi-minimal@sha256:b2a1bec3dfbc7a14a1d84d98934dfe8fdde6eb822a211286601cf109cbccb075
+FROM registry.access.redhat.com/ubi9/ubi-minimal@sha256:e1c4703364c5cb58f5462575dc90345bcd934ddc45e6c32f9c162f2b5617681c
 
 COPY . /usr/local/src/exodus-lambda
 
 RUN \
-    microdnf -y install shadow-utils python39 /usr/bin/openssl /usr/bin/envsubst \
+    # Install shadow-utils for adduser functionality
+    microdnf -y install shadow-utils \
+    # Install extra commands needed for build
+    && microdnf -y install python3.11 python3.11-devel python3.11-pip gcc make \
+    && microdnf -y install /usr/bin/openssl /usr/bin/envsubst \
+    # Ensure packages are up-to-date
+    && microdnf -y update \
+    # Install application itself
     && cd /usr/local/src/exodus-lambda \
-    && pip3 install --require-hashes -r requirements-fakefront.txt \
-    && pip3 install --editable . \
+    && pip3.11 install --require-hashes -r requirements-fakefront.txt \
+    && pip3.11 install --editable . \
+    # Clean up unnecessary data
     && microdnf clean all && rm -rf /var/cache/yum
 
 RUN adduser fakefront
