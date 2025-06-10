@@ -4,8 +4,6 @@
 #
 #    pip-compile --generate-hashes --pip-args='--platform "manylinux2014_x86_64" --only-binary=":all:" --python-version="3.11" --implementation cp' requirements.in
 #
---only-binary :all:
-
 boto3==1.38.2 \
     --hash=sha256:ef3237b169cd906a44a32c03b3229833d923c9e9733355b329ded2151f91ec0b
     # via -r requirements.in
@@ -337,8 +335,9 @@ pyyaml==6.0.2 \
     # via
     #   -r requirements.in
     #   cdn-definitions
-requests==2.32.3 \
-    --hash=sha256:70761cfe03c773ceb22aa2f671b4757976145175cdfca038c02654d061d6dcc6
+requests==2.32.4 \
+    --hash=sha256:27babd3cda2a6d50b30443204ee89830707d396671944c998b5975b031ac2b2c \
+    --hash=sha256:27d0316682c8a29834d3264820024b62a36942083d52caf2f14c0591336d3422
     # via
     #   -r requirements.in
     #   cdn-definitions
