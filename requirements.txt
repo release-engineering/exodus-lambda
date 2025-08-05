@@ -6,11 +6,11 @@
 #
 --only-binary :all:
 
-boto3==1.39.14 \
-    --hash=sha256:82c6868cad18c3bd4170915e9525f9af5f83e9779c528417f8863629558fc2d0
+boto3==1.40.1 \
+    --hash=sha256:7c007d5c8ee549e9fcad0927536502da199b27891006ef515330f429aca9671f
     # via -r requirements.in
-botocore==1.39.14 \
-    --hash=sha256:4ed551c77194167b7e8063f33059bc2f9b2ead0ed4ee33dc7857273648ed4349
+botocore==1.40.1 \
+    --hash=sha256:e039774b55fbd6fe59f0f4fea51d156a2433bd4d8faa64fc1b87aee9a03f415d
     # via
     #   -r requirements.in
     #   boto3
@@ -21,8 +21,8 @@ cachetools==6.1.0 \
 cdn-definitions==3.3.0 \
     --hash=sha256:e614d54ef65f1873eed2f7292e3b96b8a6eade967cdca1f8fe2fc13eb66cea1a
     # via -r requirements.in
-certifi==2025.7.14 \
-    --hash=sha256:6b31f564a415d79ee77df69d757bb49a5bb53bd9f756cbbe24394ffd6fc1f4b2
+certifi==2025.8.3 \
+    --hash=sha256:f6c12493cfb1b06ba2ff328595af9350c65d6644968e5d3a2ffd78699af217a5
     # via requests
 cffi==1.17.1 \
     --hash=sha256:045d61c734659cc045141be4bae381a41d89b741f795af1dd018bfb532fd0df8 \
@@ -223,8 +223,8 @@ cryptography==45.0.5 \
     --hash=sha256:e74d30ec9c7cb2f404af331d5b4099a9b322a8a6b25c4632755c8757345baac5 \
     --hash=sha256:f3562c2f23c612f2e4a6964a61d942f891d29ee320edb62ff48ffb99f3de9ae8
     # via -r requirements.in
-docutils==0.21.2 \
-    --hash=sha256:dafca5b9e384f0e419294eb4d2ff9fa826435bf15f15b7bd45723e8ad76811b2
+docutils==0.22 \
+    --hash=sha256:4ed966a0e96a0477d852f7af31bdcb3adc049fbb35ccba358c2ea8a03287615e
     # via -r requirements.in
 frozendict==2.4.6 \
     --hash=sha256:02331541611f3897f260900a1815b63389654951126e6e65545e529b63c08361 \
