@@ -6,17 +6,17 @@
 #
 --only-binary :all:
 
-boto3==1.40.16 \
-    --hash=sha256:4b7fbd2b469d5fa6325f0e90310b2d430c9a35e8a984a9919103e6d248422537
+boto3==1.40.21 \
+    --hash=sha256:3772fb828864d3b7046c8bdf2f4860aaca4a79f25b7b060206c6a5f4944ea7f9
     # via -r requirements.in
-botocore==1.40.16 \
-    --hash=sha256:0296a245cb349431279d825522ae70270edf8d8be7b91108fdcc086ea347c0b6
+botocore==1.40.21 \
+    --hash=sha256:574ecf9b68c1721650024a27e00e0080b6f141c281ebfce49e0d302969270ef4
     # via
     #   -r requirements.in
     #   boto3
     #   s3transfer
-cachetools==6.1.0 \
-    --hash=sha256:1c7bb3cf9193deaf3508b7c5f2a79986c13ea38965c5adcff1f84519cf39163e
+cachetools==6.2.0 \
+    --hash=sha256:1c76a8960c0041fcc21097e357f882197c79da0dbff766e7317890a65d7d8ba6
     # via -r requirements.in
 cdn-definitions==3.3.0 \
     --hash=sha256:e614d54ef65f1873eed2f7292e3b96b8a6eade967cdca1f8fe2fc13eb66cea1a
