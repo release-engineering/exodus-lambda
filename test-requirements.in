@@ -7,7 +7,4 @@ pytest-cov
 mypy
 importlib-metadata
 bandit
-safety
 freezegun
-# marshmallow (dependency of safety) version 4.0 introduces breaking changes
-marshmallow<4
