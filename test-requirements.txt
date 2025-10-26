@@ -12,11 +12,11 @@ astroid==4.0.1 \
 bandit==1.8.6 \
     --hash=sha256:3348e934d736fcdb68b6aa4030487097e23a501adf3e7827b63658df464dddd0
     # via -r test-requirements.in
-boto3==1.40.55 \
-    --hash=sha256:2e30f5a0d49e107b8a5c0c487891afd300bfa410e1d918bf187ae45ac3839332
+boto3==1.40.59 \
+    --hash=sha256:75752e7dc445131700a58926a50ca705794232f0f47d0e21edb59fbf1898db95
     # via -r requirements.in
-botocore==1.40.55 \
-    --hash=sha256:cdc38f7a4ddb30a2cd1cdd4fabde2a5a16e41b5a642292e1c30de5c4e46f5d44
+botocore==1.40.59 \
+    --hash=sha256:042dd844ca82155ca1ab9608b9bef36d517515c775d075f57b89257108ae843b
     # via
     #   -r requirements.in
     #   boto3
@@ -530,8 +530,8 @@ pygments==2.19.2 \
     # via
     #   pytest
     #   rich
-pylint==4.0.1 \
-    --hash=sha256:6077ac21d01b7361eae6ed0f38d9024c02732fdc635d9e154d4fe6063af8ac56
+pylint==4.0.2 \
+    --hash=sha256:9627ccd129893fb8ee8e8010261cb13485daca83e61a6f854a85528ee579502d
     # via -r test-requirements.in
 pytest==8.4.2 \
     --hash=sha256:872f880de3fc3a5bdc88a11b39c9710c3497a547cfa9320bc3c5e62fbf272e79
