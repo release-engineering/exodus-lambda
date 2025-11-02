@@ -12,11 +12,11 @@ astroid==4.0.1 \
 bandit==1.8.6 \
     --hash=sha256:3348e934d736fcdb68b6aa4030487097e23a501adf3e7827b63658df464dddd0
     # via -r test-requirements.in
-boto3==1.40.59 \
-    --hash=sha256:75752e7dc445131700a58926a50ca705794232f0f47d0e21edb59fbf1898db95
+boto3==1.40.64 \
+    --hash=sha256:35ca3dd80dd90d5f4e8ed032440f28790696fdf50f48c0d16a09a75675f9112f
     # via -r requirements.in
-botocore==1.40.59 \
-    --hash=sha256:042dd844ca82155ca1ab9608b9bef36d517515c775d075f57b89257108ae843b
+botocore==1.40.64 \
+    --hash=sha256:6902b3dadfba1fbacc9648171bef3942530d8f823ff2bdb0e585a332323f89fc
     # via
     #   -r requirements.in
     #   boto3
