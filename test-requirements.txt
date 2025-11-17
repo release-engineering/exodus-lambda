@@ -12,17 +12,17 @@ astroid==4.0.2 \
 bandit==1.8.6 \
     --hash=sha256:3348e934d736fcdb68b6aa4030487097e23a501adf3e7827b63658df464dddd0
     # via -r test-requirements.in
-boto3==1.40.71 \
-    --hash=sha256:4ac9ee8d1629e45d6b6adc727795d1fc9852e998cd1a73e4eda50f6120677bab
+boto3==1.40.74 \
+    --hash=sha256:41fc8844b37ae27b24bcabf8369769df246cc12c09453988d0696ad06d6aa9ef
     # via -r requirements.in
-botocore==1.40.71 \
-    --hash=sha256:4c05907b2a56b1f6fd70403fbae0f09a4758b95758192db5ff93c0e9940a11bb
+botocore==1.40.74 \
+    --hash=sha256:f39f5763e35e75f0bd91212b7b36120b1536203e8003cd952ef527db79702b15
     # via
     #   -r requirements.in
     #   boto3
     #   s3transfer
-cachetools==6.2.1 \
-    --hash=sha256:09868944b6dde876dfd44e1d47e18484541eaf12f26f29b7af91b26cc892d701
+cachetools==6.2.2 \
+    --hash=sha256:6c09c98183bf58560c97b2abfcedcbaf6a896a490f534b031b661d3723b45ace
     # via -r requirements.in
 cdn-definitions==3.4.1 \
     --hash=sha256:d3bb0bccc07916423b96e37dc881794fe62565d5283e5713b410f6d53631ce89
@@ -582,8 +582,8 @@ pygments==2.19.2 \
     # via
     #   pytest
     #   rich
-pylint==4.0.2 \
-    --hash=sha256:9627ccd129893fb8ee8e8010261cb13485daca83e61a6f854a85528ee579502d
+pylint==4.0.3 \
+    --hash=sha256:896d09afb0e78bbf2e030cd1f3d8dc92771a51f7e46828cbc3948a89cd03433a
     # via -r test-requirements.in
 pytest==9.0.1 \
     --hash=sha256:67be0030d194df2dfa7b556f2e56fb3c3315bd5c8822c6951162b92b32ce7dad
