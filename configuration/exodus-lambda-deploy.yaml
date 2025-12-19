@@ -94,6 +94,8 @@ Resources:
           ViewerProtocolPolicy: redirect-to-https
         Enabled: true
         HttpVersion: http2
+        ViewerCertificate:
+          MinimumProtocolVersion: TLSv1.2_2021
         Origins:
           - DomainName: !Sub "${project}-cdn-${env}.s3.amazonaws.com"
             Id: !Sub "S3-${project}-cdn-${env}"
