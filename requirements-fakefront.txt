@@ -4,11 +4,13 @@
 #
 #    pip-compile --generate-hashes --pip-args='--platform "manylinux2014_x86_64" --only-binary=":all:" --python-version="3.11" --implementation cp' requirements-fakefront.in
 #
-boto3==1.42.21 \
-    --hash=sha256:1885f252d715a5810bb4e0c5bbebfa8e9018b025febf5be3d58540626e7b43d2
+--only-binary :all:
+
+boto3==1.42.25 \
+    --hash=sha256:8128bde4f9d5ffce129c76d1a2efe220e3af967a2ad30bc305ba088bbc96343d
     # via -r requirements.in
-botocore==1.42.21 \
-    --hash=sha256:6b59973a3ba8c3cfd5123f2656fef2339beee9f6483b8bc12bb00c5453ea2c6d
+botocore==1.42.25 \
+    --hash=sha256:470261966aab1d09a1cd4ba56810098834443602846559ba9504f6613dfa52dc
     # via
     #   -r requirements.in
     #   boto3
@@ -482,7 +484,6 @@ six==1.17.0 \
     --hash=sha256:4721f391ed90541fddacab5acf947aa0d3dc7d27b2e1e8eda2be8970586c3274
     # via python-dateutil
 urllib3==2.6.3 \
-    --hash=sha256:1b62b6884944a57dbe321509ab94fd4d3b307075e0c2eae991ac71ee15ad38ed \
     --hash=sha256:bf272323e553dfb2e87d9bfd225ca7b0f467b919d7bbd355436d3fd37cb0acd4
     # via
     #   botocore
