@@ -127,7 +127,7 @@ def ensure_secret():
         endpoint_url=os.environ.get("EXODUS_AWS_ENDPOINT_URL") or None,
     )
 
-    (_, privkey) = ensure_keypair()
+    _, privkey = ensure_keypair()
 
     secret = json.dumps({"cookie_key": open(privkey).read()})
 
