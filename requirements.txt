@@ -4,17 +4,19 @@
 #
 #    pip-compile --generate-hashes --pip-args='--platform "manylinux2014_x86_64" --only-binary=":all:" --python-version="3.11" --implementation cp' requirements.in
 #
-boto3==1.42.44 \
-    --hash=sha256:32e995b0d56e19422cff22f586f698e8924c792eb00943de9c517ff4607e4e18
+--only-binary :all:
+
+boto3==1.42.49 \
+    --hash=sha256:99e1df4361c3f6ff6ade65803c043ea96314826134962dd3b385433b309eb819
     # via -r requirements.in
-botocore==1.42.44 \
-    --hash=sha256:ba406b9243a20591ee87d53abdb883d46416705cebccb639a7f1c923f9dd82df
+botocore==1.42.49 \
+    --hash=sha256:1c33544f72101eed4ccf903ebb667a803e14e25b2af4e0836e4b871da1c0af37
     # via
     #   -r requirements.in
     #   boto3
     #   s3transfer
-cachetools==7.0.0 \
-    --hash=sha256:d52fef60e6e964a1969cfb61ccf6242a801b432790fe520d78720d757c81cbd2
+cachetools==7.0.1 \
+    --hash=sha256:8f086515c254d5664ae2146d14fc7f65c9a4bce75152eb247e5a9c5e6d7b2ecf
     # via -r requirements.in
 cdn-definitions==3.4.1 \
     --hash=sha256:d3bb0bccc07916423b96e37dc881794fe62565d5283e5713b410f6d53631ce89
@@ -257,7 +259,6 @@ cryptography==46.0.5 \
     --hash=sha256:9f16fbdf4da055efb21c22d81b89f155f02ba420558db21288b3d0035bafd5f4 \
     --hash=sha256:a3d1fae9863299076f05cb8a778c467578262fae09f9dc0ee9b12eb4268ce663 \
     --hash=sha256:a3d507bb6a513ca96ba84443226af944b0f7f47dcc9a399d110cd6146481d24c \
-    --hash=sha256:abace499247268e3757271b2f1e244b36b06f8515cf27c4d49468fc9eb16e93d \
     --hash=sha256:ba2a27ff02f48193fc4daeadf8ad2590516fa3d0adeeb34336b96f7fa64c1e3a \
     --hash=sha256:bc84e875994c3b445871ea7181d424588171efec3e185dced958dad9e001950a \
     --hash=sha256:bfd56bb4b37ed4f330b82402f6f435845a5f5648edf1ad497da51a8452d5d62d \
