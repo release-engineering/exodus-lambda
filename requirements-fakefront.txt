@@ -6,11 +6,11 @@
 #
 --only-binary :all:
 
-boto3==1.42.54 \
-    --hash=sha256:71194e855bfc81a21872cbe29c41f52ffdbe67e0a184a52c13346ef00b328939
+boto3==1.42.59 \
+    --hash=sha256:7a66e3e8e2087ea4403e135e9de592e6d63fc9a91080d8dac415bb74df873a72
     # via -r requirements.in
-botocore==1.42.54 \
-    --hash=sha256:853a0822de66d060aeebafa07ca13a03799f7958313d1b29f8dc7e2e1be8f527
+botocore==1.42.59 \
+    --hash=sha256:d2f2ff7ecc31e86ef46b5daee112cfbca052c13801285fb23af909f7bff5b657
     # via
     #   -r requirements.in
     #   boto3
@@ -21,8 +21,8 @@ cachetools==7.0.1 \
 cdn-definitions==3.4.1 \
     --hash=sha256:d3bb0bccc07916423b96e37dc881794fe62565d5283e5713b410f6d53631ce89
     # via -r requirements.in
-certifi==2026.1.4 \
-    --hash=sha256:9943707519e4add1115f44c2bc244f782c0249876bf51b6599fee1ffbedd685c
+certifi==2026.2.25 \
+    --hash=sha256:027692e4402ad994f1c42e52a4997a9763c646b73e4096e4d5d6db8af1d6f0fa
     # via requests
 cffi==2.0.0 \
     --hash=sha256:00bdf7acc5f795150faa6957054fbbca2439db2f775ce831222b66f192f03beb \
