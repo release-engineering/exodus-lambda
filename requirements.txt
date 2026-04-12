@@ -4,11 +4,13 @@
 #
 #    pip-compile --generate-hashes --pip-args='--platform "manylinux2014_x86_64" --only-binary=":all:" --python-version="3.11" --implementation cp' requirements.in
 #
-boto3==1.42.83 \
-    --hash=sha256:544846fdb10585bb7837e409868e8e04c6b372fa04479ba1597ce82cf1242076
+--only-binary :all:
+
+boto3==1.42.88 \
+    --hash=sha256:2d0f52c971503377e4370d2a83edee6f077ddb8e684366ff38df4f13581d9cfc
     # via -r requirements.in
-botocore==1.42.83 \
-    --hash=sha256:ec0c3ecb3772936ed22a3bdda09883b34858933f71004686d460d829bab39d8e
+botocore==1.42.88 \
+    --hash=sha256:032375b213305b6b81eedb269eaeefdf96f674620799bbf96117dca86052cc1a
     # via
     #   -r requirements.in
     #   boto3
@@ -278,7 +280,6 @@ cryptography==46.0.7 \
     --hash=sha256:d5f7520159cd9c2154eb61eb67548ca05c5774d39e9c2c4339fd793fe7d097b2 \
     --hash=sha256:db0f493b9181c7820c8134437eb8b0b4792085d37dbb24da050476ccb664e59c \
     --hash=sha256:e06acf3c99be55aa3b516397fe42f5855597f430add9c17fa46bf2e0fb34c9bb \
-    --hash=sha256:e4cfd68c5f3e0bfdad0d38e023239b96a2fe84146481852dffbcca442c245aa5 \
     --hash=sha256:ea42cbe97209df307fdc3b155f1b6fa2577c0defa8f1f7d3be7d31d189108ad4 \
     --hash=sha256:ebd6daf519b9f189f85c479427bbd6e9c9037862cf8fe89ee35503bd209ed902 \
     --hash=sha256:f247c8c1a1fb45e12586afbb436ef21ff1e80670b2861a90353d9b025583d246 \
