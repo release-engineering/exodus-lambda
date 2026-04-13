@@ -4,6 +4,7 @@
     "fileMatch": [".*Containerfile$"]
   },
   "minimumReleaseAge": "3 days",
+  "minimumReleaseAgeBehavior": "timestamp-optional",
   "packageRules": [
     {
       "matchDepTypes": ["uses-with"],
