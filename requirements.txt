@@ -6,11 +6,11 @@
 #
 --only-binary :all:
 
-boto3==1.43.18 \
-    --hash=sha256:7b62ce5c0a51428d692aa4f2adc9dc2a4a4c2989bf65a0a12834eeffa99b0b84
+boto3==1.43.24 \
+    --hash=sha256:b18ef745274ef548a9660d733d985d4a971b16bd8a6af88165ea9d0e40913b86
     # via -r requirements.in
-botocore==1.43.18 \
-    --hash=sha256:e2610fce16df9f89deab5f3c163430a814e6804034eb95bef8957c8db60b7dbc
+botocore==1.43.24 \
+    --hash=sha256:42903b4bfafd8f15a735ed940473f28e4ba21b2ea67a9b9aaa11dfa7fcb19fd5
     # via
     #   -r requirements.in
     #   boto3
@@ -387,8 +387,8 @@ frozendict==2.4.7 \
 frozenlist2==1.0.0 \
     --hash=sha256:caffe66813e42de320b10d08b8c0604c7eb3f142a8482ad3130243e084f37a2f
     # via cdn-definitions
-idna==3.17 \
-    --hash=sha256:466e48829084efe2548012b855df21540b96f2e20e51bd124c851536556a592c
+idna==3.18 \
+    --hash=sha256:7f952cbe720b688055e3f87de14f5c3e5fdaa8bc3928985c4077ca689de849a2
     # via requests
 jmespath==1.1.0 \
     --hash=sha256:a5663118de4908c91729bea0acadca56526eb2698e83de10cd116ae0f4e97c64
