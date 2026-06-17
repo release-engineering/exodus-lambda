@@ -9,6 +9,9 @@ on:
 jobs:
   run-ci:
     runs-on: ubuntu-latest
+    # Required for OIDC: https://github.com/codecov/codecov-action?tab=readme-ov-file#using-oidc
+    permissions:
+      id-token: write
 
     steps:
     - uses: actions/checkout@v6
@@ -29,6 +32,14 @@ jobs:
 
     - name: Run auto-tests
       run: tox -e cov-ci
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v5
+      with:
+        use_oidc: true
+        flags: unit-tests
+        files: coverage.xml
+        fail_ci_if_error: false
 
     - name: Run static analysis
       run: tox -e static
