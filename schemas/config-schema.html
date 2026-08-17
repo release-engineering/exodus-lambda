@@ -55,11 +55,11 @@ type: object
 properties:
   table:
     description: DynamoDB table used for content
-    $ref: &#39;#/definitions/table&#39;
+    $ref: '#/definitions/table'
 
   config_table:
     description: DynamoDB table used for config
-    $ref: &#39;#/definitions/table&#39;
+    $ref: '#/definitions/table'
 
   config_cache_ttl:
     type: integer
@@ -123,7 +123,7 @@ properties:
     type: string
     description: &gt;-
       Basename of index file to be automatically served in response to requests
-      for a &quot;directory&quot; listing.
+      for a "directory" listing.
     maxLength: 500
     minLength: 1
 
@@ -138,14 +138,14 @@ properties:
   logging:
     description: &gt;-
       Logging config dict, as used by `logging.dictConfig` in python stdlib
-    $ref: &#39;#/definitions/logging&#39;
+    $ref: '#/definitions/logging'
 
 required:
 # In practice, we provide most properties in the config file all the time,
 # so we list them as required.
 #
 # It is possible that the code applies some defaults and so some of
-# these aren&#39;t truly required. This was not investigated when the schema
+# these aren't truly required. This was not investigated when the schema
 # was written.
 #
 # If needed, you can remove elements from this list after confirming the
@@ -210,7 +210,7 @@ definitions:
 
           Order matters; earlier regions are higher priority.
         items:
-          $ref: &#39;#/definitions/aws_region&#39;
+          $ref: '#/definitions/aws_region'
         minItems: 1
       name:
         type: string
