@@ -1,7 +1,11 @@
 import logging
 import os
 from typing import Any, Callable, Dict, Iterable, List, Tuple
+from urllib.parse import urlparse
 
+import botocore.auth
+import botocore.awsrequest
+import botocore.credentials
 import requests
 
 from exodus_lambda.functions.origin_request import OriginRequest
@@ -12,6 +16,40 @@ from .lambdaio import LambdaInput, LambdaOutput
 LOG = logging.getLogger("fakefront")
 
 BUCKET_URL = os.environ["EXODUS_FAKEFRONT_BUCKET_URL"]
+
+
+class BotocoreAuth(requests.auth.AuthBase):
+    """Sign requests using AWS Signature V4 via botocore.
+
+    This is needed because S3 requires authenticated requests when using
+    response override query parameters (e.g. response-content-type).
+    """
+
+    def __init__(self):
+        self.credentials = botocore.credentials.Credentials(
+            access_key=os.environ.get("AWS_ACCESS_KEY_ID", "fake-key-id"),
+            secret_key=os.environ.get("AWS_SECRET_ACCESS_KEY", "fake-key"),
+            token=os.environ.get("AWS_SESSION_TOKEN", "fake-token"),
+        )
+        self.signer = botocore.auth.SigV4Auth(
+            self.credentials,
+            "s3",
+            os.environ.get("AWS_DEFAULT_REGION", "us-east-1"),
+        )
+
+    def __call__(self, r):
+        url = urlparse(r.url)
+        headers = {k: v for k, v in r.headers.items()}
+        headers["Host"] = url.hostname
+        aws_request = botocore.awsrequest.AWSRequest(
+            method=r.method,
+            url=r.url,
+            headers=headers,
+        )
+        self.signer.add_auth(aws_request)
+        r.headers.update(dict(aws_request.headers))
+        return r
+
 
 # Type hints for the wsgi start_response callable.
 StartResponseHeaders = List[Tuple[str, str]]
@@ -34,6 +72,7 @@ class Wsgi:
         self.origin_request = OriginRequest()
         self.origin_response = OriginResponse()
         self.s3_session = requests.Session()
+        self.s3_session.auth = BotocoreAuth()
 
     def __call__(
         self, environ: Dict[str, Any], start_response: StartResponse
@@ -80,7 +119,9 @@ class Wsgi:
         start_response(
             origin_response_out.wsgi_status, origin_response_out.wsgi_headers
         )
-        return origin_response_out.wsgi_body or s3_response.iter_content()
+        return origin_response_out.wsgi_body or s3_response.raw.stream(
+            amt=65536, decode_content=False
+        )
 
     def do_s3_request(self, origin_request_out: LambdaOutput):
         """Do a request to S3 bucket based on the value returned from
