@@ -6,11 +6,11 @@
 #
 --only-binary :all:
 
-boto3==1.43.126 \
-    --hash=sha256:dd701a973b02a73930e546a6a15d13edbfbedc3180bb3d55b0a88678c284ccd6
+boto3==1.44.3 \
+    --hash=sha256:8c9c4844c7ce184494b102983696d6cdb09f5307ec7f238ca4ad5849fb14e26b
     # via -r requirements.in
-botocore==1.43.126 \
-    --hash=sha256:2f2239a47025a2fa173cd145ab8803ac02b76114864bf5b66475ff1cb88e6b0a
+botocore==1.44.3 \
+    --hash=sha256:793eac2a7ca167e9376b136cf000e1675e9ffe8d7ec609160cc1ee00b93ace28
     # via
     #   -r requirements.in
     #   boto3
@@ -419,8 +419,8 @@ frozendict==2.5.1 \
 frozenlist2==1.0.0 \
     --hash=sha256:caffe66813e42de320b10d08b8c0604c7eb3f142a8482ad3130243e084f37a2f
     # via cdn-definitions
-gunicorn==26.2.0 \
-    --hash=sha256:bd249d0b3f7972f7432f0a6b6ff3b3ee2d129f70cd1ff6c09a9dd9e29a2b88e3
+gunicorn==27.0.1 \
+    --hash=sha256:378b26b9a38adcf4592f28828233c1716acc55e833ea06bf48719782efaa0d10
     # via -r requirements-fakefront.in
 idna==3.20 \
     --hash=sha256:ab7ae7122974553370f0bdb919e1a960b2cd1bc1ef0276416d896db81c14582c
